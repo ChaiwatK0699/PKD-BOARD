@@ -49,19 +49,21 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-se
 .brand small{display:block; color:var(--muted); font-size:11.5px; letter-spacing:.08em; margin-top:-2px;}
 .datebox{display:flex; align-items:center; gap:8px; margin-left:auto;}
 .datebox label{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
+.upload-ts{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--muted); white-space:nowrap;}
 input[type=date]{background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:var(--radius); font-family:'JetBrains Mono'; font-size:14px;}
 .tabs{display:flex; gap:4px; background:var(--panel-2); padding:4px; border-radius:8px; border:1px solid var(--border); position:relative;}
 .tab-indicator{position:absolute; top:4px; bottom:4px; left:4px; width:0; border-radius:6px; background:var(--panel);
   box-shadow:inset 0 0 0 1px var(--border); transition:left .32s cubic-bezier(.4,0,.2,1), width .32s cubic-bezier(.4,0,.2,1); z-index:0;}
 .tab-btn{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-  background:transparent; border:none; color:var(--muted); padding:8px 20px; border-radius:6px; cursor:pointer; font-size:16px;
+  background:transparent; border:none; color:var(--muted); padding:9px 22px; border-radius:6px; cursor:pointer; font-size:19px;
   transition:color .2s, transform .12s; position:relative; z-index:1;}
 .tab-btn:active{transform:scale(.94);}
 .tab-btn.active{color:var(--text);}
 .tab-btn.active.pending{color:var(--amber);}
 .tab-btn.active.closed{color:var(--teal);}
 .tab-btn.active.home{color:var(--blue);}
-.tab-btn .count{background:var(--border-soft); color:var(--muted); font-family:'JetBrains Mono'; font-size:11.5px; padding:1px 7px; border-radius:10px; margin-left:6px; transition:background .2s;}
+.tab-btn.active.svcava{color:var(--coral);}
+.tab-btn .count{background:var(--border-soft); color:var(--muted); font-family:'JetBrains Mono'; font-size:14px; font-weight:700; padding:2px 9px; border-radius:10px; margin-left:7px; transition:background .2s;}
 @keyframes viewFadeIn{
   from{opacity:0; transform:translateY(8px);}
   to{opacity:1; transform:translateY(0);}
@@ -80,6 +82,15 @@ input[type=date]{background:var(--panel-2); border:1px solid var(--border); colo
 select.sev-select{background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:5px 8px; border-radius:5px; font-size:12.5px; max-width:220px;}
 input.search-box{background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:5px; font-family:'JetBrains Mono'; font-size:12.5px; width:180px;}
 .toggle-chip{display:flex; align-items:center; gap:6px; background:var(--panel-2); border:1px solid var(--border); padding:5px 10px; border-radius:20px; cursor:pointer; font-size:12.5px;}
+.home-sev-filter{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:14px; background:var(--panel);
+  border:1px solid var(--border-soft); border-radius:8px; padding:10px 14px;}
+.home-sev-filter .flabel{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-family:'Barlow Condensed'; font-weight:600;}
+.sev-chip{font-family:'JetBrains Mono'; font-size:11.5px; padding:4px 9px; opacity:.55;}
+.sev-chip.on{opacity:1; border-color:var(--blue); background:var(--blue-dim); color:var(--blue);}
+.collapse-chevron{display:inline-block; width:10px; color:var(--muted-2); font-size:11px;}
+.more-link{font-family:'JetBrains Mono'; font-size:10.5px; color:var(--blue); cursor:pointer; margin-top:4px;}
+.more-link:hover{text-decoration:underline;}
+.tt-subject{font-size:10px; color:var(--muted); line-height:1.35; margin-top:3px; max-width:150px; white-space:normal;}
 .toggle-chip input{accent-color:var(--amber);}
 .btn{font-family:'Inter'; font-weight:600; font-size:14px; letter-spacing:.01em; border:1px solid var(--border); background:var(--panel-2);
   color:var(--text); padding:8px 14px; border-radius:var(--radius); cursor:pointer; display:flex; align-items:center; gap:7px; transition:.15s;}
@@ -145,6 +156,14 @@ textarea.cell-ta{resize:vertical; min-height:34px; font-family:'JetBrains Mono';
 .time-pop label{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:4px;}
 .time-pop input{background:var(--bg); border:1px solid var(--border); color:var(--text); padding:5px 8px; border-radius:4px; font-family:'JetBrains Mono';}
 .time-pop .pop-row{display:flex; gap:6px; margin-top:8px;}
+.confirm-overlay{display:none; position:fixed; inset:0; background:rgba(10,14,20,.45); z-index:400; align-items:center; justify-content:center;}
+.confirm-overlay.open{display:flex;}
+.confirm-box{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:22px 24px; max-width:340px; box-shadow:0 20px 50px var(--shadow-strong);}
+.confirm-title{font-family:'Barlow Condensed'; font-weight:800; font-size:17px; letter-spacing:.03em; color:var(--text); margin-bottom:8px; text-transform:uppercase;}
+.confirm-msg{font-size:13.5px; color:var(--muted); line-height:1.5; margin-bottom:18px;}
+.confirm-actions{display:flex; justify-content:flex-end; gap:8px;}
+.confirm-yes{background:var(--coral); color:#fff; border-color:var(--coral); font-weight:700;}
+.confirm-yes:hover{filter:brightness(1.08);}
 ::-webkit-scrollbar{height:8px; width:8px;}
 ::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px;}
 .toast{position:fixed; bottom:20px; right:20px; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
@@ -200,13 +219,13 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
 .home-plan-readonly{width:100%; font-family:'JetBrains Mono'; font-size:12px; line-height:1.7; color:var(--text); padding:5px; white-space:normal;}
 .home-plan-readonly .muted-dash{color:var(--muted-2);}
 .muted-dash{color:var(--muted-2);}
-.home-evening{width:100%; min-height:56px; background:transparent; border:1px solid var(--border); color:var(--text);
-  font-family:'Inter'; font-size:12.5px; line-height:1.5; padding:6px; border-radius:4px; resize:vertical;}
+.home-evening{width:100%; min-height:110px; background:transparent; border:1px solid var(--border); color:var(--text);
+  font-family:'Inter'; font-size:12.5px; line-height:1.5; padding:8px; border-radius:4px; resize:vertical; overflow:auto;}
 .home-evening:hover{border-color:var(--muted-2);}
 .home-evening:focus{outline:none; border-color:var(--blue); background:var(--panel-2);}
 .home-count-badge{font-family:'JetBrains Mono'; font-weight:700; font-size:16px; text-align:center; display:block;}
-.home-feedback{width:100%; min-height:56px; background:transparent; border:1px solid var(--border); color:var(--text);
-  font-family:'Inter'; font-size:12.5px; line-height:1.5; padding:6px; border-radius:4px; resize:vertical; overflow:hidden;}
+.home-feedback{width:100%; min-height:110px; background:transparent; border:1px solid var(--border); color:var(--text);
+  font-family:'Inter'; font-size:12.5px; line-height:1.5; padding:8px; border-radius:4px; resize:vertical; overflow:auto;}
 .home-feedback:hover{border-color:var(--muted-2);}
 .home-feedback:focus{outline:none; border-color:var(--blue); background:var(--panel-2);}
 .home-summary{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:20px;}
@@ -221,10 +240,20 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
   letter-spacing:.05em; text-transform:uppercase; font-size:10px; color:var(--muted-2);}
 .val.muted-dash{color:var(--muted-2)!important;}
 .summary-line:last-child{border-bottom:none;}
+.summary-line.summary-total{border-top:2px solid var(--border); margin-top:4px; padding-top:9px;}
+.summary-line.summary-total .lbl{color:var(--text); font-weight:700; text-transform:uppercase; letter-spacing:.04em; font-family:'Barlow Condensed'; font-size:12.5px;}
+.summary-line.summary-total .val{color:var(--text);}
 .summary-line .lbl{color:var(--muted); font-family:'JetBrains Mono'; font-size:11.5px;}
 .summary-line .val{font-family:'JetBrains Mono'; font-weight:700; font-size:17px;}
-.summary-note{width:100%; margin-top:8px; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
-  font-size:12.5px; padding:6px 8px; border-radius:4px;}
+.summary-note{width:100%; min-height:70px; margin-top:8px; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+  font-size:12.5px; line-height:1.5; padding:8px 10px; border-radius:4px; resize:vertical; font-family:'Inter'; box-sizing:border-box;}
+.svcava-hero{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:24px 28px; margin-bottom:20px;}
+.svcava-big{font-family:'Barlow Condensed'; font-weight:800; font-size:48px; color:var(--coral); letter-spacing:.01em;}
+.svcava-sub{font-family:'JetBrains Mono'; font-size:12.5px; color:var(--muted); margin-top:6px;}
+table.svcava-table{width:100%; border-collapse:collapse; font-size:13.5px; background:var(--panel); border:1px solid var(--border-soft); border-radius:8px;}
+table.svcava-table thead th{text-align:left; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--panel-2);}
+table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft);}
 </style>
 </head>
 <body>
@@ -239,14 +268,16 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
     <button class="tab-btn home active" id="tabHomeBtn" onclick="switchTab('home')">Home</button>
     <button class="tab-btn pending" id="tabPendingBtn" onclick="switchTab('pending')">Pending <span class="count" id="countPending">0</span></button>
     <button class="tab-btn closed" id="tabClosedBtn" onclick="switchTab('closed')">Closed <span class="count" id="countClosed">0</span></button>
+    <button class="tab-btn svcava" id="tabSvcAvaBtn" onclick="switchTab('svcava')">Service Availability</button>
   </div>
-  <div class="datebox"><label>Date</label><input type="date" id="boardDate" onchange="loadAll()"></div>
+  <div class="datebox"><label>Date</label><input type="date" id="boardDate" onchange="loadAll()"><span class="upload-ts" id="uploadTs"></span></div>
   <button class="btn ghost sm" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle day/night mode">☾ Night</button>
 </div>
 
 <div class="wrap">
   <div id="homeView" class="tab-view">
     <div class="home-title" id="homeTitle"></div>
+    <div class="home-sev-filter" id="homeSevFilterBar"></div>
     <div class="home-table-scroll">
     <table class="home-table">
       <thead>
@@ -264,8 +295,8 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
           <th style="width:130px">TT</th>
           <th style="width:90px">SLA</th>
           <th style="width:110px">Status</th>
-          <th style="width:200px">สรุปการแก้ไข ตอนเย็น <span class="th-sub">Cause/Subcause ก่อนปิดงาน</span></th>
-          <th style="width:180px">INOC feedback</th>
+          <th style="width:200px">Update Log Status</th>
+          <th style="width:180px">INOC LOG</th>
         </tr>
       </thead>
       <tbody id="homeTbody"></tbody>
@@ -295,6 +326,22 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
     <div class="filterbar" id="filterbarClosed"></div>
     <div id="closedTeams"></div>
   </div>
+  <div id="svcavaView" class="tab-view" style="display:none;">
+    <div class="svcava-hero" id="svcavaHero"></div>
+    <table class="svcava-table">
+      <thead><tr>
+        <th style="width:120px">Site Code</th>
+        <th style="width:150px">Source Ticket</th>
+        <th style="width:220px">Subject</th>
+        <th style="width:220px">Root Cause</th>
+        <th style="width:220px">Close Description</th>
+        <th style="width:120px">Severity</th>
+        <th style="width:110px">SLA</th>
+        <th style="width:110px">Downtime</th>
+      </tr></thead>
+      <tbody id="svcavaTbody"></tbody>
+    </table>
+  </div>
 </div>
 
 <div class="time-pop" id="timePop">
@@ -303,6 +350,16 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
   <div class="pop-row">
     <button class="btn sm primary" onclick="commitTimePop()">Set</button>
     <button class="btn sm ghost" onclick="closeTimePop()">Cancel</button>
+  </div>
+</div>
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title">ยืนยันการปิดงาน</div>
+    <div class="confirm-msg" id="confirmMsg">แน่ใจไหมว่า Work Order นี้ปิดไปแล้ว?</div>
+    <div class="confirm-actions">
+      <button class="btn sm ghost" onclick="closeConfirmModal()">No</button>
+      <button class="btn sm confirm-yes" id="confirmYesBtn">Yes</button>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -328,8 +385,27 @@ let filters = { pending:{severities:new Set(), pkdOnly:false, search:""}, closed
 let currentTab = "home";
 let ATTENDANCE = {}; // team_key -> {clock_in, arrived, plan_override, inoc_feedback}
 let HOME_NOTE = { service_ava: "" };
+const HOME_SEV_CODES = ["SA1","SA2","SA3","SA4","SA5","SA6","NSA1","NSA2","NSA3","NSA4"];
+let homeSevFilter = new Set(HOME_SEV_CODES); // all selected = show all
+let expandedTeams = new Set(); // empty = all teams start collapsed by default
 
 document.getElementById("boardDate").valueAsDate = new Date();
+
+/* ---- last upload timestamp (shows next to the date picker) ---- */
+function renderUploadTs(){
+  const el = document.getElementById("uploadTs");
+  if(!el) return;
+  const iso = localStorage.getItem("pkd-last-upload");
+  if(!iso){ el.textContent = ""; return; }
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,"0");
+  el.textContent = `Uploaded ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function markUploaded(){
+  localStorage.setItem("pkd-last-upload", new Date().toISOString());
+  renderUploadTs();
+}
+renderUploadTs();
 
 /* ---- theme (day/night) ---- */
 function applyTheme(mode){
@@ -391,6 +467,7 @@ function renderAll(){
   renderFilterbar("pending"); renderFilterbar("closed");
   renderTeams("pending"); renderTeams("closed");
   renderHome();
+  if(currentTab==="svcava") renderSvcAva();
   document.getElementById("countPending").textContent = tickets.pending.length;
   document.getElementById("countClosed").textContent = tickets.closed.length;
 }
@@ -399,11 +476,15 @@ function switchTab(tab){
   document.getElementById("tabHomeBtn").classList.toggle("active", tab==="home");
   document.getElementById("tabPendingBtn").classList.toggle("active", tab==="pending");
   document.getElementById("tabClosedBtn").classList.toggle("active", tab==="closed");
-  const homeEl = document.getElementById("homeView"), pendingEl = document.getElementById("pendingView"), closedEl = document.getElementById("closedView");
+  document.getElementById("tabSvcAvaBtn").classList.toggle("active", tab==="svcava");
+  const homeEl = document.getElementById("homeView"), pendingEl = document.getElementById("pendingView"),
+    closedEl = document.getElementById("closedView"), svcavaEl = document.getElementById("svcavaView");
   homeEl.style.display = tab==="home" ? "block":"none";
   pendingEl.style.display = tab==="pending" ? "block":"none";
   closedEl.style.display = tab==="closed" ? "block":"none";
-  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : closedEl;
+  svcavaEl.style.display = tab==="svcava" ? "block":"none";
+  if(tab==="svcava") renderSvcAva();
+  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="closed" ? closedEl : svcavaEl;
   shownEl.classList.remove("anim-in");
   void shownEl.offsetWidth; // restart animation
   shownEl.classList.add("anim-in");
@@ -443,6 +524,10 @@ function onSearch(group, val){ filters[group].search = val; renderTeams(group); 
 
 function passFilter(r, group){
   const f = filters[group];
+  const sevFam = (r.severity||"").split("-")[0] || "";
+  const sevUp = sevFam.toUpperCase();
+  if(sevUp.startsWith("PSA")) return false; // hide PSA everywhere
+  if(sevUp==="NSA5" || sevUp==="NSA6") return false; // hide NSA5/6 everywhere
   if(f.severities.size && !f.severities.has(r.severity)) return false;
   if(f.pkdOnly && !isPkdMatch(r)) return false;
   if(f.search){
@@ -463,12 +548,14 @@ function renderTeams(group){
   const rows = tickets[group].filter(r=>passFilter(r, group));
   const extraCols = group==="pending"
     ? [{h:"Suspend Reason", w:130, field:"suspend_reason", editable:true},
-       {h:"Suspend Description", w:160, field:"suspend_description", editable:true}]
+       {h:"Suspend Description", w:160, field:"suspend_description", editable:true},
+       {h:"Update Log Status", w:220, field:"evening_summary", editable:true, big:true}]
     : [{h:"Suspend Reason", w:130, field:"suspend_reason", editable:true},
        {h:"Suspend Description", w:160, field:"suspend_description", editable:true},
        {h:"Root Cause", w:170, field:"root_cause", editable:false},
        {h:"Sub Root Cause", w:170, field:"sub_root_cause", editable:false},
-       {h:"Close Description", w:200, field:"close_description", editable:false}];
+       {h:"Close Description", w:200, field:"close_description", editable:false},
+       {h:"Update Log Status", w:220, field:"evening_summary", editable:true, big:true}];
   TEAM_MAP.forEach(tm=>{
     const team = tm.team_key;
     const teamRows = rows.filter(r=>r.team===team);
@@ -492,7 +579,7 @@ function renderTeams(group){
     const table = document.createElement("table");
     table.innerHTML = `
       <thead><tr>
-        <th style="width:110px">Site ID</th>
+        <th style="width:150px">Site ID</th>
         <th style="width:150px">TT / Ext ID</th>
         <th style="width:120px">Severity / SLA</th>
         <th style="width:170px">Subject</th>
@@ -503,7 +590,7 @@ function renderTeams(group){
         <th style="width:120px">Completed</th>
         <th style="width:120px">Closed</th>
         ${extraCols.map(c=>`<th style="width:${c.w}px">${c.h}</th>`).join("")}
-        <th style="width:150px">INOC Feedback</th>
+        <th style="width:150px">INOC LOG</th>
         <th style="width:60px"></th>
       </tr></thead><tbody></tbody>`;
     scrollDiv.appendChild(table);
@@ -533,11 +620,13 @@ function renderTeams(group){
         <td class="dt-cell">${fmtDT(r.arrived_time)}</td>
         <td class="dt-cell">${fmtDT(r.completed_time)}</td>
         <td class="dt-cell">${fmtDT(r.closed_time)}</td>
-        ${extraCols.map(c=> c.editable
+        ${extraCols.map(c=> c.big
+          ? `<td><textarea class="home-evening" placeholder="Update log status…" oninput="autoGrow(this)" onchange="updateField('${r.id}','${c.field}', this.value)">${esc(r[c.field]||'')}</textarea></td>`
+          : c.editable
           ? `<td><input class="cell-input" value="${esc(r[c.field]||'')}" placeholder="…" onchange="updateField('${r.id}','${c.field}', this.value)"></td>`
           : `<td class="subject-cell">${esc(r[c.field]||'')}</td>`
         ).join("")}
-        <td><input class="cell-input" value="${esc(r.inoc_feedback||'')}" placeholder="comment…" onchange="updateField('${r.id}','inoc_feedback', this.value)"></td>
+        <td><textarea class="home-feedback" placeholder="INOC log…" oninput="autoGrow(this)" onchange="updateField('${r.id}','inoc_feedback', this.value)">${esc(r.inoc_feedback||'')}</textarea></td>
         <td>
           <div class="actions-cell">
             <button class="icon-btn move" title="${group==='pending'?'Mark closed':'Move to pending'}" onclick="toggleGroup('${r.id}','${group}')">${group==='pending'?'✓':'↺'}</button>
@@ -546,6 +635,7 @@ function renderTeams(group){
       tbody.appendChild(tr);
     });
   });
+  document.querySelectorAll("#pendingTeams textarea, #closedTeams textarea").forEach(autoGrow);
 }
 
 /* ---------------- HOME SUMMARY PAGE ---------------- */
@@ -590,24 +680,117 @@ function autoPlanText(team){
     return `${i+1}.${site} ${r.tt_number||r.work_order_id||'-'}${sevShort?'/'+sevShort:''}`;
   }).join("\n");
 }
+function homeSevPass(r){
+  const code = (r.severity||"").split("-")[0] || "";
+  const up = code.toUpperCase();
+  if(up.startsWith("PSA")) return false; // hide PSA everywhere on Home
+  if(up==="NSA5" || up==="NSA6") return false; // hide NSA5/6 everywhere on Home
+  if(!HOME_SEV_CODES.includes(code)) return true; // any other unrecognized code still shown
+  return homeSevFilter.has(code);
+}
+function toggleHomeSev(code){
+  if(homeSevFilter.has(code)) homeSevFilter.delete(code); else homeSevFilter.add(code);
+  renderHome();
+}
+function homeSevAllToggle(){
+  if(homeSevFilter.size === HOME_SEV_CODES.length) homeSevFilter.clear();
+  else homeSevFilter = new Set(HOME_SEV_CODES);
+  renderHome();
+}
+function renderHomeSevFilter(){
+  const el = document.getElementById("homeSevFilterBar");
+  if(!el) return;
+  const allOn = homeSevFilter.size === HOME_SEV_CODES.length;
+  el.innerHTML = `
+    <span class="flabel" style="margin-right:4px;">Severity Filter</span>
+    <label class="toggle-chip"><input type="checkbox" ${allOn?'checked':''} onchange="homeSevAllToggle()"> All</label>
+    ${HOME_SEV_CODES.map(c=>`<label class="toggle-chip sev-chip ${homeSevFilter.has(c)?'on':''}"><input type="checkbox" ${homeSevFilter.has(c)?'checked':''} onchange="toggleHomeSev('${c}')"> ${c}</label>`).join("")}
+  `;
+}
+function toggleTeamCollapse(team){
+  if(expandedTeams.has(team)) expandedTeams.delete(team); else expandedTeams.add(team);
+  renderHome();
+}
+function fmtHM(totalMinutes){
+  const m = Math.max(0, Math.round(totalMinutes));
+  const h = Math.floor(m/60);
+  const mm = m%60;
+  return `${h}:${String(mm).padStart(2,"0")}`;
+}
+function calcServiceAvailability(dateVal){
+  const TOTAL_SITE_MINUTES = 168 * 24 * 60;
+  const rows = tickets.closed.filter(r=>{
+    const fam = (r.severity||"").split("-")[0] || "";
+    if(!fam.toUpperCase().startsWith("SA")) return false; // SA family only (excludes NSA, PSA since those start with N/P)
+    if(!r.closed_time || r.closed_time.slice(0,10)!==dateVal) return false;
+    return true;
+  });
+  let totalDowntime = 0;
+  const detail = rows.map(r=>{
+    let mins = 0;
+    if(r.created_time && r.closed_time){
+      const t1 = new Date(r.created_time.replace(" ","T"));
+      const t2 = new Date(r.closed_time.replace(" ","T"));
+      if(!isNaN(t1) && !isNaN(t2)) mins = Math.max(0, (t2-t1)/60000);
+    }
+    totalDowntime += mins;
+    return {...r, downtimeMinutes: Math.round(mins)};
+  });
+  const percent = ((TOTAL_SITE_MINUTES - totalDowntime) / TOTAL_SITE_MINUTES) * 100;
+  return { percent, totalDowntime, detail };
+}
+function renderSvcAva(){
+  const dateVal = document.getElementById("boardDate").value;
+  const { percent, totalDowntime, detail } = calcServiceAvailability(dateVal);
+  document.getElementById("svcavaHero").innerHTML = `
+    <div class="svcava-big">${percent.toFixed(4)}%</div>
+    <div class="svcava-sub">Service Availability — ${esc(dateVal)} · Downtime: ${fmtHM(totalDowntime)} (H:m) across ${detail.length} SA ticket(s)</div>
+  `;
+  const tbody = document.getElementById("svcavaTbody");
+  if(detail.length===0){
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-hint">No SA-severity tickets closed on this date.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = detail.map(r=>{
+    const site = extractPkdSite(r);
+    const slaOver = (r.sla||"").toLowerCase().includes("over");
+    return `<tr>
+      <td class="site-pkd-cell">${esc(site)}</td>
+      <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}</td>
+      <td class="subject-cell">${esc(r.subject||'')}</td>
+      <td class="subject-cell">${esc(r.root_cause||'')}</td>
+      <td class="subject-cell">${esc(r.close_description||'')}</td>
+      <td><span class="sev-badge">${esc(r.severity||'-')}</span></td>
+      <td class="${slaOver?'sla-over':'sla-in'}">${slaOver?'Over':'Within SLA'}</td>
+      <td class="dt-cell">${fmtHM(r.downtimeMinutes)}</td>
+    </tr>`;
+  }).join("");
+}
+function calcServiceAvailabilityForCard(){ return calcServiceAvailability(document.getElementById("boardDate").value); }
+
 function renderHome(){
   const dateVal = document.getElementById("boardDate").value;
   const d = dateVal ? new Date(dateVal+"T00:00:00") : new Date();
   document.getElementById("homeTitle").textContent = d.toLocaleDateString("en-GB",{day:"2-digit",month:"short"});
+  renderHomeSevFilter();
 
   const tbody = document.getElementById("homeTbody");
   tbody.innerHTML = "";
   TEAM_MAP.forEach(tm=>{
     const team = tm.team_key;
     const att = ATTENDANCE[team] || {};
-    const planRows = tickets.pending.filter(r=>r.team===team && isPkdMatch(r))
+    const allPlanRows = tickets.pending.filter(r=>r.team===team && isPkdMatch(r) && homeSevPass(r))
       .sort((a,b)=>(a.plan_order||9999)-(b.plan_order||9999));
-    const pendingCount = planRows.length;
+    const pendingCount = allPlanRows.length;
     const closedCount = tickets.closed.filter(r=>r.team===team && r.closed_time && r.closed_time.slice(0,10)===dateVal && isPkdMatch(r)).length;
     const rowClass = team.startsWith("NODE") ? "home-row-node":"home-row-ofc";
+    const collapsed = !expandedTeams.has(team);
+    const planRows = collapsed ? allPlanRows.slice(0,1) : allPlanRows;
     const n = Math.max(planRows.length, 1);
+    const moreCount = allPlanRows.length - planRows.length;
+    const chevron = collapsed ? "▸" : "▾";
 
-    if(planRows.length===0){
+    if(allPlanRows.length===0){
       const tr = document.createElement("tr");
       tr.className = rowClass;
       tr.innerHTML = `
@@ -638,8 +821,11 @@ function renderHome(){
       if(i===0){
         cells += `
         <td class="locked-col col-team" rowspan="${n}">
-          <div class="home-team-name">${team}</div>
+          <div class="home-team-name" style="cursor:pointer;" onclick="toggleTeamCollapse('${team}')">
+            <span class="collapse-chevron">${chevron}</span> ${team}
+          </div>
           <div class="home-team-contact">${esc(tm.raw_label||"")}<br>${esc(tm.contact_name||"")} ${esc(tm.phone?('Tel.'+tm.phone):'')}</div>
+          ${moreCount>0 ? `<div class="more-link" onclick="toggleTeamCollapse('${team}')">+${moreCount} more…</div>` : ''}
         </td>
         <td class="locked-col col-clockin" rowspan="${n}"><input class="home-input" value="${esc(att.clock_in||'')}" placeholder="เวลา" onchange="updateAttendance('${team}','clock_in', this.value)"></td>
         <td class="locked-col col-1starrive" rowspan="${n}"><input class="home-input" value="${esc(att.first_arrive||'')}" placeholder="เวลา" onchange="updateAttendance('${team}','first_arrive', this.value)"></td>`;
@@ -647,12 +833,12 @@ function renderHome(){
       cells += `
         <td><div class="plan-cell" draggable="true"><span class="drag-handle">⠿</span><span class="plan-label">Plan ${i+1}</span></div></td>
         <td class="site-pkd-cell">${esc(site)}${pkdType==='subject'?'*':''}</td>
-        <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}</td>
+        <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}<div class="tt-subject">${esc((r.subject||'').slice(0,90))}</div></td>
         <td><span class="sev-badge">${esc(sevShort)}</span></td>
         <td class="status-cell">${esc(r.wo_status||'-')}<br><span class="status-time">${esc(statusTime||'—')}</span></td>
-        <td><textarea class="home-evening" placeholder="สรุปการแก้ไข + เช็ค cause/subcause ก่อนปิดงาน…" oninput="autoGrow(this)"
+        <td><textarea class="home-evening" placeholder="Update log status: สรุปการแก้ไข + เช็ค cause/subcause ก่อนปิดงาน…" oninput="autoGrow(this)"
             onchange="updateField('${r.id}','evening_summary', this.value)">${esc(r.evening_summary||'')}</textarea></td>
-        <td><textarea class="home-feedback" placeholder="comment…" oninput="autoGrow(this)"
+        <td><textarea class="home-feedback" placeholder="INOC log…" oninput="autoGrow(this)"
             onchange="updateField('${r.id}','inoc_feedback', this.value)">${esc(r.inoc_feedback||'')}</textarea></td>`;
       if(i===0){
         cells += `
@@ -684,15 +870,24 @@ function renderHome(){
     return "var(--blue)";
   }
   function severityLines(teamList){
-    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPkdMatch(r));
+    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPkdMatch(r) && homeSevPass(r));
     const tally = {};
-    rows.forEach(r=>{ const c = sevShort(r.severity); if(c) tally[c] = (tally[c]||0)+1; });
+    rows.forEach(r=>{
+      const c = sevShort(r.severity);
+      if(!c) return;
+      if(c.toUpperCase().startsWith("PSA")) return; // hide PSA in summary
+      if(c.toUpperCase()==="NSA5" || c.toUpperCase()==="NSA6") return; // hide NSA5/6 in summary
+      tally[c] = (tally[c]||0)+1;
+    });
     const keys = Object.keys(tally).sort((a,b)=>{
       const ka=sevSortKey(a), kb=sevSortKey(b);
       return ka[0]-kb[0] || ka[2]-kb[2];
     });
+    const total = Object.values(tally).reduce((a,b)=>a+b,0);
     if(keys.length===0) return '<div class="summary-line"><span class="lbl">—</span><span class="val muted-dash">0</span></div>';
-    return keys.map(k=>`<div class="summary-line"><span class="lbl">${esc(k)}</span><span class="val" style="color:${sevColor(k)}">${tally[k]}</span></div>`).join("");
+    const lines = keys.map(k=>`<div class="summary-line"><span class="lbl">${esc(k)}</span><span class="val" style="color:${sevColor(k)}">${tally[k]}</span></div>`).join("");
+    const totalLine = `<div class="summary-line summary-total"><span class="lbl">Total</span><span class="val">${total}</span></div>`;
+    return lines + totalLine;
   }
   function statusLines(teamList){
     const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPkdMatch(r));
@@ -704,6 +899,7 @@ function renderHome(){
       `<div class="summary-line sm"><span class="lbl">${esc(k)}</span><span class="val sm">${tally[k]}</span></div>`).join("");
   }
 
+  const svcAva = calcServiceAvailability(dateVal);
   document.getElementById("homeSummary").innerHTML = `
     <div class="summary-card">
       <h4>Node Pending <span style="color:var(--muted-2);font-weight:400;font-size:12px;">(PKD only)</span></h4>
@@ -714,13 +910,16 @@ function renderHome(){
       <div class="summary-body">${severityLines(ofcTeams)}</div>
     </div>
     <div class="summary-card">
-      <h4>Service Ava <span style="color:var(--muted-2);font-weight:400;font-size:12px;">(PKD only)</span></h4>
+      <h4>Service Availability</h4>
       <div class="summary-body">
-        <div class="summary-line"><span class="lbl">PKD Closed today (all teams)</span><span class="val" style="color:var(--teal)">${totalClosedToday}</span></div>
-        <input class="summary-note" placeholder="สรุปตัวเลข Day-1 / หมายเหตุ…" value="${esc(HOME_NOTE.service_ava||'')}" onchange="updateHomeNote(this.value)">
+        <div class="summary-line"><span class="lbl">SA Severity — ${esc(dateVal)}</span><span class="val" style="color:var(--coral)">${svcAva.percent.toFixed(4)}%</span></div>
+        <div class="more-link" onclick="switchTab('svcava')">View detail →</div>
+        <textarea class="summary-note" placeholder="หมายเหตุในเหตุการณ์สำคัญ…" oninput="autoGrow(this)" onchange="updateHomeNote(this.value)">${esc(HOME_NOTE.service_ava||'')}</textarea>
       </div>
     </div>
   `;
+  const noteEl = document.querySelector(".summary-note");
+  if(noteEl) autoGrow(noteEl);
 }
 
 function wireDragDrop(tbody){
@@ -831,12 +1030,33 @@ async function updateField(id, field, value){
   await fetch(REST+`/tickets?id=eq.${id}`, {method:"PATCH", headers:HEADERS, body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})});
   renderTeams(group);
 }
-async function toggleGroup(id, fromGroup){
+function toggleGroup(id, fromGroup){
+  if(fromGroup==="pending"){
+    openConfirmModal("แน่ใจไหมว่า Work Order นี้ปิดไปแล้ว?", async ()=>{
+      await doToggleGroup(id, fromGroup);
+    });
+  } else {
+    doToggleGroup(id, fromGroup);
+  }
+}
+async function doToggleGroup(id, fromGroup){
   const toGroup = fromGroup==="pending" ? "closed":"pending";
   const patch = {status_group: toGroup};
   if(toGroup==="closed") patch.closed_time = new Date().toISOString().slice(0,16).replace("T"," ");
   await fetch(REST+`/tickets?id=eq.${id}`, {method:"PATCH", headers:HEADERS, body:JSON.stringify(patch)});
   await loadAll();
+}
+function openConfirmModal(message, onYes){
+  document.getElementById("confirmMsg").textContent = message;
+  const overlay = document.getElementById("confirmOverlay");
+  overlay.classList.add("open");
+  const yesBtn = document.getElementById("confirmYesBtn");
+  const newYesBtn = yesBtn.cloneNode(true);
+  yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
+  newYesBtn.addEventListener("click", ()=>{ closeConfirmModal(); onYes(); });
+}
+function closeConfirmModal(){
+  document.getElementById("confirmOverlay").classList.remove("open");
 }
 async function deleteRow(id){
   if(!confirm("Delete this ticket row?")) return;
@@ -878,6 +1098,7 @@ function handleUpload(evt, group){
       rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
     }
     await bulkInsertWorkOrders(rows, group);
+    markUploaded();
     evt.target.value = "";
   };
   if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
@@ -951,6 +1172,8 @@ async function bulkInsertWorkOrders(rows, groupBtn){
     statusEl.textContent = `No rows matched the 6 tracked teams (skipped ${skipped}).`;
     return;
   }
+  const pendingIdsBefore = new Set(tickets.pending.map(r=>r.work_order_id).filter(Boolean));
+  const movedToClosed = payloads.filter(p=>p.status_group==="closed" && p.work_order_id && pendingIdsBefore.has(p.work_order_id)).length;
   const withId = payloads.filter(p=>p.work_order_id);
   const withoutId = payloads.filter(p=>!p.work_order_id);
   let ok = true;
@@ -967,7 +1190,8 @@ async function bulkInsertWorkOrders(rows, groupBtn){
     if(!res2.ok){ ok=false; console.error(await res2.text()); }
   }
   if(ok){
-    statusEl.textContent = `Synced ${matched} matched rows (updated existing / added new, skipped ${skipped} non-team rows) ✓`;
+    const movedMsg = movedToClosed>0 ? ` — ${movedToClosed} ticket(s) moved Pending → Closed` : "";
+    statusEl.textContent = `Synced ${matched} matched rows (updated existing / added new, skipped ${skipped} non-team rows)${movedMsg} ✓`;
     await loadAll();
   } else {
     statusEl.textContent = "Import failed — see console.";
