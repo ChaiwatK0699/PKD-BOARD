@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
   /* Day mode (default) */
@@ -17,6 +18,7 @@
   --teal:#0e9573; --teal-dim:#d6f0e6;
   --coral:#d94a35; --coral-dim:#fbdcd6;
   --blue:#1c6fd6; --blue-dim:#dbe9fb;
+  --violet:#7c4fd6; --violet-dim:#e7defb;
   --topbar-grad1:#f7f8fa; --topbar-grad2:#e9ecf1;
   --row-hover: rgba(20,30,40,0.02);
   --shadow-strong: rgba(20,30,45,.14);
@@ -31,6 +33,7 @@ body.dark-mode{
   --teal:#34d8a6; --teal-dim:#1c4438;
   --coral:#ff6b57; --coral-dim:#4a2620;
   --blue:#4fa8ff; --blue-dim:#20344a;
+  --violet:#b295ff; --violet-dim:#332a52;
   --topbar-grad1:#141920; --topbar-grad2:#10141a;
   --row-hover: rgba(255,255,255,0.015);
   --shadow-strong: rgba(0,0,0,.5);
@@ -63,6 +66,7 @@ input[type=date]{background:var(--panel-2); border:1px solid var(--border); colo
 .tab-btn.active.closed{color:var(--teal);}
 .tab-btn.active.home{color:var(--blue);}
 .tab-btn.active.svcava{color:var(--coral);}
+.tab-btn.active.manual{color:var(--violet);}
 .tab-btn .count{background:var(--border-soft); color:var(--muted); font-family:'JetBrains Mono'; font-size:14px; font-weight:700; padding:2px 9px; border-radius:10px; margin-left:7px; transition:background .2s;}
 @keyframes viewFadeIn{
   from{opacity:0; transform:translateY(8px);}
@@ -254,6 +258,25 @@ table.svcava-table{width:100%; border-collapse:collapse; font-size:13.5px; backg
 table.svcava-table thead th{text-align:left; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
   color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--panel-2);}
 table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft);}
+.summary-line.clickable{cursor:pointer; transition:transform .12s;}
+.summary-line.clickable:hover .lbl, .summary-line.clickable:hover .val{text-decoration:underline;}
+.summary-line.clickable:active{transform:scale(.97);}
+.modal-overlay{position:fixed; inset:0; background:rgba(10,14,20,.55); z-index:200; display:none; align-items:center; justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--panel); border:1px solid var(--border); border-radius:10px; width:min(640px,92vw); max-height:82vh;
+  display:flex; flex-direction:column; box-shadow:0 20px 60px var(--shadow-strong);}
+.modal-head{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border);}
+.modal-head h3{margin:0; font-family:'Barlow Condensed'; font-weight:800; letter-spacing:.04em; font-size:19px; text-transform:uppercase;}
+.modal-close{background:transparent; border:none; color:var(--muted); font-size:20px; cursor:pointer; line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-body{overflow:auto; padding:6px 0;}
+.sev-detail-row{display:flex; gap:12px; align-items:flex-start; padding:10px 18px; border-bottom:1px solid var(--border-soft); font-size:13px;}
+.sev-detail-row:last-child{border-bottom:none;}
+.sev-detail-tt{font-family:'JetBrains Mono'; font-weight:700; color:var(--blue); min-width:110px;}
+.sev-detail-meta{color:var(--muted); font-size:11.5px; margin-top:2px;}
+.sev-detail-subject{flex:1; color:var(--text);}
+.modal-empty{padding:26px 18px; text-align:center; color:var(--muted);}
+body.screenshotting #screenshotHomeBtn{opacity:.5; pointer-events:none;}
 </style>
 </head>
 <body>
@@ -268,9 +291,11 @@ table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--bord
     <button class="tab-btn home active" id="tabHomeBtn" onclick="switchTab('home')">Home</button>
     <button class="tab-btn pending" id="tabPendingBtn" onclick="switchTab('pending')">Pending <span class="count" id="countPending">0</span></button>
     <button class="tab-btn closed" id="tabClosedBtn" onclick="switchTab('closed')">Closed <span class="count" id="countClosed">0</span></button>
+    <button class="tab-btn manual" id="tabManualBtn" onclick="switchTab('manual')">Manual Closed By INOC <span class="count" id="countManual">0</span></button>
     <button class="tab-btn svcava" id="tabSvcAvaBtn" onclick="switchTab('svcava')">Service Availability</button>
   </div>
   <div class="datebox"><label>Date</label><input type="date" id="boardDate" onchange="loadAll()"><span class="upload-ts" id="uploadTs"></span></div>
+  <button class="btn ghost sm" id="screenshotHomeBtn" onclick="screenshotHome()" title="Screenshot Home page">📷 Screenshot</button>
   <button class="btn ghost sm" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle day/night mode">☾ Night</button>
 </div>
 
@@ -326,6 +351,14 @@ table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--bord
     <div class="filterbar" id="filterbarClosed"></div>
     <div id="closedTeams"></div>
   </div>
+  <div id="manualView" class="tab-view" style="display:none;">
+    <div class="toolbar">
+      <button class="btn ghost sm" onclick="loadAll()">↻ Refresh</button>
+      <span class="status-msg">Tickets closed manually via the ✓ button in-app (Pending → Closed)</span>
+    </div>
+    <div class="filterbar" id="filterbarManual"></div>
+    <div id="manualTeams"></div>
+  </div>
   <div id="svcavaView" class="tab-view" style="display:none;">
     <div class="svcava-hero" id="svcavaHero"></div>
     <table class="svcava-table">
@@ -376,12 +409,14 @@ const STAGES = [
   {key:"arrived_time", label:"ARR"},{key:"completed_time", label:"CMP"},{key:"closed_time", label:"CLS"},
 ];
 const CLOSED_STATUSES = ["Closed","Closed (Auto)","Completed"];
+const MANUAL_CLOSE_STATUS = "Closed"; // set on tickets manually toggled closed via ✓ button in-app
+function isManualClosed(r){ return (r.wo_status||"").trim() === MANUAL_CLOSE_STATUS; }
 
 let SITE_SET = new Set();
 let PKD_REGEX = null;
 let TEAM_MAP = []; // [{team_key, match_key, raw_label, contact_name, phone, sort_order}]
 let tickets = { pending: [], closed: [] };
-let filters = { pending:{severities:new Set(), pkdOnly:false, search:""}, closed:{severities:new Set(), pkdOnly:false, search:""} };
+let filters = { pending:{severities:new Set(), pkdOnly:false, search:""}, closed:{severities:new Set(), pkdOnly:false, search:""}, manual:{severities:new Set(), pkdOnly:false, search:""} };
 let currentTab = "home";
 let ATTENDANCE = {}; // team_key -> {clock_in, arrived, plan_override, inoc_feedback}
 let HOME_NOTE = { service_ava: "" };
@@ -464,27 +499,31 @@ async function loadAll(){
   toast("Loaded");
 }
 function renderAll(){
-  renderFilterbar("pending"); renderFilterbar("closed");
-  renderTeams("pending"); renderTeams("closed");
+  renderFilterbar("pending"); renderFilterbar("closed"); renderFilterbar("manual");
+  renderTeams("pending"); renderTeams("closed"); renderTeams("manual");
   renderHome();
   if(currentTab==="svcava") renderSvcAva();
   document.getElementById("countPending").textContent = tickets.pending.length;
   document.getElementById("countClosed").textContent = tickets.closed.length;
+  document.getElementById("countManual").textContent = tickets.closed.filter(isManualClosed).length;
 }
 function switchTab(tab){
   currentTab = tab;
   document.getElementById("tabHomeBtn").classList.toggle("active", tab==="home");
   document.getElementById("tabPendingBtn").classList.toggle("active", tab==="pending");
   document.getElementById("tabClosedBtn").classList.toggle("active", tab==="closed");
+  document.getElementById("tabManualBtn").classList.toggle("active", tab==="manual");
   document.getElementById("tabSvcAvaBtn").classList.toggle("active", tab==="svcava");
   const homeEl = document.getElementById("homeView"), pendingEl = document.getElementById("pendingView"),
-    closedEl = document.getElementById("closedView"), svcavaEl = document.getElementById("svcavaView");
+    closedEl = document.getElementById("closedView"), manualEl = document.getElementById("manualView"),
+    svcavaEl = document.getElementById("svcavaView");
   homeEl.style.display = tab==="home" ? "block":"none";
   pendingEl.style.display = tab==="pending" ? "block":"none";
   closedEl.style.display = tab==="closed" ? "block":"none";
+  manualEl.style.display = tab==="manual" ? "block":"none";
   svcavaEl.style.display = tab==="svcava" ? "block":"none";
   if(tab==="svcava") renderSvcAva();
-  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="closed" ? closedEl : svcavaEl;
+  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="closed" ? closedEl : tab==="manual" ? manualEl : svcavaEl;
   shownEl.classList.remove("anim-in");
   void shownEl.offsetWidth; // restart animation
   shownEl.classList.add("anim-in");
@@ -499,9 +538,15 @@ function moveTabIndicator(){
 }
 window.addEventListener("resize", moveTabIndicator);
 
+const GROUP_CONTAINER = { pending:"pendingTeams", closed:"closedTeams", manual:"manualTeams" };
+const GROUP_FILTERBAR = { pending:"filterbarPending", closed:"filterbarClosed", manual:"filterbarManual" };
+function groupSourceRows(group){
+  if(group==="manual") return tickets.closed.filter(isManualClosed);
+  return tickets[group];
+}
 function renderFilterbar(group){
-  const el = document.getElementById(group==="pending"?"filterbarPending":"filterbarClosed");
-  const allSev = [...new Set(tickets[group].map(r=>r.severity).filter(Boolean))].sort();
+  const el = document.getElementById(GROUP_FILTERBAR[group]);
+  const allSev = [...new Set(groupSourceRows(group).map(r=>r.severity).filter(Boolean))].sort();
   const f = filters[group];
   el.innerHTML = `
     <div class="fgroup"><label class="flabel">Severity</label>
@@ -543,9 +588,9 @@ function fmtDT(v){
   return esc(v);
 }
 function renderTeams(group){
-  const container = document.getElementById(group==="pending"?"pendingTeams":"closedTeams");
+  const container = document.getElementById(GROUP_CONTAINER[group]);
   container.innerHTML = "";
-  const rows = tickets[group].filter(r=>passFilter(r, group));
+  const rows = groupSourceRows(group).filter(r=>passFilter(r, group));
   const extraCols = group==="pending"
     ? [{h:"Suspend Reason", w:130, field:"suspend_reason", editable:true},
        {h:"Suspend Description", w:160, field:"suspend_description", editable:true},
@@ -567,13 +612,13 @@ function renderTeams(group){
         <div class="team-tag ${tagClass}">${team}</div>
         <div class="team-contact">${esc(tm.raw_label||"")}<br>${esc(tm.contact_name||"")} ${esc(tm.phone||"")}</div>
         <div class="team-count">${teamRows.length} ticket(s)</div>
-        <button class="btn sm add-row-btn" onclick="addRowPrompt('${group}','${team}')">+ Add to ${team}</button>
+        ${group==="manual" ? '' : `<button class="btn sm add-row-btn" onclick="addRowPrompt('${group}','${team}')">+ Add to ${team}</button>`}
       </div>
       <div class="table-scroll"></div>`;
     container.appendChild(block);
     const scrollDiv = block.querySelector(".table-scroll");
     if(teamRows.length===0){
-      scrollDiv.innerHTML = `<div class="empty-hint">No matching tickets for ${team}. Upload a Work Order file or click "+ Add".</div>`;
+      scrollDiv.innerHTML = `<div class="empty-hint">No matching tickets for ${team}${group==="manual"?" (none closed manually via ✓ yet)":'. Upload a Work Order file or click "+ Add".'}</div>`;
       return;
     }
     const table = document.createElement("table");
@@ -635,7 +680,7 @@ function renderTeams(group){
       tbody.appendChild(tr);
     });
   });
-  document.querySelectorAll("#pendingTeams textarea, #closedTeams textarea").forEach(autoGrow);
+  document.querySelectorAll("#pendingTeams textarea, #closedTeams textarea, #manualTeams textarea").forEach(autoGrow);
 }
 
 /* ---------------- HOME SUMMARY PAGE ---------------- */
@@ -717,6 +762,15 @@ function fmtHM(totalMinutes){
   const mm = m%60;
   return `${h}:${String(mm).padStart(2,"0")}`;
 }
+function fmtHMText(totalMinutes){
+  const m = Math.max(0, Math.round(totalMinutes));
+  const h = Math.floor(m/60);
+  const mm = m%60;
+  return `${h} H ${String(mm).padStart(2,"0")} m`;
+}
+function fmtMin(totalMinutes){
+  return `${Math.max(0, Math.round(totalMinutes))} min`;
+}
 function calcServiceAvailability(dateVal){
   const TOTAL_SITE_MINUTES = 168 * 24 * 60;
   const rows = tickets.closed.filter(r=>{
@@ -744,7 +798,7 @@ function renderSvcAva(){
   const { percent, totalDowntime, detail } = calcServiceAvailability(dateVal);
   document.getElementById("svcavaHero").innerHTML = `
     <div class="svcava-big">${percent.toFixed(4)}%</div>
-    <div class="svcava-sub">Service Availability — ${esc(dateVal)} · Downtime: ${fmtHM(totalDowntime)} (H:m) across ${detail.length} SA ticket(s)</div>
+    <div class="svcava-sub">Service Availability — ${esc(dateVal)} · Downtime: ${fmtMin(totalDowntime)} across ${detail.length} SA ticket(s)</div>
   `;
   const tbody = document.getElementById("svcavaTbody");
   if(detail.length===0){
@@ -762,7 +816,7 @@ function renderSvcAva(){
       <td class="subject-cell">${esc(r.close_description||'')}</td>
       <td><span class="sev-badge">${esc(r.severity||'-')}</span></td>
       <td class="${slaOver?'sla-over':'sla-in'}">${slaOver?'Over':'Within SLA'}</td>
-      <td class="dt-cell">${fmtHM(r.downtimeMinutes)}</td>
+      <td class="dt-cell">${fmtHMText(r.downtimeMinutes)}</td>
     </tr>`;
   }).join("");
 }
@@ -869,7 +923,7 @@ function renderHome(){
     if(code.startsWith("PSA")) return "var(--amber)";
     return "var(--blue)";
   }
-  function severityLines(teamList){
+  function severityLines(teamList, groupName){
     const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPkdMatch(r) && homeSevPass(r));
     const tally = {};
     rows.forEach(r=>{
@@ -885,10 +939,11 @@ function renderHome(){
     });
     const total = Object.values(tally).reduce((a,b)=>a+b,0);
     if(keys.length===0) return '<div class="summary-line"><span class="lbl">—</span><span class="val muted-dash">0</span></div>';
-    const lines = keys.map(k=>`<div class="summary-line"><span class="lbl">${esc(k)}</span><span class="val" style="color:${sevColor(k)}">${tally[k]}</span></div>`).join("");
+    const lines = keys.map(k=>`<div class="summary-line clickable" onclick="showSevDetail('${groupName}','${k}')"><span class="lbl">${esc(k)}</span><span class="val" style="color:${sevColor(k)}">${tally[k]}</span></div>`).join("");
     const totalLine = `<div class="summary-line summary-total"><span class="lbl">Total</span><span class="val">${total}</span></div>`;
     return lines + totalLine;
   }
+  window.SEV_GROUP_TEAMS = { node: nodeTeams, ofc: ofcTeams };
   function statusLines(teamList){
     const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPkdMatch(r));
     const tally = {};
@@ -903,11 +958,11 @@ function renderHome(){
   document.getElementById("homeSummary").innerHTML = `
     <div class="summary-card">
       <h4>Node Pending <span style="color:var(--muted-2);font-weight:400;font-size:12px;">(PKD only)</span></h4>
-      <div class="summary-body">${severityLines(nodeTeams)}</div>
+      <div class="summary-body">${severityLines(nodeTeams,'node')}</div>
     </div>
     <div class="summary-card">
       <h4>OFC Pending <span style="color:var(--muted-2);font-weight:400;font-size:12px;">(PKD only)</span></h4>
-      <div class="summary-body">${severityLines(ofcTeams)}</div>
+      <div class="summary-body">${severityLines(ofcTeams,'ofc')}</div>
     </div>
     <div class="summary-card">
       <h4>Service Availability</h4>
@@ -920,6 +975,72 @@ function renderHome(){
   `;
   const noteEl = document.querySelector(".summary-note");
   if(noteEl) autoGrow(noteEl);
+}
+
+function showSevDetail(groupName, sevCode){
+  const teamList = (window.SEV_GROUP_TEAMS && window.SEV_GROUP_TEAMS[groupName]) || [];
+  const rows = tickets.pending.filter(r=>{
+    if(!teamList.includes(r.team)) return false;
+    if(!isPkdMatch(r)) return false;
+    if(!homeSevPass(r)) return false;
+    const c = (r.severity||"").split("-")[0] || "";
+    return c === sevCode;
+  });
+  const groupLabel = groupName==='node' ? 'Node Pending' : 'OFC Pending';
+  document.getElementById("sevDetailTitle").textContent = `${groupLabel} — ${sevCode} (${rows.length})`;
+  const body = document.getElementById("sevDetailBody");
+  if(rows.length===0){
+    body.innerHTML = `<div class="modal-empty">No tickets found.</div>`;
+  } else {
+    body.innerHTML = rows.map(r=>{
+      const ticketId = r.tt_number || r.work_order_id || '-';
+      const site = extractPkdSite(r);
+      return `<div class="sev-detail-row">
+        <div class="sev-detail-tt">${esc(ticketId)}</div>
+        <div class="sev-detail-subject">${esc(r.subject || r.plan_today || '-')}
+          <div class="sev-detail-meta">Team: ${esc(r.team||'-')} · Site: ${esc(site)} · Status: ${esc(r.wo_status||'-')}</div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  document.getElementById("sevDetailModal").classList.add("open");
+}
+function closeSevModal(){
+  document.getElementById("sevDetailModal").classList.remove("open");
+}
+
+async function screenshotHome(){
+  const btn = document.getElementById("screenshotHomeBtn");
+  const target = document.getElementById("homeView");
+  if(!target || typeof html2canvas === "undefined"){
+    toast("Screenshot library not loaded");
+    return;
+  }
+  document.body.classList.add("screenshotting");
+  const origLabel = btn.textContent;
+  btn.textContent = "⏳ Capturing…";
+  try{
+    const bg = getComputedStyle(document.body).getPropertyValue("--bg").trim() || "#e9ecf1";
+    const canvas = await html2canvas(target, {
+      backgroundColor: bg,
+      useCORS: true,
+      scale: Math.min(2, window.devicePixelRatio || 1.5),
+      windowWidth: target.scrollWidth,
+      windowHeight: target.scrollHeight
+    });
+    const dateVal = (document.getElementById("boardDate")||{}).value || new Date().toISOString().slice(0,10);
+    const link = document.createElement("a");
+    link.download = `PKD-Home-${dateVal}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    toast("Screenshot saved");
+  } catch(err){
+    console.error(err);
+    toast("Screenshot failed");
+  } finally {
+    document.body.classList.remove("screenshotting");
+    btn.textContent = origLabel;
+  }
 }
 
 function wireDragDrop(tbody){
@@ -1029,6 +1150,7 @@ async function updateField(id, field, value){
   if(row) row[field] = value;
   await fetch(REST+`/tickets?id=eq.${id}`, {method:"PATCH", headers:HEADERS, body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})});
   renderTeams(group);
+  if(group==="closed") renderTeams("manual");
 }
 function toggleGroup(id, fromGroup){
   if(fromGroup==="pending"){
@@ -1042,7 +1164,10 @@ function toggleGroup(id, fromGroup){
 async function doToggleGroup(id, fromGroup){
   const toGroup = fromGroup==="pending" ? "closed":"pending";
   const patch = {status_group: toGroup};
-  if(toGroup==="closed") patch.closed_time = new Date().toISOString().slice(0,16).replace("T"," ");
+  if(toGroup==="closed"){
+    patch.closed_time = new Date().toISOString().slice(0,16).replace("T"," ");
+    patch.wo_status = MANUAL_CLOSE_STATUS; // mark as manually closed by INOC via app
+  }
   await fetch(REST+`/tickets?id=eq.${id}`, {method:"PATCH", headers:HEADERS, body:JSON.stringify(patch)});
   await loadAll();
 }
@@ -1213,5 +1338,15 @@ function toast(msg){
   setTimeout(moveTabIndicator, 300); // re-sync after web fonts finish loading
 })();
 </script>
+<div class="modal-overlay" id="sevDetailModal" onclick="if(event.target===this) closeSevModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="sevDetailTitle">Tickets</h3>
+      <button class="modal-close" onclick="closeSevModal()">✕</button>
+    </div>
+    <div class="modal-body" id="sevDetailBody"></div>
+  </div>
+</div>
+
 </body>
 </html>
