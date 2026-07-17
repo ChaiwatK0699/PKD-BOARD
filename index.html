@@ -104,7 +104,7 @@ input.search-box{background:var(--panel-2); border:1px solid var(--border); colo
 .btn.teal{background:var(--teal); color:var(--btn-on-accent); border-color:var(--teal);}
 .btn.ghost{background:transparent;}
 .btn.sm{padding:5px 10px; font-size:12.5px;}
-#fileInputPending, #fileInputClosed{display:none;}
+#fileInputPending, #fileInputClosed, #fileInputSvcAva{display:none;}
 .status-msg{font-family:'JetBrains Mono'; font-size:12.5px; color:var(--muted);}
 .team-block{margin-bottom:20px; border:1px solid var(--border-soft); border-radius:10px; overflow:hidden; background:var(--panel);}
 .team-head{display:flex; align-items:center; gap:12px; padding:10px 16px; background:var(--panel-2); border-bottom:1px solid var(--border-soft);}
@@ -360,6 +360,11 @@ body.screenshotting #screenshotHomeBtn{opacity:.5; pointer-events:none;}
     <div id="manualTeams"></div>
   </div>
   <div id="svcavaView" class="tab-view" style="display:none;">
+    <div class="toolbar">
+      <button class="btn primary" onclick="document.getElementById('fileInputSvcAva').click()">⭱ Upload Service Availability (List of Incidents)</button>
+      <input type="file" id="fileInputSvcAva" accept=".csv,.xlsx,.xls" onchange="handleSvcAvaUpload(event)">
+      <span class="status-msg" id="statusMsgSvcAva"></span>
+    </div>
     <div class="svcava-hero" id="svcavaHero"></div>
     <table class="svcava-table">
       <thead><tr>
@@ -370,7 +375,7 @@ body.screenshotting #screenshotHomeBtn{opacity:.5; pointer-events:none;}
         <th style="width:220px">Close Description</th>
         <th style="width:120px">Severity</th>
         <th style="width:110px">SLA</th>
-        <th style="width:110px">Downtime</th>
+        <th style="width:170px">Downtime (Create → Restoration)</th>
       </tr></thead>
       <tbody id="svcavaTbody"></tbody>
     </table>
@@ -415,7 +420,7 @@ function isManualClosed(r){ return (r.wo_status||"").trim() === MANUAL_CLOSE_STA
 let SITE_SET = new Set();
 let PKD_REGEX = null;
 let TEAM_MAP = []; // [{team_key, match_key, raw_label, contact_name, phone, sort_order}]
-let tickets = { pending: [], closed: [] };
+let tickets = { pending: [], closed: [], svcava: [] };
 let filters = { pending:{severities:new Set(), pkdOnly:false, search:""}, closed:{severities:new Set(), pkdOnly:false, search:""}, manual:{severities:new Set(), pkdOnly:false, search:""} };
 let currentTab = "home";
 let ATTENDANCE = {}; // team_key -> {clock_in, arrived, plan_override, inoc_feedback}
@@ -492,6 +497,7 @@ async function loadAll(){
   toast("Loading…");
   tickets.pending = await fetchTickets("pending");
   tickets.closed = await fetchTickets("closed");
+  tickets.svcava = await fetchTickets("svcava");
   const dateVal = document.getElementById("boardDate").value;
   await fetchAttendance(dateVal);
   await fetchHomeNote(dateVal);
@@ -773,18 +779,20 @@ function fmtMin(totalMinutes){
 }
 function calcServiceAvailability(dateVal){
   const TOTAL_SITE_MINUTES = 168 * 24 * 60;
-  const rows = tickets.closed.filter(r=>{
+  // Source: tickets.svcava (imported from the "List of Incidents" export).
+  // Downtime window = Create Date -> Restoration Date (stored in created_time / closed_time).
+  const rows = tickets.svcava.filter(r=>{
     const fam = (r.severity||"").split("-")[0] || "";
     if(!fam.toUpperCase().startsWith("SA")) return false; // SA family only (excludes NSA, PSA since those start with N/P)
-    if(!r.closed_time || r.closed_time.slice(0,10)!==dateVal) return false;
+    if(!r.closed_time || r.closed_time.slice(0,10)!==dateVal) return false; // closed_time = Restoration Date
     return true;
   });
   let totalDowntime = 0;
   const detail = rows.map(r=>{
     let mins = 0;
     if(r.created_time && r.closed_time){
-      const t1 = new Date(r.created_time.replace(" ","T"));
-      const t2 = new Date(r.closed_time.replace(" ","T"));
+      const t1 = new Date(r.created_time.replace(" ","T"));   // Create Date
+      const t2 = new Date(r.closed_time.replace(" ","T"));    // Restoration Date
       if(!isNaN(t1) && !isNaN(t2)) mins = Math.max(0, (t2-t1)/60000);
     }
     totalDowntime += mins;
@@ -802,7 +810,7 @@ function renderSvcAva(){
   `;
   const tbody = document.getElementById("svcavaTbody");
   if(detail.length===0){
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-hint">No SA-severity tickets closed on this date.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-hint">No SA-severity tickets restored on this date.</td></tr>`;
     return;
   }
   tbody.innerHTML = detail.map(r=>{
@@ -812,13 +820,19 @@ function renderSvcAva(){
       <td class="site-pkd-cell">${esc(site)}</td>
       <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}</td>
       <td class="subject-cell">${esc(r.subject||'')}</td>
-      <td class="subject-cell">${esc(r.root_cause||'')}</td>
-      <td class="subject-cell">${esc(r.close_description||'')}</td>
+      <td><textarea class="cell-ta" onchange="updateSvcAvaField('${r.id}','root_cause', this.value)">${esc(r.root_cause||'')}</textarea></td>
+      <td><textarea class="cell-ta" onchange="updateSvcAvaField('${r.id}','close_description', this.value)">${esc(r.close_description||'')}</textarea></td>
       <td><span class="sev-badge">${esc(r.severity||'-')}</span></td>
       <td class="${slaOver?'sla-over':'sla-in'}">${slaOver?'Over':'Within SLA'}</td>
       <td class="dt-cell">${fmtHMText(r.downtimeMinutes)}</td>
     </tr>`;
   }).join("");
+}
+async function updateSvcAvaField(id, field, value){
+  const row = tickets.svcava.find(r=>String(r.id)===String(id));
+  if(row) row[field] = value;
+  await fetch(REST+`/tickets?id=eq.${id}`, {method:"PATCH", headers:HEADERS, body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})});
+  toast("Saved");
 }
 function calcServiceAvailabilityForCard(){ return calcServiceAvailability(document.getElementById("boardDate").value); }
 
@@ -1227,6 +1241,90 @@ function handleUpload(evt, group){
     evt.target.value = "";
   };
   if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
+}
+function handleSvcAvaUpload(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    let rows = [];
+    if(file.name.match(/\.csv$/i)){
+      rows = parseCSV(e.target.result);
+    } else {
+      // The "List of Incidents" export is actually an HTML table saved with an .xls extension.
+      const wb = XLSX.read(e.target.result, {type:"binary"});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
+    }
+    await bulkInsertSvcAva(rows);
+    evt.target.value = "";
+  };
+  if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
+}
+// Converts "15/07/26 22:06:51" (DD/MM/YY HH:MM:SS) -> "2026-07-15 22:06:51"
+function parseIncidentDate(str){
+  if(!str) return "";
+  const s = String(str).trim();
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})\s+(\d{1,2}:\d{2}(:\d{2})?)$/);
+  if(!m) return "";
+  const [, dd, mm, yy, time] = m;
+  const year = yy.length===2 ? `20${yy}` : yy;
+  return `${year}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")} ${time.length===5?time+":00":time}`;
+}
+async function bulkInsertSvcAva(rows){
+  const statusEl = document.getElementById("statusMsgSvcAva");
+  statusEl.textContent = `Processing ${rows.length} rows…`;
+  const payloads = rows.map(r=>{
+    const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
+    const createdTime = parseIncidentDate(get("Create Date"));
+    const restorationTime = parseIncidentDate(get("Restoration Date"));
+    const expectedFinish = parseIncidentDate(get("Expected Finish"));
+    const severity = get("Severity");
+    const urgency = get("Urgency");
+    let sla = "";
+    if(restorationTime && expectedFinish){
+      sla = (new Date(restorationTime.replace(" ","T")) > new Date(expectedFinish.replace(" ","T"))) ? "Over" : "Within SLA";
+    }
+    return {
+      status_group: "svcava",
+      tt_number: get("Incident"),
+      external_ticket_id: get("External Ticket"),
+      subject: get("Subject"),
+      wo_status: get("Status"),
+      incident_urgency: urgency,
+      severity: urgency ? `${severity}-${urgency}` : severity,
+      created_time: createdTime,        // Create Date
+      require_finish_time: expectedFinish, // Expected Finish
+      closed_time: restorationTime,     // Restoration Date
+      sla: sla,
+      root_cause: get("Problem"),
+      close_description: get("Remedy"),
+      sub_root_cause: get("Cause"),
+      ticket_date: document.getElementById("boardDate").value
+    };
+  }).filter(p=>p.tt_number);
+  if(payloads.length===0){
+    statusEl.textContent = "No valid rows found (missing Incident number).";
+    return;
+  }
+  let res = await fetch(REST+"/tickets?on_conflict=tt_number", {
+    method:"POST",
+    headers:{...HEADERS, "Prefer":"resolution=merge-duplicates,return=representation"},
+    body: JSON.stringify(payloads)
+  });
+  if(!res.ok){
+    // Falls back to a plain insert if the DB doesn't yet have a unique constraint on tt_number
+    // (run: alter table tickets add constraint tickets_tt_number_key unique (tt_number); to enable de-dup on re-upload)
+    console.warn("on_conflict upsert failed, falling back to plain insert:", await res.text());
+    res = await fetch(REST+"/tickets", {method:"POST", headers:HEADERS, body: JSON.stringify(payloads)});
+  }
+  if(res.ok){
+    statusEl.textContent = `Synced ${payloads.length} Service Availability ticket(s) ✓`;
+    await loadAll();
+  } else {
+    console.error(await res.text());
+    statusEl.textContent = "Import failed — see console.";
+  }
 }
 function parseCSV(text){
   const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
