@@ -128,7 +128,7 @@ tbody td{padding:7px 10px; border-bottom:1px solid var(--border-soft); border-ri
 tbody td:last-child{border-right:none;}
 tbody tr:last-child td{border-bottom:none;}
 tbody tr:hover{background:var(--row-hover);}
-.cell-input, .cell-select, textarea.cell-ta{width:100%; background:transparent; border:1px solid transparent; color:var(--text);
+.cell-input, .cell-select, textarea.cell-ta{width:100%; background:transparent; border:1px solid transparent; color:var(--text); box-sizing:border-box;
   font-family:'Inter'; font-size:13.5px; padding:4px 6px; border-radius:4px;}
 .cell-input:hover, .cell-select:hover, textarea.cell-ta:hover{border-color:var(--border);}
 .cell-input:focus, .cell-select:focus, textarea.cell-ta:focus{outline:none; border-color:var(--muted-2); background:var(--panel-2);}
@@ -186,7 +186,7 @@ textarea.cell-ta{resize:vertical; min-height:34px; font-family:'JetBrains Mono';
 .toast{position:fixed; bottom:20px; right:20px; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
   padding:10px 16px; border-radius:6px; font-size:14px; z-index:300; opacity:0; transform:translateY(10px); transition:.25s;}
 .toast.show{opacity:1; transform:translateY(0);}
-.subject-cell{max-width:220px; font-size:12px; color:var(--muted); line-height:1.4;}
+.subject-cell{max-width:220px; font-size:12px; color:var(--muted); line-height:1.4; white-space:normal; word-break:break-word; overflow-wrap:anywhere; box-sizing:border-box;}
 .dt-cell{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text); white-space:nowrap;}
 
 /* ---- Home summary page ---- */
@@ -267,9 +267,10 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
 .svcava-hero{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:24px 28px; margin-bottom:20px;}
 .svcava-big{font-family:'Barlow Condensed'; font-weight:800; font-size:48px; color:var(--coral); letter-spacing:.01em;}
 .svcava-sub{font-family:'JetBrains Mono'; font-size:12.5px; color:var(--muted); margin-top:6px;}
-table.svcava-table{width:100%; border-collapse:collapse; font-size:13.5px; background:var(--panel); border:1px solid var(--border-soft); border-radius:8px;}
+table.svcava-table{width:100%; table-layout:fixed; border-collapse:collapse; font-size:13.5px; background:var(--panel); border:1px solid var(--border-soft); border-radius:8px;}
 table.svcava-table thead th{text-align:left; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--panel-2);}
+  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--panel-2);
+  white-space:normal; overflow:hidden; word-break:break-word; line-height:1.3;}
 table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft);}
 .summary-line.clickable{cursor:pointer; transition:transform .12s;}
 .summary-line.clickable:hover .lbl, .summary-line.clickable:hover .val{text-decoration:underline;}
@@ -409,7 +410,7 @@ body.screenshotting .topbar{position:static !important;}
         <th style="width:220px">Close Description</th>
         <th style="width:120px">Severity</th>
         <th style="width:110px">SLA</th>
-        <th style="width:110px">Downtime (Create → Restoration)</th>
+        <th style="width:130px">Downtime (Create → Restoration)</th>
         <th style="width:200px">Update Log Status</th>
         <th style="width:180px">INOC LOG</th>
       </tr></thead>
@@ -1094,16 +1095,26 @@ async function screenshotHome(){
   btn.textContent = "⏳ Capturing…";
   const savedScrollX = window.scrollX, savedScrollY = window.scrollY;
   window.scrollTo(0, 0);
+  // Wait for web fonts to finish loading — if html2canvas rasterizes before a custom font
+  // (JetBrains Mono / Barlow Condensed) is ready, it silently falls back to a thinner system
+  // font, which is what makes captures look pale/blurry compared to the live page.
+  if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch(e){} }
   // Let the browser settle sticky/layout after the scroll jump before measuring/capturing.
-  await new Promise(r=>setTimeout(r, 60));
+  await new Promise(r=>setTimeout(r, 120));
   try{
     const bg = getComputedStyle(document.body).getPropertyValue("--bg").trim() || "#e9ecf1";
     const fullWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
-    const fullHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+    // body has min-height:100vh for layout purposes, which inflates scrollHeight to a full
+    // viewport (or more) even when the visible tab's actual content is much shorter — that's
+    // what was producing mostly-blank "thin" screenshots. Measure the real bottom edge of the
+    // rendered content instead of trusting scrollHeight.
+    const wrapEl = document.querySelector(".wrap");
+    const measuredBottom = wrapEl ? Math.ceil(wrapEl.getBoundingClientRect().bottom + window.scrollY) : 0;
+    const fullHeight = Math.max(measuredBottom + 24, 200);
     const canvas = await html2canvas(target, {
       backgroundColor: bg,
       useCORS: true,
-      scale: Math.min(2, window.devicePixelRatio || 1.5),
+      scale: Math.max(2, window.devicePixelRatio || 2), // fixed high-DPI scale so text stays crisp regardless of monitor DPI
       windowWidth: fullWidth,
       windowHeight: fullHeight,
       width: fullWidth,
