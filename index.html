@@ -44,7 +44,9 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-se
   background-image:linear-gradient(var(--bg-grid) 1px, transparent 1px),linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
   background-size: 28px 28px; min-height:100vh;}
 .topbar{position:sticky; top:0; z-index:50; background:linear-gradient(180deg,var(--topbar-grad1) 0%, var(--topbar-grad2) 100%);
-  border-bottom:1px solid var(--border); padding:14px 22px; display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  border-bottom:1px solid var(--border); padding:14px 22px; display:flex; flex-direction:column; gap:10px;}
+.topbar-row1{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+.topbar-row2{display:flex; align-items:center; justify-content:flex-end; gap:10px;}
 .brand{display:flex; align-items:center; gap:10px;}
 .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--teal); box-shadow:0 0 10px var(--teal); animation:pulse 2.2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -55,6 +57,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-se
 .upload-ts{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--muted); white-space:nowrap;}
 input[type=date]{background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:var(--radius); font-family:'JetBrains Mono'; font-size:14px;}
 .tabs{display:flex; gap:4px; background:var(--panel-2); padding:4px; border-radius:8px; border:1px solid var(--border); position:relative;}
+.tools-group{display:flex; align-items:center; gap:8px;}
+.tools-label{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.06em; text-transform:uppercase; font-size:13px; color:var(--muted-2);}
 .tab-indicator{position:absolute; top:4px; bottom:4px; left:4px; width:0; border-radius:6px; background:var(--panel);
   box-shadow:inset 0 0 0 1px var(--border); transition:left .32s cubic-bezier(.4,0,.2,1), width .32s cubic-bezier(.4,0,.2,1); z-index:0;}
 .tab-btn{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
@@ -127,6 +131,13 @@ tbody tr:hover{background:var(--row-hover);}
 .cell-input:hover, .cell-select:hover, textarea.cell-ta:hover{border-color:var(--border);}
 .cell-input:focus, .cell-select:focus, textarea.cell-ta:focus{outline:none; border-color:var(--muted-2); background:var(--panel-2);}
 textarea.cell-ta{resize:vertical; min-height:34px; font-family:'JetBrains Mono'; font-size:12px; line-height:1.5;}
+/* Free-text boxes: compact by default; while focused, user can drag-resize freely
+   in any direction to read/edit the full content; reverts to compact size on blur. */
+.free-ta, textarea.cell-ta.free-ta{resize:none; overflow:hidden; transition:box-shadow .15s;}
+.free-ta:focus, textarea.cell-ta.free-ta:focus{
+  resize:both; overflow:auto; position:relative; z-index:80;
+  box-shadow:0 14px 34px var(--shadow-strong); background:var(--panel-2); border-color:var(--blue);
+}
 .site-input{font-family:'JetBrains Mono'; font-weight:700; letter-spacing:.02em;}
 .site-input.valid{color:var(--teal);}
 .site-input.invalid{color:var(--muted);}
@@ -224,12 +235,12 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
 .home-plan-readonly .muted-dash{color:var(--muted-2);}
 .muted-dash{color:var(--muted-2);}
 .home-evening{width:100%; min-height:110px; background:transparent; border:1px solid var(--border); color:var(--text);
-  font-family:'Inter'; font-size:12.5px; line-height:1.5; padding:8px; border-radius:4px; resize:vertical; overflow:auto;}
+  font-family:'Inter'; font-size:12.5px; line-height:1.5; padding:8px; border-radius:4px; resize:none; overflow:hidden;}
 .home-evening:hover{border-color:var(--muted-2);}
 .home-evening:focus{outline:none; border-color:var(--blue); background:var(--panel-2);}
 .home-count-badge{font-family:'JetBrains Mono'; font-weight:700; font-size:16px; text-align:center; display:block;}
 .home-feedback{width:100%; min-height:110px; background:transparent; border:1px solid var(--border); color:var(--text);
-  font-family:'Inter'; font-size:12.5px; line-height:1.5; padding:8px; border-radius:4px; resize:vertical; overflow:auto;}
+  font-family:'Inter'; font-size:12.5px; line-height:1.5; padding:8px; border-radius:4px; resize:none; overflow:hidden;}
 .home-feedback:hover{border-color:var(--muted-2);}
 .home-feedback:focus{outline:none; border-color:var(--blue); background:var(--panel-2);}
 .home-summary{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:20px;}
@@ -250,7 +261,7 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
 .summary-line .lbl{color:var(--muted); font-family:'JetBrains Mono'; font-size:11.5px;}
 .summary-line .val{font-family:'JetBrains Mono'; font-weight:700; font-size:17px;}
 .summary-note{width:100%; min-height:70px; margin-top:8px; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
-  font-size:12.5px; line-height:1.5; padding:8px 10px; border-radius:4px; resize:vertical; font-family:'Inter'; box-sizing:border-box;}
+  font-size:12.5px; line-height:1.5; padding:8px 10px; border-radius:4px; resize:none; overflow:hidden; font-family:'Inter'; box-sizing:border-box;}
 .svcava-hero{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:24px 28px; margin-bottom:20px;}
 .svcava-big{font-family:'Barlow Condensed'; font-weight:800; font-size:48px; color:var(--coral); letter-spacing:.01em;}
 .svcava-sub{font-family:'JetBrains Mono'; font-size:12.5px; color:var(--muted); margin-top:6px;}
@@ -277,26 +288,37 @@ table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--bord
 .sev-detail-subject{flex:1; color:var(--text);}
 .modal-empty{padding:26px 18px; text-align:center; color:var(--muted);}
 body.screenshotting #screenshotHomeBtn{opacity:.5; pointer-events:none;}
+body.screenshotting .topbar{position:static !important;}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand">
-    <div class="dot"></div>
-    <div><h1>PKD Board</h1><small>INOC · 6-Team Work Order Tracker</small></div>
+  <div class="topbar-row1">
+    <div class="brand">
+      <div class="dot"></div>
+      <div><h1>PKD Board</h1><small>INOC · 6-Team Work Order Tracker</small></div>
+    </div>
+    <div class="tabs" id="tabsMain">
+      <div class="tab-indicator" id="tabIndicatorMain"></div>
+      <button class="tab-btn home active" id="tabHomeBtn" onclick="switchTab('home')">Home</button>
+      <button class="tab-btn svcava" id="tabSvcAvaBtn" onclick="switchTab('svcava')">Service Availability</button>
+    </div>
+    <div class="tools-group">
+      <span class="tools-label">Tools :</span>
+      <div class="tabs" id="tabsTools">
+        <div class="tab-indicator" id="tabIndicatorTools"></div>
+        <button class="tab-btn pending" id="tabPendingBtn" onclick="switchTab('pending')">Pending <span class="count" id="countPending">0</span></button>
+        <button class="tab-btn closed" id="tabClosedBtn" onclick="switchTab('closed')">Closed <span class="count" id="countClosed">0</span></button>
+        <button class="tab-btn manual" id="tabManualBtn" onclick="switchTab('manual')">Manual Closed By INOC <span class="count" id="countManual">0</span></button>
+      </div>
+    </div>
+    <div class="datebox"><label>Date</label><input type="date" id="boardDate" onchange="loadAll()"><span class="upload-ts" id="uploadTs"></span></div>
   </div>
-  <div class="tabs">
-    <div class="tab-indicator" id="tabIndicator"></div>
-    <button class="tab-btn home active" id="tabHomeBtn" onclick="switchTab('home')">Home</button>
-    <button class="tab-btn pending" id="tabPendingBtn" onclick="switchTab('pending')">Pending <span class="count" id="countPending">0</span></button>
-    <button class="tab-btn closed" id="tabClosedBtn" onclick="switchTab('closed')">Closed <span class="count" id="countClosed">0</span></button>
-    <button class="tab-btn manual" id="tabManualBtn" onclick="switchTab('manual')">Manual Closed By INOC <span class="count" id="countManual">0</span></button>
-    <button class="tab-btn svcava" id="tabSvcAvaBtn" onclick="switchTab('svcava')">Service Availability</button>
+  <div class="topbar-row2">
+    <button class="btn ghost sm" id="screenshotHomeBtn" onclick="screenshotHome()" title="Copy a screenshot of the whole page to clipboard">📷 Screenshot</button>
+    <button class="btn ghost sm" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle day/night mode">☾ Night</button>
   </div>
-  <div class="datebox"><label>Date</label><input type="date" id="boardDate" onchange="loadAll()"><span class="upload-ts" id="uploadTs"></span></div>
-  <button class="btn ghost sm" id="screenshotHomeBtn" onclick="screenshotHome()" title="Screenshot Home page">📷 Screenshot</button>
-  <button class="btn ghost sm" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle day/night mode">☾ Night</button>
 </div>
 
 <div class="wrap">
@@ -375,7 +397,9 @@ body.screenshotting #screenshotHomeBtn{opacity:.5; pointer-events:none;}
         <th style="width:220px">Close Description</th>
         <th style="width:120px">Severity</th>
         <th style="width:110px">SLA</th>
-        <th style="width:170px">Downtime (Create → Restoration)</th>
+        <th style="width:110px">Downtime (Create → Restoration)</th>
+        <th style="width:200px">Update Log Status</th>
+        <th style="width:180px">INOC LOG</th>
       </tr></thead>
       <tbody id="svcavaTbody"></tbody>
     </table>
@@ -413,9 +437,11 @@ const STAGES = [
   {key:"dispatched_time", label:"DSP"},{key:"accepted_time", label:"ACC"},{key:"departed_time", label:"DEP"},
   {key:"arrived_time", label:"ARR"},{key:"completed_time", label:"CMP"},{key:"closed_time", label:"CLS"},
 ];
-const CLOSED_STATUSES = ["Closed","Closed (Auto)","Completed"];
-const MANUAL_CLOSE_STATUS = "Closed"; // set on tickets manually toggled closed via ✓ button in-app
+const CLOSED_STATUSES = ["Closed","Closed (Auto)","Completed","Closed (Manual - INOC)"];
+const MANUAL_CLOSE_STATUS = "Closed (Manual - INOC)"; // set on tickets manually toggled closed via ✓ button in-app — distinct from any source-system "Closed" status so uploaded vs manual never collide
 function isManualClosed(r){ return (r.wo_status||"").trim() === MANUAL_CLOSE_STATUS; }
+const CANCEL_STATUSES = ["Cancel","Cancelled","Canceled"];
+function isCancelled(r){ return CANCEL_STATUSES.includes((r.wo_status||"").trim()); }
 
 let SITE_SET = new Set();
 let PKD_REGEX = null;
@@ -431,21 +457,26 @@ let expandedTeams = new Set(); // empty = all teams start collapsed by default
 
 document.getElementById("boardDate").valueAsDate = new Date();
 
-/* ---- last upload timestamp (shows next to the date picker) ---- */
+/* ---- last upload timestamp: shared across all viewers, derived from the newest
+   created_at among tickets (i.e. the last time anyone uploaded a Work Order file) ---- */
+function fmtUploadTs(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  if(isNaN(d)) return "";
+  const pad = n => String(n).padStart(2,"0");
+  return `Last upload: ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 function renderUploadTs(){
   const el = document.getElementById("uploadTs");
   if(!el) return;
-  const iso = localStorage.getItem("pkd-last-upload");
-  if(!iso){ el.textContent = ""; return; }
-  const d = new Date(iso);
-  const pad = n => String(n).padStart(2,"0");
-  el.textContent = `Uploaded ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const all = [...tickets.pending, ...tickets.closed, ...(tickets.svcava||[])];
+  let latest = null;
+  all.forEach(r=>{
+    const t = r.created_at ? new Date(r.created_at) : null;
+    if(t && !isNaN(t) && (!latest || t>latest)) latest = t;
+  });
+  el.textContent = latest ? fmtUploadTs(latest.toISOString()) : "";
 }
-function markUploaded(){
-  localStorage.setItem("pkd-last-upload", new Date().toISOString());
-  renderUploadTs();
-}
-renderUploadTs();
 
 /* ---- theme (day/night) ---- */
 function applyTheme(mode){
@@ -464,7 +495,7 @@ async function fetchSiteCodes(){
   const data = await res.json();
   SITE_SET = new Set(data.map(d=>d.site_code.toUpperCase()));
   const codes = [...SITE_SET].sort((a,b)=>b.length-a.length).map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
-  PKD_REGEX = codes.length ? new RegExp(codes.join("|"), "i") : null;
+  PKD_REGEX = codes.length ? new RegExp("\\b(?:"+codes.join("|")+")\\b", "i") : null;
 }
 function pkdMatchType(r){
   const site = (r.site_code||"").toUpperCase();
@@ -509,9 +540,10 @@ function renderAll(){
   renderTeams("pending"); renderTeams("closed"); renderTeams("manual");
   renderHome();
   if(currentTab==="svcava") renderSvcAva();
-  document.getElementById("countPending").textContent = tickets.pending.length;
-  document.getElementById("countClosed").textContent = tickets.closed.length;
+  document.getElementById("countPending").textContent = groupSourceRows("pending").filter(r=>passFilter(r,"pending")).length;
+  document.getElementById("countClosed").textContent = groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length;
   document.getElementById("countManual").textContent = tickets.closed.filter(isManualClosed).length;
+  renderUploadTs();
 }
 function switchTab(tab){
   currentTab = tab;
@@ -537,12 +569,26 @@ function switchTab(tab){
 }
 function moveTabIndicator(){
   const activeBtn = document.querySelector(".tab-btn.active");
-  const indicator = document.getElementById("tabIndicator");
-  if(!activeBtn || !indicator) return;
-  indicator.style.left = activeBtn.offsetLeft + "px";
-  indicator.style.width = activeBtn.offsetWidth + "px";
+  const indMain = document.getElementById("tabIndicatorMain");
+  const indTools = document.getElementById("tabIndicatorTools");
+  if(!activeBtn) return;
+  const inTools = document.getElementById("tabsTools").contains(activeBtn);
+  if(inTools){
+    if(indTools){ indTools.style.width = activeBtn.offsetWidth + "px"; indTools.style.left = activeBtn.offsetLeft + "px"; }
+    if(indMain) indMain.style.width = "0px";
+  } else {
+    if(indMain){ indMain.style.width = activeBtn.offsetWidth + "px"; indMain.style.left = activeBtn.offsetLeft + "px"; }
+    if(indTools) indTools.style.width = "0px";
+  }
 }
 window.addEventListener("resize", moveTabIndicator);
+document.addEventListener("focusout", (e)=>{
+  const el = e.target;
+  if(el && el.classList && el.classList.contains("free-ta")){
+    el.style.width = "";
+    el.style.height = "";
+  }
+}, true);
 
 const GROUP_CONTAINER = { pending:"pendingTeams", closed:"closedTeams", manual:"manualTeams" };
 const GROUP_FILTERBAR = { pending:"filterbarPending", closed:"filterbarClosed", manual:"filterbarManual" };
@@ -672,12 +718,12 @@ function renderTeams(group){
         <td class="dt-cell">${fmtDT(r.completed_time)}</td>
         <td class="dt-cell">${fmtDT(r.closed_time)}</td>
         ${extraCols.map(c=> c.big
-          ? `<td><textarea class="home-evening" placeholder="Update log status…" oninput="autoGrow(this)" onchange="updateField('${r.id}','${c.field}', this.value)">${esc(r[c.field]||'')}</textarea></td>`
+          ? `<td><textarea class="home-evening free-ta" placeholder="Update log status…" onchange="updateField('${r.id}','${c.field}', this.value)">${esc(r[c.field]||'')}</textarea></td>`
           : c.editable
-          ? `<td><input class="cell-input" value="${esc(r[c.field]||'')}" placeholder="…" onchange="updateField('${r.id}','${c.field}', this.value)"></td>`
+          ? `<td><textarea class="cell-ta free-ta" rows="1" placeholder="…" onchange="updateField('${r.id}','${c.field}', this.value)">${esc(r[c.field]||'')}</textarea></td>`
           : `<td class="subject-cell">${esc(r[c.field]||'')}</td>`
         ).join("")}
-        <td><textarea class="home-feedback" placeholder="INOC log…" oninput="autoGrow(this)" onchange="updateField('${r.id}','inoc_feedback', this.value)">${esc(r.inoc_feedback||'')}</textarea></td>
+        <td><textarea class="home-feedback free-ta" placeholder="INOC log…" onchange="updateField('${r.id}','inoc_feedback', this.value)">${esc(r.inoc_feedback||'')}</textarea></td>
         <td>
           <div class="actions-cell">
             <button class="icon-btn move" title="${group==='pending'?'Mark closed':'Move to pending'}" onclick="toggleGroup('${r.id}','${group}')">${group==='pending'?'✓':'↺'}</button>
@@ -686,14 +732,9 @@ function renderTeams(group){
       tbody.appendChild(tr);
     });
   });
-  document.querySelectorAll("#pendingTeams textarea, #closedTeams textarea, #manualTeams textarea").forEach(autoGrow);
 }
 
 /* ---------------- HOME SUMMARY PAGE ---------------- */
-function autoGrow(el){
-  el.style.height = "auto";
-  el.style.height = (el.scrollHeight + 2) + "px";
-}
 function sevBucket(sev){
   if(!sev) return null;
   const s = sev.toUpperCase();
@@ -810,7 +851,7 @@ function renderSvcAva(){
   `;
   const tbody = document.getElementById("svcavaTbody");
   if(detail.length===0){
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-hint">No SA-severity tickets restored on this date.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" class="empty-hint">No SA-severity tickets restored on this date.</td></tr>`;
     return;
   }
   tbody.innerHTML = detail.map(r=>{
@@ -820,11 +861,13 @@ function renderSvcAva(){
       <td class="site-pkd-cell">${esc(site)}</td>
       <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}</td>
       <td class="subject-cell">${esc(r.subject||'')}</td>
-      <td><textarea class="cell-ta" onchange="updateSvcAvaField('${r.id}','root_cause', this.value)">${esc(r.root_cause||'')}</textarea></td>
-      <td><textarea class="cell-ta" onchange="updateSvcAvaField('${r.id}','close_description', this.value)">${esc(r.close_description||'')}</textarea></td>
+      <td><textarea class="cell-ta free-ta" onchange="updateSvcAvaField('${r.id}','root_cause', this.value)">${esc(r.root_cause||'')}</textarea></td>
+      <td><textarea class="cell-ta free-ta" onchange="updateSvcAvaField('${r.id}','close_description', this.value)">${esc(r.close_description||'')}</textarea></td>
       <td><span class="sev-badge">${esc(r.severity||'-')}</span></td>
       <td class="${slaOver?'sla-over':'sla-in'}">${slaOver?'Over':'Within SLA'}</td>
       <td class="dt-cell">${fmtHMText(r.downtimeMinutes)}</td>
+      <td><textarea class="home-evening free-ta" placeholder="Update log status…" onchange="updateSvcAvaField('${r.id}','evening_summary', this.value)">${esc(r.evening_summary||'')}</textarea></td>
+      <td><textarea class="home-feedback free-ta" placeholder="INOC log…" onchange="updateSvcAvaField('${r.id}','inoc_feedback', this.value)">${esc(r.inoc_feedback||'')}</textarea></td>
     </tr>`;
   }).join("");
 }
@@ -847,7 +890,7 @@ function renderHome(){
   TEAM_MAP.forEach(tm=>{
     const team = tm.team_key;
     const att = ATTENDANCE[team] || {};
-    const allPlanRows = tickets.pending.filter(r=>r.team===team && isPkdMatch(r) && homeSevPass(r))
+    const allPlanRows = tickets.pending.filter(r=>r.team===team && isPkdMatch(r) && homeSevPass(r) && !isCancelled(r))
       .sort((a,b)=>(a.plan_order||9999)-(b.plan_order||9999));
     const pendingCount = allPlanRows.length;
     const closedCount = tickets.closed.filter(r=>r.team===team && r.closed_time && r.closed_time.slice(0,10)===dateVal && isPkdMatch(r)).length;
@@ -904,9 +947,9 @@ function renderHome(){
         <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}<div class="tt-subject">${esc((r.subject||'').slice(0,90))}</div></td>
         <td><span class="sev-badge">${esc(sevShort)}</span></td>
         <td class="status-cell">${esc(r.wo_status||'-')}<br><span class="status-time">${esc(statusTime||'—')}</span></td>
-        <td><textarea class="home-evening" placeholder="Update log status: สรุปการแก้ไข + เช็ค cause/subcause ก่อนปิดงาน…" oninput="autoGrow(this)"
+        <td><textarea class="home-evening free-ta" placeholder="Update log status: สรุปการแก้ไข + เช็ค cause/subcause ก่อนปิดงาน…"
             onchange="updateField('${r.id}','evening_summary', this.value)">${esc(r.evening_summary||'')}</textarea></td>
-        <td><textarea class="home-feedback" placeholder="INOC log…" oninput="autoGrow(this)"
+        <td><textarea class="home-feedback free-ta" placeholder="INOC log…"
             onchange="updateField('${r.id}','inoc_feedback', this.value)">${esc(r.inoc_feedback||'')}</textarea></td>`;
       if(i===0){
         cells += `
@@ -917,7 +960,6 @@ function renderHome(){
       tbody.appendChild(tr);
     });
   });
-  tbody.querySelectorAll("textarea").forEach(autoGrow);
   wireDragDrop(tbody);
 
   // summary cards
@@ -938,7 +980,7 @@ function renderHome(){
     return "var(--blue)";
   }
   function severityLines(teamList, groupName){
-    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPkdMatch(r) && homeSevPass(r));
+    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPkdMatch(r) && homeSevPass(r) && !isCancelled(r));
     const tally = {};
     rows.forEach(r=>{
       const c = sevShort(r.severity);
@@ -983,12 +1025,10 @@ function renderHome(){
       <div class="summary-body">
         <div class="summary-line"><span class="lbl">SA Severity — ${esc(dateVal)}</span><span class="val" style="color:var(--coral)">${svcAva.percent.toFixed(4)}%</span></div>
         <div class="more-link" onclick="switchTab('svcava')">View detail →</div>
-        <textarea class="summary-note" placeholder="หมายเหตุในเหตุการณ์สำคัญ…" oninput="autoGrow(this)" onchange="updateHomeNote(this.value)">${esc(HOME_NOTE.service_ava||'')}</textarea>
+        <textarea class="summary-note free-ta" placeholder="หมายเหตุในเหตุการณ์สำคัญ…" onchange="updateHomeNote(this.value)">${esc(HOME_NOTE.service_ava||'')}</textarea>
       </div>
     </div>
   `;
-  const noteEl = document.querySelector(".summary-note");
-  if(noteEl) autoGrow(noteEl);
 }
 
 function showSevDetail(groupName, sevCode){
@@ -1025,7 +1065,7 @@ function closeSevModal(){
 
 async function screenshotHome(){
   const btn = document.getElementById("screenshotHomeBtn");
-  const target = document.getElementById("homeView");
+  const target = document.body;
   if(!target || typeof html2canvas === "undefined"){
     toast("Screenshot library not loaded");
     return;
@@ -1035,19 +1075,31 @@ async function screenshotHome(){
   btn.textContent = "⏳ Capturing…";
   try{
     const bg = getComputedStyle(document.body).getPropertyValue("--bg").trim() || "#e9ecf1";
+    const fullWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+    const fullHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
     const canvas = await html2canvas(target, {
       backgroundColor: bg,
       useCORS: true,
       scale: Math.min(2, window.devicePixelRatio || 1.5),
-      windowWidth: target.scrollWidth,
-      windowHeight: target.scrollHeight
+      windowWidth: fullWidth,
+      windowHeight: fullHeight,
+      width: fullWidth,
+      height: fullHeight
     });
-    const dateVal = (document.getElementById("boardDate")||{}).value || new Date().toISOString().slice(0,10);
-    const link = document.createElement("a");
-    link.download = `PKD-Home-${dateVal}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-    toast("Screenshot saved");
+    const blob = await new Promise(res=> canvas.toBlob(res, "image/png"));
+    if(!blob) throw new Error("toBlob failed");
+    if(navigator.clipboard && window.ClipboardItem){
+      await navigator.clipboard.write([ new ClipboardItem({ "image/png": blob }) ]);
+      toast("Full page screenshot copied to clipboard — paste it anywhere (Ctrl/Cmd+V)");
+    } else {
+      // Fallback for browsers without Clipboard image support
+      const dateVal = (document.getElementById("boardDate")||{}).value || new Date().toISOString().slice(0,10);
+      const link = document.createElement("a");
+      link.download = `PKD-Board-${dateVal}.png`;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      toast("Clipboard not supported on this browser — saved file instead");
+    }
   } catch(err){
     console.error(err);
     toast("Screenshot failed");
@@ -1237,7 +1289,6 @@ function handleUpload(evt, group){
       rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
     }
     await bulkInsertWorkOrders(rows, group);
-    markUploaded();
     evt.target.value = "";
   };
   if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
