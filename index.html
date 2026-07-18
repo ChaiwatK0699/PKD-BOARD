@@ -96,8 +96,10 @@ input.search-box{background:var(--panel-2); border:1px solid var(--border); colo
 .sev-chip{font-family:'JetBrains Mono'; font-size:11.5px; padding:4px 9px; opacity:.55;}
 .sev-chip.on{opacity:1; border-color:var(--blue); background:var(--blue-dim); color:var(--blue);}
 .collapse-chevron{display:inline-block; width:10px; color:var(--muted-2); font-size:11px;}
-.more-link{font-family:'JetBrains Mono'; font-size:10.5px; color:var(--blue); cursor:pointer; margin-top:4px;}
-.more-link:hover{text-decoration:underline;}
+.more-link{display:inline-block; font-family:'JetBrains Mono'; font-size:13px; font-weight:700; color:var(--blue);
+  cursor:pointer; margin-top:6px; padding:4px 10px; border:1px solid var(--blue); border-radius:20px; background:var(--blue-dim);
+  transition:.15s;}
+.more-link:hover{background:var(--blue); color:var(--btn-on-accent,#fff);}
 .tt-subject{font-size:10px; color:var(--muted); line-height:1.35; margin-top:3px; max-width:150px; white-space:normal;}
 .toggle-chip input{accent-color:var(--amber);}
 .btn{font-family:'Inter'; font-weight:600; font-size:14px; letter-spacing:.01em; border:1px solid var(--border); background:var(--panel-2);
@@ -286,6 +288,16 @@ table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--bord
 .sev-detail-tt{font-family:'JetBrains Mono'; font-weight:700; color:var(--blue); min-width:110px;}
 .sev-detail-meta{color:var(--muted); font-size:11.5px; margin-top:2px;}
 .sev-detail-subject{flex:1; color:var(--text);}
+.sev-ladder{display:flex; flex-direction:column;}
+.sev-ladder-row{display:flex; align-items:flex-start; gap:10px; padding:9px 18px; border-bottom:1px solid var(--border-soft);
+  margin-left:calc(var(--step,0) * 14px); transition:margin-left .1s;}
+.sev-ladder-row:last-child{border-bottom:none;}
+.sev-ladder-step{flex:0 0 auto; width:22px; height:22px; border-radius:6px; background:var(--panel-2,rgba(120,140,180,.15));
+  color:var(--blue); font-family:'JetBrains Mono'; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center;}
+.sev-ladder-info{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+.sev-ladder-tt{font-family:'JetBrains Mono'; font-weight:700; color:var(--blue); font-size:13px;}
+.sev-ladder-team{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--teal);}
+.sev-ladder-plan{font-size:12.5px; color:var(--text); line-height:1.5; word-break:break-word;}
 .modal-empty{padding:26px 18px; text-align:center; color:var(--muted);}
 body.screenshotting #screenshotHomeBtn{opacity:.5; pointer-events:none;}
 body.screenshotting .topbar{position:static !important;}
@@ -594,6 +606,7 @@ const GROUP_CONTAINER = { pending:"pendingTeams", closed:"closedTeams", manual:"
 const GROUP_FILTERBAR = { pending:"filterbarPending", closed:"filterbarClosed", manual:"filterbarManual" };
 function groupSourceRows(group){
   if(group==="manual") return tickets.closed.filter(isManualClosed);
+  if(group==="closed") return tickets.closed.filter(r=>!isManualClosed(r));
   return tickets[group];
 }
 function renderFilterbar(group){
@@ -944,7 +957,7 @@ function renderHome(){
       cells += `
         <td><div class="plan-cell" draggable="true"><span class="drag-handle">⠿</span><span class="plan-label">Plan ${i+1}</span></div></td>
         <td class="site-pkd-cell">${esc(site)}${pkdType==='subject'?'*':''}</td>
-        <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}<div class="tt-subject">${esc((r.subject||'').slice(0,90))}</div></td>
+        <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}<div class="tt-subject">${esc(r.subject||'')}</div></td>
         <td><span class="sev-badge">${esc(sevShort)}</span></td>
         <td class="status-cell">${esc(r.wo_status||'-')}<br><span class="status-time">${esc(statusTime||'—')}</span></td>
         <td><textarea class="home-evening free-ta" placeholder="Update log status: สรุปการแก้ไข + เช็ค cause/subcause ก่อนปิดงาน…"
@@ -1039,23 +1052,28 @@ function showSevDetail(groupName, sevCode){
     if(!homeSevPass(r)) return false;
     const c = (r.severity||"").split("-")[0] || "";
     return c === sevCode;
-  });
+  }).sort((a,b)=>(a.plan_order||9999)-(b.plan_order||9999));
+  const teamCodeMap = {};
+  TEAM_MAP.forEach(tm=>{ teamCodeMap[tm.team_key] = tm.raw_label || tm.team_key; });
   const groupLabel = groupName==='node' ? 'Node Pending' : 'OFC Pending';
   document.getElementById("sevDetailTitle").textContent = `${groupLabel} — ${sevCode} (${rows.length})`;
   const body = document.getElementById("sevDetailBody");
   if(rows.length===0){
     body.innerHTML = `<div class="modal-empty">No tickets found.</div>`;
   } else {
-    body.innerHTML = rows.map(r=>{
+    body.innerHTML = `<div class="sev-ladder">${rows.map((r,i)=>{
       const ticketId = r.tt_number || r.work_order_id || '-';
-      const site = extractPkdSite(r);
-      return `<div class="sev-detail-row">
-        <div class="sev-detail-tt">${esc(ticketId)}</div>
-        <div class="sev-detail-subject">${esc(r.subject || r.plan_today || '-')}
-          <div class="sev-detail-meta">Team: ${esc(r.team||'-')} · Site: ${esc(site)} · Status: ${esc(r.wo_status||'-')}</div>
+      const teamCode = teamCodeMap[r.team] || r.team || '-';
+      const plan = r.plan_today || r.subject || '-';
+      return `<div class="sev-ladder-row" style="--step:${i}">
+        <div class="sev-ladder-step">${i+1}</div>
+        <div class="sev-ladder-info">
+          <div class="sev-ladder-tt">TT: ${esc(ticketId)}</div>
+          <div class="sev-ladder-team">Team: ${esc(teamCode)}</div>
+          <div class="sev-ladder-plan">Plan: ${esc(plan)}</div>
         </div>
       </div>`;
-    }).join("");
+    }).join("")}</div>`;
   }
   document.getElementById("sevDetailModal").classList.add("open");
 }
@@ -1448,8 +1466,32 @@ async function bulkInsertWorkOrders(rows, groupBtn){
   }
   const pendingIdsBefore = new Set(tickets.pending.map(r=>r.work_order_id).filter(Boolean));
   const movedToClosed = payloads.filter(p=>p.status_group==="closed" && p.work_order_id && pendingIdsBefore.has(p.work_order_id)).length;
-  const withId = payloads.filter(p=>p.work_order_id);
-  const withoutId = payloads.filter(p=>!p.work_order_id);
+
+  // Reconcile by TT number first: if this TT was already closed manually by INOC (or already exists
+  // under any id), update that exact row in place instead of inserting a duplicate. This is what lets
+  // a later real import "claim back" a ticket the INOC team closed manually via the ✓ button — the
+  // manual placeholder gets overwritten with the real status/timestamps from the source system.
+  const existingByTt = new Map();
+  [...tickets.pending, ...tickets.closed].forEach(r=>{ if(r.tt_number) existingByTt.set(r.tt_number, r); });
+  const reconciled = [];
+  const remaining = [];
+  payloads.forEach(p=>{
+    const match = p.tt_number && existingByTt.get(p.tt_number);
+    if(match){ reconciled.push({...p, id: match.id}); }
+    else remaining.push(p);
+  });
+  let reconciledCount = 0;
+  if(reconciled.length){
+    const results = await Promise.all(reconciled.map(p=>{
+      const { id, ...patch } = p;
+      return fetch(REST+`/tickets?id=eq.${id}`, {method:"PATCH", headers:HEADERS, body:JSON.stringify(patch)});
+    }));
+    reconciledCount = results.filter(r=>r.ok).length;
+    const failed = results.length - reconciledCount;
+    if(failed) console.error(`${failed} TT-reconcile PATCH(es) failed`);
+  }
+  const withId = remaining.filter(p=>p.work_order_id);
+  const withoutId = remaining.filter(p=>!p.work_order_id);
   let ok = true;
   if(withId.length){
     const res1 = await fetch(REST+"/tickets?on_conflict=work_order_id", {
@@ -1465,7 +1507,8 @@ async function bulkInsertWorkOrders(rows, groupBtn){
   }
   if(ok){
     const movedMsg = movedToClosed>0 ? ` — ${movedToClosed} ticket(s) moved Pending → Closed` : "";
-    statusEl.textContent = `Synced ${matched} matched rows (updated existing / added new, skipped ${skipped} non-team rows)${movedMsg} ✓`;
+    const reconMsg = reconciledCount>0 ? ` — ${reconciledCount} TT reconciled (incl. manual-closed → closed)` : "";
+    statusEl.textContent = `Synced ${matched} matched rows (updated existing / added new, skipped ${skipped} non-team rows)${movedMsg}${reconMsg} ✓`;
     await loadAll();
   } else {
     statusEl.textContent = "Import failed — see console.";
