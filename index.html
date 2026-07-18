@@ -832,12 +832,13 @@ function fmtMin(totalMinutes){
   return `${Math.max(0, Math.round(totalMinutes))} min`;
 }
 function calcServiceAvailability(dateVal){
-  const TOTAL_SITE_MINUTES = 168 * 24 * 60;
+  const TOTAL_SITE_MINUTES = 168 * 24 * 60; // 168 hours/week
   // Source: tickets.svcava (imported from the "List of Incidents" export).
   // Downtime window = Create Date -> Restoration Date (stored in created_time / closed_time).
   const rows = tickets.svcava.filter(r=>{
     const fam = (r.severity||"").split("-")[0] || "";
     if(!fam.toUpperCase().startsWith("SA")) return false; // SA family only (excludes NSA, PSA since those start with N/P)
+    if(!isPkdMatch(r)) return false; // must be a PKD site — matched via site_code, or regex against Subject/Close Description
     if(!r.closed_time || r.closed_time.slice(0,10)!==dateVal) return false; // closed_time = Restoration Date
     return true;
   });
@@ -1337,19 +1338,43 @@ function handleSvcAvaUpload(evt){
   if(!file) return;
   const reader = new FileReader();
   reader.onload = async (e)=>{
+    const buf = e.target.result; // ArrayBuffer
+    const sniff = new TextDecoder("utf-8").decode(buf.slice(0, 2000)).toLowerCase();
     let rows = [];
-    if(file.name.match(/\.csv$/i)){
-      rows = parseCSV(e.target.result);
+    if(sniff.includes("<html") || sniff.includes("<table")){
+      // Many NOC/ticketing "List of Incidents" exports are actually HTML tables saved with a
+      // .xls or .csv extension. Feeding this to XLSX.read(..., {type:"binary"}) silently
+      // "succeeds" but produces thousands of garbage rows of raw HTML text instead of the
+      // real data — parse it as HTML instead.
+      const fullText = new TextDecoder("utf-8").decode(buf);
+      rows = parseHtmlTableRows(fullText);
+    } else if(file.name.match(/\.csv$/i)){
+      const text = new TextDecoder("utf-8").decode(buf);
+      rows = parseCSV(text);
     } else {
-      // The "List of Incidents" export is actually an HTML table saved with an .xls extension.
-      const wb = XLSX.read(e.target.result, {type:"binary"});
+      const wb = XLSX.read(buf, {type:"array"});
       const sheet = wb.Sheets[wb.SheetNames[0]];
       rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
     }
     await bulkInsertSvcAva(rows);
     evt.target.value = "";
   };
-  if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
+  reader.readAsArrayBuffer(file);
+}
+// Parses an HTML <table> export into an array of {header: value} row objects.
+function parseHtmlTableRows(htmlText){
+  const doc = new DOMParser().parseFromString(htmlText, "text/html");
+  const table = doc.querySelector("table");
+  if(!table) return [];
+  const trs = [...table.querySelectorAll("tr")];
+  if(trs.length < 2) return [];
+  const headerCells = [...trs[0].querySelectorAll("th,td")].map(td=>td.textContent.trim());
+  return trs.slice(1).map(tr=>{
+    const cells = [...tr.querySelectorAll("td,th")].map(td=>td.textContent.trim());
+    const obj = {};
+    headerCells.forEach((h,i)=>{ obj[h] = cells[i]!==undefined ? cells[i] : ""; });
+    return obj;
+  }).filter(o=>Object.values(o).some(v=>v!==""));
 }
 // Converts "15/07/26 22:06:51" (DD/MM/YY HH:MM:SS) -> "2026-07-15 22:06:51"
 function parseIncidentDate(str){
@@ -1377,15 +1402,16 @@ async function bulkInsertSvcAva(rows){
     }
     return {
       status_group: "svcava",
+      team: "SVCAVA", // not tied to any of the 6 dispatch teams; placeholder to satisfy the NOT NULL constraint
       tt_number: get("Incident"),
       external_ticket_id: get("External Ticket"),
       subject: get("Subject"),
       wo_status: get("Status"),
       incident_urgency: urgency,
       severity: urgency ? `${severity}-${urgency}` : severity,
-      created_time: createdTime,        // Create Date
-      require_finish_time: expectedFinish, // Expected Finish
-      closed_time: restorationTime,     // Restoration Date
+      created_time: createdTime || null,        // Create Date
+      require_finish_time: expectedFinish || null, // Expected Finish
+      closed_time: restorationTime || null,     // Restoration Date
       sla: sla,
       root_cause: get("Problem"),
       close_description: get("Remedy"),
@@ -1412,8 +1438,11 @@ async function bulkInsertSvcAva(rows){
     statusEl.textContent = `Synced ${payloads.length} Service Availability ticket(s) ✓`;
     await loadAll();
   } else {
-    console.error(await res.text());
-    statusEl.textContent = "Import failed — see console.";
+    const errText = await res.text();
+    console.error(errText);
+    let msg = errText;
+    try { msg = JSON.parse(errText).message || errText; } catch(e){}
+    statusEl.textContent = `Import failed: ${msg}`.slice(0, 300);
   }
 }
 function parseCSV(text){
