@@ -1091,6 +1091,10 @@ async function screenshotHome(){
   document.body.classList.add("screenshotting");
   const origLabel = btn.textContent;
   btn.textContent = "⏳ Capturing…";
+  const savedScrollX = window.scrollX, savedScrollY = window.scrollY;
+  window.scrollTo(0, 0);
+  // Let the browser settle sticky/layout after the scroll jump before measuring/capturing.
+  await new Promise(r=>setTimeout(r, 60));
   try{
     const bg = getComputedStyle(document.body).getPropertyValue("--bg").trim() || "#e9ecf1";
     const fullWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
@@ -1102,7 +1106,23 @@ async function screenshotHome(){
       windowWidth: fullWidth,
       windowHeight: fullHeight,
       width: fullWidth,
-      height: fullHeight
+      height: fullHeight,
+      x: 0,
+      y: 0,
+      scrollX: 0,
+      scrollY: 0,
+      onclone: (clonedDoc)=>{
+        // Sticky columns and internal horizontal scrollers are the two things that reliably
+        // break html2canvas full-page captures (it renders based on live layout/scroll state,
+        // not the logical document) — neutralize both on the clone so capture is scroll-position-proof.
+        clonedDoc.querySelectorAll(".locked-col").forEach(el=>{ el.style.position = "static"; });
+        clonedDoc.querySelectorAll(".table-scroll, .home-table-scroll").forEach(el=>{
+          el.style.overflow = "visible";
+          el.style.maxHeight = "none";
+        });
+        clonedDoc.body.style.overflow = "visible";
+        clonedDoc.documentElement.style.overflow = "visible";
+      }
     });
     const blob = await new Promise(res=> canvas.toBlob(res, "image/png"));
     if(!blob) throw new Error("toBlob failed");
@@ -1124,6 +1144,7 @@ async function screenshotHome(){
   } finally {
     document.body.classList.remove("screenshotting");
     btn.textContent = origLabel;
+    window.scrollTo(savedScrollX, savedScrollY);
   }
 }
 
