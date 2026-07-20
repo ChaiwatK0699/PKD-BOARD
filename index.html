@@ -108,6 +108,8 @@ input.search-box{background:var(--panel-2); border:1px solid var(--border); colo
 .btn.primary{background:var(--amber); color:var(--btn-on-accent); border-color:var(--amber);}
 .btn.primary:hover{filter:brightness(1.08);}
 .btn.teal{background:var(--teal); color:var(--btn-on-accent); border-color:var(--teal);}
+.btn.green{background:#2f9e44; color:#ffffff; border-color:#2f9e44;}
+.btn.green:hover{filter:brightness(1.08);}
 .btn.ghost{background:transparent;}
 .btn.sm{padding:5px 10px; font-size:12.5px;}
 #fileInputPending, #fileInputClosed, #fileInputSvcAva{display:none;}
@@ -120,10 +122,12 @@ input.search-box{background:var(--panel-2); border:1px solid var(--border); colo
 .team-contact{font-size:11.5px; color:var(--muted); font-family:'JetBrains Mono';}
 .team-head .add-row-btn{margin-left:auto;}
 .team-count{color:var(--muted); font-size:12.5px; font-family:'JetBrains Mono';}
-table{width:100%; border-collapse:collapse; font-size:13.5px; border:1px solid var(--border-soft);}
-thead th{text-align:left; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); border-right:1px solid var(--border-soft); white-space:nowrap;}
+table{width:100%; table-layout:fixed; border-collapse:collapse; font-size:13.5px; border:1px solid var(--border-soft);}
+thead th{position:relative; text-align:left; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); border-right:1px solid var(--border-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 thead th:last-child{border-right:none;}
+.col-resizer{position:absolute; top:0; right:0; width:8px; height:100%; cursor:col-resize; user-select:none; z-index:5; touch-action:none;}
+.col-resizer:hover, .col-resizer.resizing{background:var(--blue);}
 tbody td{padding:7px 10px; border-bottom:1px solid var(--border-soft); border-right:1px solid var(--border-soft); vertical-align:top;}
 tbody td:last-child{border-right:none;}
 tbody tr:last-child td{border-bottom:none;}
@@ -269,8 +273,7 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
 .svcava-sub{font-family:'JetBrains Mono'; font-size:12.5px; color:var(--muted); margin-top:6px;}
 table.svcava-table{width:100%; table-layout:fixed; border-collapse:collapse; font-size:13.5px; background:var(--panel); border:1px solid var(--border-soft); border-radius:8px;}
 table.svcava-table thead th{text-align:left; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--panel-2);
-  white-space:normal; overflow:hidden; word-break:break-word; line-height:1.3;}
+  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--panel-2);}
 table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft);}
 .summary-line.clickable{cursor:pointer; transition:transform .12s;}
 .summary-line.clickable:hover .lbl, .summary-line.clickable:hover .val{text-decoration:underline;}
@@ -370,6 +373,7 @@ body.screenshotting .topbar{position:static !important;}
       <input type="file" id="fileInputPending" accept=".csv,.xlsx,.xls" onchange="handleUpload(event,'pending')">
       <button class="btn" onclick="addRowPrompt('pending')">+ Add Ticket</button>
       <button class="btn ghost sm" onclick="loadAll()">↻ Refresh</button>
+      <button class="btn green sm" onclick="exportGroupExcel('pending')">⭳ Export Excel (INOC columns)</button>
       <span class="status-msg" id="statusMsgPending"></span>
     </div>
     <div class="filterbar" id="filterbarPending"></div>
@@ -381,6 +385,7 @@ body.screenshotting .topbar{position:static !important;}
       <input type="file" id="fileInputClosed" accept=".csv,.xlsx,.xls" onchange="handleUpload(event,'closed')">
       <button class="btn" onclick="addRowPrompt('closed')">+ Add Ticket</button>
       <button class="btn ghost sm" onclick="loadAll()">↻ Refresh</button>
+      <button class="btn green sm" onclick="exportGroupExcel('closed')">⭳ Export Excel (INOC columns)</button>
       <span class="status-msg" id="statusMsgClosed"></span>
     </div>
     <div class="filterbar" id="filterbarClosed"></div>
@@ -398,6 +403,7 @@ body.screenshotting .topbar{position:static !important;}
     <div class="toolbar">
       <button class="btn primary" onclick="document.getElementById('fileInputSvcAva').click()">⭱ Upload Service Availability (List of Incidents)</button>
       <input type="file" id="fileInputSvcAva" accept=".csv,.xlsx,.xls" onchange="handleSvcAvaUpload(event)">
+      <button class="btn green sm" onclick="exportGroupExcel('svcava')">⭳ Export Excel (INOC columns)</button>
       <span class="status-msg" id="statusMsgSvcAva"></span>
     </div>
     <div class="svcava-hero" id="svcavaHero"></div>
@@ -410,7 +416,7 @@ body.screenshotting .topbar{position:static !important;}
         <th style="width:220px">Close Description</th>
         <th style="width:120px">Severity</th>
         <th style="width:110px">SLA</th>
-        <th style="width:130px">Downtime (Create → Restoration)</th>
+        <th style="width:110px">Downtime (Create → Restoration)</th>
         <th style="width:200px">Update Log Status</th>
         <th style="width:180px">INOC LOG</th>
       </tr></thead>
@@ -745,6 +751,7 @@ function renderTeams(group){
         </td>`;
       tbody.appendChild(tr);
     });
+    makeColumnsResizable(table, `team-${group}`);
   });
 }
 
@@ -867,6 +874,7 @@ function renderSvcAva(){
   const tbody = document.getElementById("svcavaTbody");
   if(detail.length===0){
     tbody.innerHTML = `<tr><td colspan="10" class="empty-hint">No SA-severity tickets restored on this date.</td></tr>`;
+    makeColumnsResizable(document.querySelector("table.svcava-table"), "svcava");
     return;
   }
   tbody.innerHTML = detail.map(r=>{
@@ -885,6 +893,7 @@ function renderSvcAva(){
       <td><textarea class="home-feedback free-ta" placeholder="INOC log…" onchange="updateSvcAvaField('${r.id}','inoc_feedback', this.value)">${esc(r.inoc_feedback||'')}</textarea></td>
     </tr>`;
   }).join("");
+  makeColumnsResizable(document.querySelector("table.svcava-table"), "svcava");
 }
 async function updateSvcAvaField(id, field, value){
   const row = tickets.svcava.find(r=>String(r.id)===String(id));
@@ -976,6 +985,7 @@ function renderHome(){
     });
   });
   wireDragDrop(tbody);
+  makeColumnsResizable(document.querySelector("table.home-table"), "home");
 
   // summary cards
   const nodeTeams = TEAM_MAP.filter(t=>t.team_key.startsWith("NODE")).map(t=>t.team_key);
@@ -1090,6 +1100,20 @@ async function screenshotHome(){
     toast("Screenshot library not loaded");
     return;
   }
+  // Kick off the clipboard write IMMEDIATELY and synchronously, before any `await` — browsers
+  // tie the clipboard permission to the click's transient user-activation, which can expire
+  // during the several hundred ms it takes html2canvas to render. Passing a not-yet-resolved
+  // Blob promise into ClipboardItem lets us start the write right on the click (so it's treated
+  // as directly gesture-triggered and doesn't re-prompt every time) while the actual image data
+  // gets filled in once capture finishes.
+  let resolveBlob, rejectBlob;
+  const blobPromise = new Promise((res, rej)=>{ resolveBlob = res; rejectBlob = rej; });
+  let clipboardWritePromise = null;
+  const clipboardSupported = navigator.clipboard && window.ClipboardItem;
+  if(clipboardSupported){
+    clipboardWritePromise = navigator.clipboard.write([ new ClipboardItem({ "image/png": blobPromise }) ]);
+  }
+
   document.body.classList.add("screenshotting");
   const origLabel = btn.textContent;
   btn.textContent = "⏳ Capturing…";
@@ -1099,19 +1123,41 @@ async function screenshotHome(){
   // (JetBrains Mono / Barlow Condensed) is ready, it silently falls back to a thinner system
   // font, which is what makes captures look pale/blurry compared to the live page.
   if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch(e){} }
-  // Let the browser settle sticky/layout after the scroll jump before measuring/capturing.
-  await new Promise(r=>setTimeout(r, 120));
+
+  // Rather than fighting html2canvas's clone/onclone machinery to reproduce scrolled-off
+  // content, actually expand every horizontally-scrollable table container (and any sticky
+  // columns) on the REAL live page first, let it reflow to full width, capture that, then put
+  // everything back exactly as it was. This guarantees every column shows — what you see during
+  // the brief expansion is exactly what gets captured.
+  const restoreFns = [];
+  document.querySelectorAll(".locked-col").forEach(el=>{
+    restoreFns.push([el, "position", el.style.position]);
+    el.style.position = "static";
+  });
+  document.querySelectorAll(".table-scroll, .home-table-scroll").forEach(el=>{
+    restoreFns.push([el, "overflow", el.style.overflow]);
+    restoreFns.push([el, "maxHeight", el.style.maxHeight]);
+    restoreFns.push([el, "width", el.style.width]);
+    el.style.overflow = "visible";
+    el.style.maxHeight = "none";
+    const t = el.querySelector("table");
+    if(t) el.style.width = t.scrollWidth + "px";
+  });
+  restoreFns.push([document.body, "overflow", document.body.style.overflow]);
+  restoreFns.push([document.documentElement, "overflow", document.documentElement.style.overflow]);
+  document.body.style.overflow = "visible";
+  document.documentElement.style.overflow = "visible";
+
+  // Let the browser actually reflow the now-expanded layout before measuring/capturing.
+  await new Promise(r=>setTimeout(r, 150));
+
   try{
     const bg = getComputedStyle(document.body).getPropertyValue("--bg").trim() || "#e9ecf1";
+    // Now that every table container is expanded on the real page, the document's own
+    // scrollWidth/scrollHeight already reflect the true full-content size — no guessing needed.
     const fullWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
-    // body has min-height:100vh for layout purposes, which inflates scrollHeight to a full
-    // viewport (or more) even when the visible tab's actual content is much shorter — that's
-    // what was producing mostly-blank "thin" screenshots. Measure the real bottom edge of the
-    // rendered content instead of trusting scrollHeight.
-    const wrapEl = document.querySelector(".wrap");
-    const measuredBottom = wrapEl ? Math.ceil(wrapEl.getBoundingClientRect().bottom + window.scrollY) : 0;
-    const fullHeight = Math.max(measuredBottom + 24, 200);
-    const canvas = await html2canvas(target, {
+    const fullHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+    const baseOpts = {
       backgroundColor: bg,
       useCORS: true,
       scale: Math.max(2, window.devicePixelRatio || 2), // fixed high-DPI scale so text stays crisp regardless of monitor DPI
@@ -1122,25 +1168,26 @@ async function screenshotHome(){
       x: 0,
       y: 0,
       scrollX: 0,
-      scrollY: 0,
-      onclone: (clonedDoc)=>{
-        // Sticky columns and internal horizontal scrollers are the two things that reliably
-        // break html2canvas full-page captures (it renders based on live layout/scroll state,
-        // not the logical document) — neutralize both on the clone so capture is scroll-position-proof.
-        clonedDoc.querySelectorAll(".locked-col").forEach(el=>{ el.style.position = "static"; });
-        clonedDoc.querySelectorAll(".table-scroll, .home-table-scroll").forEach(el=>{
-          el.style.overflow = "visible";
-          el.style.maxHeight = "none";
-        });
-        clonedDoc.body.style.overflow = "visible";
-        clonedDoc.documentElement.style.overflow = "visible";
-      }
-    });
+      scrollY: 0
+    };
+    // foreignObjectRendering lets the browser itself paint the real DOM into the canvas (true
+    // font weight, color, anti-aliasing) instead of html2canvas manually re-drawing every element
+    // — that manual re-draw is what produced the pale/thin-looking text and colors. Try it first
+    // since it's far more faithful to the live page; fall back to the manual renderer if the
+    // browser doesn't support it well (e.g. some Firefox versions) or it throws.
+    let canvas;
+    try{
+      canvas = await html2canvas(target, {...baseOpts, foreignObjectRendering: true});
+    }catch(foErr){
+      console.warn("foreignObjectRendering capture failed, falling back:", foErr);
+      canvas = await html2canvas(target, {...baseOpts, foreignObjectRendering: false});
+    }
     const blob = await new Promise(res=> canvas.toBlob(res, "image/png"));
     if(!blob) throw new Error("toBlob failed");
-    if(navigator.clipboard && window.ClipboardItem){
-      await navigator.clipboard.write([ new ClipboardItem({ "image/png": blob }) ]);
-      toast("Full page screenshot copied to clipboard — paste it anywhere (Ctrl/Cmd+V)");
+    if(clipboardSupported){
+      resolveBlob(blob);
+      await clipboardWritePromise;
+      toast("คัดลอกภาพเต็มหน้าแล้ว — ไปวาง (Ctrl/Cmd+V) ใน LINE หรือที่ไหนก็ได้เลย");
     } else {
       // Fallback for browsers without Clipboard image support
       const dateVal = (document.getElementById("boardDate")||{}).value || new Date().toISOString().slice(0,10);
@@ -1151,9 +1198,12 @@ async function screenshotHome(){
       toast("Clipboard not supported on this browser — saved file instead");
     }
   } catch(err){
+    if(rejectBlob) rejectBlob(err);
     console.error(err);
     toast("Screenshot failed");
   } finally {
+    // Put every temporarily-expanded element back exactly as it was.
+    restoreFns.forEach(([el, prop, val])=>{ el.style[prop] = val; });
     document.body.classList.remove("screenshotting");
     btn.textContent = origLabel;
     window.scrollTo(savedScrollX, savedScrollY);
@@ -1455,6 +1505,87 @@ async function bulkInsertSvcAva(rows){
     try { msg = JSON.parse(errText).message || errText; } catch(e){}
     statusEl.textContent = `Import failed: ${msg}`.slice(0, 300);
   }
+}
+function exportGroupExcel(group){
+  const dateVal = document.getElementById("boardDate").value;
+  let rows, sheetName, cols;
+  if(group==="svcava"){
+    const { detail } = calcServiceAvailability(dateVal);
+    rows = detail;
+    sheetName = "Service Availability";
+    cols = [
+      {h:"Site Code", get:r=>extractPkdSite(r)},
+      {h:"Source Ticket", get:r=>r.tt_number||r.work_order_id||""},
+      {h:"Subject", get:r=>r.subject||""},
+      {h:"Root Cause", get:r=>r.root_cause||""},               // INOC-filled
+      {h:"Close Description", get:r=>r.close_description||""}, // INOC-filled
+      {h:"Update Log Status", get:r=>r.evening_summary||""},   // INOC-filled
+      {h:"INOC Log", get:r=>r.inoc_feedback||""}                // INOC-filled
+    ];
+  } else {
+    rows = groupSourceRows(group).filter(r=>passFilter(r, group));
+    sheetName = group==="pending" ? "Pending" : "Closed";
+    cols = [
+      {h:"Team", get:r=>r.team||""},
+      {h:"Site ID", get:r=>r.site_code||""},
+      {h:"TT / Ext ID", get:r=>r.tt_number||r.work_order_id||""},
+      {h:"Subject", get:r=>r.subject||""},
+      {h:"Suspend Reason", get:r=>r.suspend_reason||""},           // INOC-filled
+      {h:"Suspend Description", get:r=>r.suspend_description||""}, // INOC-filled
+      {h:"Update Log Status", get:r=>r.evening_summary||""},       // INOC-filled
+      {h:"INOC Log", get:r=>r.inoc_feedback||""}                    // INOC-filled
+    ];
+  }
+  if(rows.length===0){ toast("No rows to export"); return; }
+  const data = rows.map(r=>{
+    const obj = {};
+    cols.forEach(c=>{ obj[c.h] = c.get(r); });
+    return obj;
+  });
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws["!cols"] = cols.map(c=>({ wch: Math.max(14, c.h.length+2) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, `PKD-${sheetName.replace(/\s+/g,"")}-INOC-${dateVal}.xlsx`);
+}
+let COL_WIDTHS = {};
+try{ COL_WIDTHS = JSON.parse(localStorage.getItem("pkdColWidths")||"{}"); }catch(e){ COL_WIDTHS = {}; }
+function saveColWidths(){ try{ localStorage.setItem("pkdColWidths", JSON.stringify(COL_WIDTHS)); }catch(e){} }
+// Adds a drag handle to the right edge of every <th> in `table` so columns can be resized by
+// hand — widths persist per storageKey (e.g. "team-pending", "home", "svcava") across re-renders
+// and page reloads via localStorage.
+function makeColumnsResizable(table, storageKey){
+  if(!table) return;
+  const ths = table.querySelectorAll("thead th");
+  ths.forEach((th, i)=>{
+    const key = `${storageKey}:${i}`;
+    if(COL_WIDTHS[key]) th.style.width = COL_WIDTHS[key]+"px";
+    if(th.querySelector(".col-resizer")) return; // already wired up
+    const handle = document.createElement("div");
+    handle.className = "col-resizer";
+    th.appendChild(handle);
+    handle.addEventListener("mousedown", e=>{
+      e.preventDefault(); e.stopPropagation();
+      const startX = e.pageX;
+      const startWidth = th.offsetWidth;
+      handle.classList.add("resizing");
+      document.body.style.cursor = "col-resize";
+      const onMove = (ev)=>{
+        const newWidth = Math.max(40, startWidth + (ev.pageX - startX));
+        th.style.width = newWidth+"px";
+      };
+      const onUp = ()=>{
+        handle.classList.remove("resizing");
+        document.body.style.cursor = "";
+        COL_WIDTHS[key] = th.offsetWidth;
+        saveColWidths();
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      };
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    });
+  });
 }
 function parseCSV(text){
   const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
