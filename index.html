@@ -249,6 +249,7 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
 .home-feedback{width:100%; min-height:110px; background:transparent; border:1px solid var(--border); color:var(--text);
   font-family:'Inter'; font-size:12.5px; line-height:1.5; padding:8px; border-radius:4px; resize:none; overflow:hidden;}
 .home-feedback:hover{border-color:var(--muted-2);}
+.inoc-from-tt{border-color:var(--blue); background:color-mix(in srgb, var(--blue) 6%, var(--panel));}
 .home-feedback:focus{outline:none; border-color:var(--blue); background:var(--panel-2);}
 .home-summary{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:20px;}
 .summary-card{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:0; overflow:hidden;}
@@ -575,6 +576,7 @@ let faultRegionFilter = "";
 let faultControlDetail = null;
 let faultOverviewChartInst = null;
 let faultLtrSlaChartInst = null;
+let INOC_LOG_BY_TT = new Map();
 
 document.getElementById("boardDate").valueAsDate = new Date();
 
@@ -693,6 +695,7 @@ async function loadAll(){
   tickets.pending = await fetchTickets("pending");
   tickets.closed = await fetchTickets("closed");
   tickets.svcava = await fetchTickets("svcava");
+  rebuildInocLogByTt();
   await loadFaultTickets(false);
   const dateVal = document.getElementById("boardDate").value;
   await fetchAttendance(dateVal);
@@ -1053,6 +1056,10 @@ async function updateSvcAvaField(id, field, value){
   const row = tickets.svcava.find(r=>String(r.id)===String(id));
   if(row) row[field] = value;
   await fetch(REST+`/tickets?id=eq.${id}`, {method:"PATCH", headers:HEADERS, body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})});
+  if(field === "inoc_feedback"){
+    rebuildInocLogByTt();
+    if(currentTab === "fault") renderFault();
+  }
   toast("Saved");
 }
 function calcServiceAvailabilityForCard(){ return calcServiceAvailability(document.getElementById("boardDate").value); }
@@ -1470,6 +1477,10 @@ async function updateField(id, field, value){
   const row = tickets[group].find(r=>r.id===id);
   if(row) row[field] = value;
   await fetch(REST+`/tickets?id=eq.${id}`, {method:"PATCH", headers:HEADERS, body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})});
+  if(field === "inoc_feedback"){
+    rebuildInocLogByTt();
+    if(currentTab === "fault") renderFault();
+  }
   renderTeams(group);
   if(group==="closed") renderTeams("manual");
 }
@@ -1862,6 +1873,34 @@ async function bulkInsertWorkOrders(rows, groupBtn){
 }
 
 /* ===================== FAULT PLKD ===================== */
+function rebuildInocLogByTt(){
+  INOC_LOG_BY_TT = new Map();
+  [...tickets.pending, ...tickets.closed, ...tickets.svcava].forEach(r=>{
+    const tt = String(r.tt_number || "").trim().toUpperCase();
+    if(!tt) return;
+    const log = String(r.inoc_feedback || "").trim();
+    if(!log) return;
+    const prev = INOC_LOG_BY_TT.get(tt);
+    if(!prev || log.length > prev.length) INOC_LOG_BY_TT.set(tt, log);
+  });
+}
+function getFaultTtKeys(r){
+  const keys = [];
+  const src = String(r.source_ticket_id || "").trim();
+  const sdm = String(r.sdm_tt || "").trim();
+  if(src) keys.push(src.toUpperCase());
+  if(sdm && sdm !== src) keys.push(sdm.toUpperCase());
+  return keys;
+}
+function getFaultInocLogDisplay(r){
+  const own = String(r.inoc_log || "").trim();
+  if(own) return {text: own, linked: false};
+  for(const k of getFaultTtKeys(r)){
+    const log = INOC_LOG_BY_TT.get(k);
+    if(log) return {text: log, linked: true};
+  }
+  return {text: "", linked: false};
+}
 function faultPlkdMatchType(r){
   const site = String(r?.site_id || r?.site_code || "").toUpperCase().trim();
   if(isValidPlkdSiteCode(site) && SITE_SET.has(site)) return "site";
@@ -2016,6 +2055,7 @@ function faultTableRowHtml(r){
   const c = r._fault || classifyFaultTicket(r);
   const woId = r.work_order_id || "";
   const site = extractFaultPlkdSite(r);
+  const inoc = getFaultInocLogDisplay(r);
   return `<tr>
     <td class="site-plkd-cell">${esc(site)}</td>
     <td class="tt-line">${esc(r.source_ticket_id||r.sdm_tt||'-')}<span class="ext">${esc(r.work_order_id||'')}</span></td>
@@ -2028,7 +2068,7 @@ function faultTableRowHtml(r){
     <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
     <td class="dt-cell">${fmtFaultDowntime(c.downtimeMinutes)}</td>
     <td class="subject-cell">${esc(r.close_description||'')}</td>
-    <td><textarea class="home-feedback free-ta" placeholder="INOC log…" onchange="updateFaultField('${esc(woId)}','inoc_log', this.value)">${esc(r.inoc_log||'')}</textarea></td>
+    <td><textarea class="home-feedback free-ta${inoc.linked ? " inoc-from-tt" : ""}" placeholder="${inoc.linked ? "จาก TT เดียวกัน (Pending/Closed/SvcAva)" : "INOC log…"}" title="${inoc.linked ? "ดึงจาก INOC Log ของ ticket TT เดียวกันในระบบ" : ""}" onchange="updateFaultField('${esc(woId)}','inoc_log', this.value)">${esc(inoc.text)}</textarea></td>
     <td><textarea class="cell-ta free-ta" placeholder="In / Out…" onchange="updateFaultField('${esc(woId)}','control_status', this.value)">${esc(r.control_status||'')}</textarea></td>
   </tr>`;
 }
@@ -2085,6 +2125,15 @@ function buildFaultDayLabels(range){
     d.setDate(d.getDate()+1);
   }
   return labels;
+}
+/** วันที่มี ticket (closed) ใน rows ที่ filter แล้ว — เรียงจากเก่า → ใหม่ */
+function buildFaultDayLabelsFromRows(rows){
+  const days = new Set();
+  rows.forEach(r=>{
+    if(!r?.closed_time) return;
+    days.add(String(r.closed_time).slice(0, 10));
+  });
+  return [...days].sort();
 }
 function fmtFaultDayLabel(iso){
   const d = new Date(iso + "T00:00:00");
@@ -2255,12 +2304,12 @@ const faultBarLabelPlugin = {
   }
 };
 function destroyFaultChart(inst){ if(inst) inst.destroy(); return null; }
-function renderFaultOverviewChart(rows, range){
+function renderFaultOverviewChart(rows){
   const canvas = document.getElementById("faultOverviewChart");
   if(!canvas || typeof Chart === "undefined") return;
   faultOverviewChartInst = destroyFaultChart(faultOverviewChartInst);
-  const labels = buildFaultDayLabels(range).map(fmtFaultDayLabel);
-  const dayKeys = buildFaultDayLabels(range);
+  const dayKeys = buildFaultDayLabelsFromRows(rows);
+  const labels = dayKeys.map(fmtFaultDayLabel);
   const withinCounts = [], overCounts = [], totals = [], svcAva = [];
   dayKeys.forEach(day=>{
     const dayRows = rows.filter(r=> r.closed_time && String(r.closed_time).slice(0,10) === day);
@@ -2334,11 +2383,11 @@ function renderFaultOverviewChart(rows, range){
     plugins:[faultBarLabelPlugin]
   });
 }
-function renderFaultLtrSlaChart(rows, range){
+function renderFaultLtrSlaChart(rows){
   const canvas = document.getElementById("faultLtrSlaChart");
   if(!canvas || typeof Chart === "undefined") return;
   faultLtrSlaChartInst = destroyFaultChart(faultLtrSlaChartInst);
-  const dayKeys = buildFaultDayLabels(range);
+  const dayKeys = buildFaultDayLabelsFromRows(rows);
   const labels = dayKeys.map(fmtFaultDayLabel);
   const buckets = ["1-2 Hrs.","2-6 Hrs.","6-12 Hrs.",">12 Hrs."];
   const rawByBucket = buckets.map(b=>
@@ -2390,8 +2439,14 @@ function renderFaultLtrSlaChart(rows, range){
 function renderFaultRegionBar(){
   const el = document.getElementById("faultRegionBar");
   if(!el) return;
+  const rows = getFilteredFaultTickets();
+  const dayKeys = buildFaultDayLabelsFromRows(rows);
   const regions = [...new Set(faultTickets.filter(r=>isFaultSaSeverity(r)&&isPlkdFaultTicket(r)).map(r=>r.region).filter(Boolean))].sort();
-  const plkdCount = faultTickets.filter(r=>isFaultSaSeverity(r)&&isPlkdFaultTicket(r)).length;
+  const plkdCount = rows.length;
+  const range = getFaultDateRange();
+  const dateMsg = dayKeys.length
+    ? `${esc(dayKeys[0])} → ${esc(dayKeys[dayKeys.length - 1])} · ${dayKeys.length} วันมีข้อมูล · ${plkdCount} ticket(s)`
+    : `${esc(fmtIsoLocalDate(range.start))} → ${esc(range.dateVal)} · ไม่มีข้อมูล`;
   el.innerHTML = `
     <div class="fgroup"><label class="flabel">Region</label>
       <select class="sev-select" onchange="onFaultRegionChange(this.value)">
@@ -2403,7 +2458,7 @@ function renderFaultRegionBar(){
       <span class="status-msg">SA severity · ${SITE_SET.size} PLKD site(s) · ${plkdCount} matched (Site ID / Subject)</span>
     </div>
     <div class="fgroup"><label class="flabel">ช่วงวันที่</label>
-      <span class="status-msg">${esc(fmtIsoLocalDate(getFaultDateRange().start))} → ${esc(getFaultDateRange().dateVal)}</span>
+      <span class="status-msg">${dateMsg}</span>
     </div>`;
 }
 function onFaultRegionChange(val){ faultRegionFilter = val; renderFault(); }
@@ -2437,15 +2492,14 @@ function showFaultControlDetail(kind){
 }
 function renderFault(){
   renderFaultRegionBar();
-  const range = getFaultDateRange();
   const rows = getFilteredFaultTickets();
   if(faultSubTab === "overview"){
-    renderFaultOverviewChart(rows, range);
+    renderFaultOverviewChart(rows);
     const overRows = rows.filter(r=>(r._fault||classifyFaultTicket(r)).slaStatus === "Over SLA");
     document.getElementById("faultOverSlaCount").textContent = overRows.length;
     renderFaultTable(document.getElementById("faultOverSlaTable"), overRows, "fault-over-sla");
   } else if(faultSubTab === "ltr-sla"){
-    renderFaultLtrSlaChart(rows, range);
+    renderFaultLtrSlaChart(rows);
     const gt12 = rows.filter(r=>{
       const c = r._fault||classifyFaultTicket(r);
       return c.slaStatus === "Within SLA" && c.bucket === ">12 Hrs.";
@@ -2606,7 +2660,7 @@ function exportFaultExcel(){
     {h:"Bucket", get:r=>(r._fault||classifyFaultTicket(r)).bucket||""},
     {h:"Downtime", get:r=>{ const c=r._fault||classifyFaultTicket(r); return c.downtimeMinutes!=null?fmtHMText(c.downtimeMinutes):""; }},
     {h:"Close Description", get:r=>r.close_description||""},
-    {h:"INOC log", get:r=>r.inoc_log||""},
+    {h:"INOC log", get:r=>getFaultInocLogDisplay(r).text},
     {h:"In or Out Control", get:r=>r.control_status||""}
   ];
   const data = rows.map(r=>{ const obj={}; cols.forEach(c=>{ obj[c.h]=c.get(r); }); return obj; });
