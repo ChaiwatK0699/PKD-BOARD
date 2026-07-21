@@ -322,6 +322,11 @@ body.screenshotting .topbar{position:static !important;}
 .fault-control-summary .summary-card:hover{transform:translateY(-2px); box-shadow:0 8px 24px var(--shadow-strong);}
 .fault-control-summary .summary-card.active{outline:2px solid var(--blue); outline-offset:2px;}
 .fault-control-summary .summary-line .val{font-size:28px;}
+.fault-group-chips{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+.fault-group-chip{padding:7px 14px; border-radius:20px; border:1px solid var(--border); background:var(--panel); cursor:pointer; font-size:12.5px; font-family:'Barlow',sans-serif; transition:background .12s, border-color .12s, color .12s;}
+.fault-group-chip:hover{border-color:var(--blue); transform:translateY(-1px);}
+.fault-group-chip.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+.fault-group-chip .chip-count{opacity:.75; margin-left:5px; font-family:'JetBrains Mono'; font-size:11px;}
 .fault-legend{display:flex; flex-wrap:wrap; gap:12px; margin:8px 0 4px; font-family:'JetBrains Mono'; font-size:11px; color:var(--muted);}
 .fault-legend span{display:flex; align-items:center; gap:5px;}
 .fault-legend i{display:inline-block; width:12px; height:12px; border-radius:2px;}
@@ -462,6 +467,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn" id="faultSubLtrSlaBtn" onclick="switchFaultSubTab('ltr-sla')">Long time Repair</button>
       <button class="tab-btn" id="faultSubLtrBtn" onclick="switchFaultSubTab('ltr')">Long time Repair</button>
       <button class="tab-btn" id="faultSubControlBtn" onclick="switchFaultSubTab('control')">In Control / Out Control</button>
+      <button class="tab-btn" id="faultSubGroupProblemBtn" onclick="switchFaultSubTab('group-problem')">Group Problem</button>
     </div>
     <div id="faultSubOverview">
       <div class="fault-chart-card">
@@ -513,6 +519,14 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="fault-table-block" id="faultControlDetailBlock" style="display:none;">
         <div class="fault-section-title" id="faultControlDetailTitle">Detail</div>
         <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultControlDetailTable"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+    <div id="faultSubGroupProblem" style="display:none;">
+      <div class="filterbar" id="faultGroupProblemBar"></div>
+      <div class="fault-group-chips" id="faultGroupProblemChips"></div>
+      <div class="fault-table-block">
+        <div class="fault-section-title" id="faultGroupProblemTitle">รายการ <span class="badge" id="faultGroupProblemCount">0</span></div>
+        <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultGroupProblemTable"><thead></thead><tbody></tbody></table></div>
       </div>
     </div>
   </div>
@@ -574,6 +588,14 @@ let faultTickets = [];
 let faultSubTab = "overview";
 let faultRegionFilter = "";
 let faultControlDetail = null;
+let faultGroupProblemFilter = "";
+const FAULT_SUB_TAB_MAP = {
+  overview: { btn: "faultSubOverviewBtn", view: "faultSubOverview" },
+  "ltr-sla": { btn: "faultSubLtrSlaBtn", view: "faultSubLtrSla" },
+  ltr: { btn: "faultSubLtrBtn", view: "faultSubLtr" },
+  control: { btn: "faultSubControlBtn", view: "faultSubControl" },
+  "group-problem": { btn: "faultSubGroupProblemBtn", view: "faultSubGroupProblem" }
+};
 let faultOverviewChartInst = null;
 let faultLtrSlaChartInst = null;
 let INOC_LOG_BY_TT = new Map();
@@ -2048,6 +2070,7 @@ const FAULT_TABLE_HEAD = `<tr>
   <th style="width:110px">Close</th>
   <th style="width:100px">Downtime<br><span class="th-sub">Created → Closed</span></th>
   <th style="width:180px">Close Description</th>
+  <th style="width:180px">Group Problem</th>
   <th style="width:160px">INOC log</th>
   <th style="width:140px">In or Out Control</th>
 </tr>`;
@@ -2068,6 +2091,7 @@ function faultTableRowHtml(r){
     <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
     <td class="dt-cell">${fmtFaultDowntime(c.downtimeMinutes)}</td>
     <td class="subject-cell">${esc(r.close_description||'')}</td>
+    <td><textarea class="cell-ta free-ta" placeholder="กรอก Group Problem…" onchange="updateFaultField('${esc(woId)}','group_problem_free_text', this.value)">${esc(r.group_problem_free_text||'')}</textarea></td>
     <td><textarea class="home-feedback free-ta${inoc.linked ? " inoc-from-tt" : ""}" placeholder="${inoc.linked ? "จาก TT เดียวกัน (Pending/Closed/SvcAva)" : "INOC log…"}" title="${inoc.linked ? "ดึงจาก INOC Log ของ ticket TT เดียวกันในระบบ" : ""}" onchange="updateFaultField('${esc(woId)}','inoc_log', this.value)">${esc(inoc.text)}</textarea></td>
     <td><textarea class="cell-ta free-ta" placeholder="In / Out…" onchange="updateFaultField('${esc(woId)}','control_status', this.value)">${esc(r.control_status||'')}</textarea></td>
   </tr>`;
@@ -2078,7 +2102,7 @@ function renderFaultTable(tableEl, rows, storageKey){
   const tbody = tableEl.querySelector("tbody");
   thead.innerHTML = FAULT_TABLE_HEAD;
   if(rows.length===0){
-    tbody.innerHTML = `<tr><td colspan="13" class="empty-hint">No tickets in this group.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="14" class="empty-hint">No tickets in this group.</td></tr>`;
   } else {
     tbody.innerHTML = rows.map(faultTableRowHtml).join("");
   }
@@ -2462,13 +2486,81 @@ function renderFaultRegionBar(){
     </div>`;
 }
 function onFaultRegionChange(val){ faultRegionFilter = val; renderFault(); }
+function getFaultGroupProblemStats(rows){
+  const counts = new Map();
+  rows.forEach(r=>{
+    const v = (r.group_problem_free_text || "").trim();
+    const key = v || "__blank__";
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  const items = [...counts.entries()].map(([key, count])=>({
+    key,
+    label: key === "__blank__" ? "(ไม่ระบุ)" : key,
+    count
+  }));
+  items.sort((a, b)=>{
+    if(a.key === "__blank__") return 1;
+    if(b.key === "__blank__") return -1;
+    return a.label.localeCompare(b.label, "th");
+  });
+  return items;
+}
+function filterFaultByGroupProblem(rows){
+  if(!faultGroupProblemFilter) return rows;
+  if(faultGroupProblemFilter === "__blank__"){
+    return rows.filter(r=>!(r.group_problem_free_text || "").trim());
+  }
+  return rows.filter(r=>(r.group_problem_free_text || "").trim() === faultGroupProblemFilter);
+}
+function onFaultGroupProblemChange(val){
+  faultGroupProblemFilter = val;
+  renderFaultGroupProblemTab(getFilteredFaultTickets());
+}
+function selectFaultGroupProblem(key){
+  faultGroupProblemFilter = key;
+  renderFaultGroupProblemTab(getFilteredFaultTickets());
+}
+function renderFaultGroupProblemTab(rows){
+  const stats = getFaultGroupProblemStats(rows);
+  const filtered = filterFaultByGroupProblem(rows);
+  const bar = document.getElementById("faultGroupProblemBar");
+  const chips = document.getElementById("faultGroupProblemChips");
+  if(bar){
+    const opts = [
+      `<option value="" ${faultGroupProblemFilter===""?"selected":""}>— ทั้งหมด (${rows.length}) —</option>`,
+      ...stats.map(s=>`<option value="${esc(s.key)}" ${faultGroupProblemFilter===s.key?"selected":""}>${esc(s.label)} (${s.count})</option>`)
+    ];
+    bar.innerHTML = `<div class="fgroup"><label class="flabel">Group Problem</label>
+      <select class="sev-select" onchange="onFaultGroupProblemChange(this.value)">${opts.join("")}</select>
+    </div>
+    <div class="fgroup"><label class="flabel">INOC กรอก</label>
+      <span class="status-msg">กรอกได้ในคอลัมน์ Group Problem ของตาราง · ${stats.filter(s=>s.key!=="__blank__").length} กลุ่ม</span>
+    </div>`;
+  }
+  if(chips){
+    const allActive = faultGroupProblemFilter === "" ? " active" : "";
+    chips.innerHTML = `<button type="button" class="fault-group-chip${allActive}" onclick="selectFaultGroupProblem('')">ทั้งหมด<span class="chip-count">${rows.length}</span></button>` +
+      stats.map(s=>{
+        const active = faultGroupProblemFilter === s.key ? " active" : "";
+        return `<button type="button" class="fault-group-chip${active}" data-gp-key="${esc(s.key)}" onclick="selectFaultGroupProblem(this.getAttribute('data-gp-key'))" title="${esc(s.label)}">${esc(s.label)}<span class="chip-count">${s.count}</span></button>`;
+      }).join("");
+  }
+  const titleEl = document.getElementById("faultGroupProblemTitle");
+  if(titleEl){
+    const label = !faultGroupProblemFilter ? "ทั้งหมด" :
+      faultGroupProblemFilter === "__blank__" ? "(ไม่ระบุ)" : faultGroupProblemFilter;
+    titleEl.innerHTML = `${esc(label)} <span class="badge" id="faultGroupProblemCount">${filtered.length}</span>`;
+  } else {
+    document.getElementById("faultGroupProblemCount").textContent = filtered.length;
+  }
+  renderFaultTable(document.getElementById("faultGroupProblemTable"), filtered, "fault-group-problem");
+}
 function switchFaultSubTab(tab){
   faultSubTab = tab;
-  ["overview","ltr-sla","ltr","control"].forEach(t=>{
-    const btn = document.getElementById("faultSub"+(t==="overview"?"Overview":t==="ltr-sla"?"LtrSla":t==="ltr"?"Ltr":"Control")+"Btn");
-    if(btn) btn.classList.toggle("active", tab===t);
-    const view = document.getElementById("faultSub"+(t==="overview"?"Overview":t==="ltr-sla"?"LtrSla":t==="ltr"?"Ltr":"Control"));
-    if(view) view.style.display = tab===t ? "block" : "none";
+  Object.entries(FAULT_SUB_TAB_MAP).forEach(([id, {btn, view}])=>{
+    document.getElementById(btn)?.classList.toggle("active", tab === id);
+    const el = document.getElementById(view);
+    if(el) el.style.display = tab === id ? "block" : "none";
   });
   renderFault();
   moveFaultSubTabIndicator();
@@ -2526,6 +2618,8 @@ function renderFault(){
     document.getElementById("faultInControlCount").textContent = inCount;
     document.getElementById("faultOutControlCount").textContent = outCount;
     if(faultControlDetail) showFaultControlDetail(faultControlDetail);
+  } else if(faultSubTab === "group-problem"){
+    renderFaultGroupProblemTab(rows);
   }
   moveFaultSubTabIndicator();
 }
@@ -2542,7 +2636,7 @@ async function updateFaultField(workOrderId, field, value){
     body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})
   });
   toast("Saved");
-  if(currentTab==="fault" && faultSubTab==="control") renderFault();
+  if(currentTab==="fault" && (faultSubTab==="control" || faultSubTab==="group-problem")) renderFault();
 }
 function parseFaultWoDate(str){
   if(!str) return null;
@@ -2593,6 +2687,7 @@ function mapFaultImportRow(r){
     root_cause: get("Root Cause"),
     sub_root_cause: get("Sub Root Cause"),
     close_description: get("Close Description"),
+    group_problem_free_text: get("Group Problem Free Text") || get("Group Problem") || null,
     update_status: get("Close Description"),
     complete_solution: get("Complete Solution"),
     subject: get("Subject")
@@ -2660,6 +2755,7 @@ function exportFaultExcel(){
     {h:"Bucket", get:r=>(r._fault||classifyFaultTicket(r)).bucket||""},
     {h:"Downtime", get:r=>{ const c=r._fault||classifyFaultTicket(r); return c.downtimeMinutes!=null?fmtHMText(c.downtimeMinutes):""; }},
     {h:"Close Description", get:r=>r.close_description||""},
+    {h:"Group Problem", get:r=>r.group_problem_free_text||""},
     {h:"INOC log", get:r=>getFaultInocLogDisplay(r).text},
     {h:"In or Out Control", get:r=>r.control_status||""}
   ];
