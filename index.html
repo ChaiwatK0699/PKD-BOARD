@@ -454,8 +454,6 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div class="toolbar">
       <button class="btn primary" onclick="document.getElementById('fileInputFault').click()">⭱ Upload Work Order (Fault PLKD)</button>
       <input type="file" id="fileInputFault" accept=".csv,.xlsx,.xls" onchange="handleFaultUpload(event)" style="display:none;">
-      <button class="btn sm" onclick="document.getElementById('fileInputPlkdSites').click()">⭱ Upload Site Code PLKD</button>
-      <input type="file" id="fileInputPlkdSites" accept=".csv,.xlsx,.xls" onchange="handlePlkdSiteUpload(event)" style="display:none;">
       <button class="btn ghost sm" onclick="loadFaultTickets(true)">↻ Refresh</button>
       <button class="btn green sm" onclick="exportFaultExcel()">⭳ Export Excel</button>
       <span class="status-msg" id="statusMsgFault"></span>
@@ -653,27 +651,31 @@ function applyPlkdSiteSet(codes){
   const sorted = [...SITE_SET].sort((a,b)=>b.length-a.length).map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
   PLKD_REGEX = sorted.length ? new RegExp("\\b(?:"+sorted.join("|")+")\\b", "i") : null;
 }
+function sanitizePlkdSiteCodes(raw){
+  if(!Array.isArray(raw)) return [];
+  return [...new Set(raw.map(c=>String(c||"").toUpperCase().trim()).filter(isValidPlkdSiteCode))];
+}
 async function fetchSiteCodes(){
   let codes = null;
   try{
-    const stored = localStorage.getItem("plkdSiteCodes");
-    if(stored){
-      const parsed = JSON.parse(stored);
-      if(Array.isArray(parsed) && parsed.length) codes = parsed;
+    const res = await fetch("plkd168.json");
+    if(res.ok){
+      const clean = sanitizePlkdSiteCodes(await res.json());
+      if(clean.length) codes = clean;
     }
   }catch{}
   if(!codes || !codes.length){
     try{
-      const res = await fetch("plkd168.json");
-      if(res.ok){
-        const bundled = await res.json();
-        if(Array.isArray(bundled) && bundled.length) codes = bundled;
+      const stored = localStorage.getItem("plkdSiteCodes");
+      if(stored){
+        const clean = sanitizePlkdSiteCodes(JSON.parse(stored));
+        if(clean.length) codes = clean;
       }
     }catch{}
   }
   if(!codes || !codes.length){
     const data = await fetchAllFromRest(REST + "/site_codes?select=site_code&order=site_code.asc");
-    codes = data.map(d=>d.site_code.toUpperCase());
+    codes = sanitizePlkdSiteCodes(data.map(d=>d.site_code));
   }
   applyPlkdSiteSet(codes);
 }
@@ -2036,14 +2038,23 @@ function faultTicketInRange(r, range){
   return closed >= range.start && closed <= range.end;
 }
 function isFaultSaSeverity(r){
-  const fam = (r.severity||"").split("-")[0] || "";
-  return fam.toUpperCase().startsWith("SA");
+  const fam = ((r.severity||"").split("-")[0] || "").toUpperCase();
+  return /^SA[1-6]$/.test(fam);
+}
+function isFaultBroadbandTicket(r){
+  const hay = `${r.subject||""} ${r.work_type||""} ${r.close_description||""} ${r.root_cause||""}`.toUpperCase();
+  return hay.includes("BROADBAND");
+}
+function passesFaultPlkdFocus(r){
+  if(!isFaultSaSeverity(r)) return false;
+  if(isFaultBroadbandTicket(r)) return false;
+  if(!isPlkdFaultTicket(r)) return false;
+  return true;
 }
 function getFilteredFaultTickets(){
   const range = getFaultDateRange();
   return faultTickets.filter(r=>{
-    if(!isFaultSaSeverity(r)) return false;
-    if(!isPlkdFaultTicket(r)) return false;
+    if(!passesFaultPlkdFocus(r)) return false;
     if(faultRegionFilter && (r.region||"") !== faultRegionFilter) return false;
     return faultTicketInRange(r, range);
   }).map(r=>({...r, _fault: classifyFaultTicket(r)}));
@@ -2488,7 +2499,7 @@ function renderFaultRegionBar(){
   if(!el) return;
   const rows = getFilteredFaultTickets();
   const dayKeys = buildFaultDayLabelsFromRows(rows);
-  const regions = [...new Set(faultTickets.filter(r=>isFaultSaSeverity(r)&&isPlkdFaultTicket(r)).map(r=>r.region).filter(Boolean))].sort();
+  const regions = [...new Set(faultTickets.filter(r=>passesFaultPlkdFocus(r)).map(r=>r.region).filter(Boolean))].sort();
   const plkdCount = rows.length;
   const range = getFaultDateRange();
   const dateMsg = dayKeys.length
@@ -2502,7 +2513,7 @@ function renderFaultRegionBar(){
       </select>
     </div>
     <div class="fgroup"><label class="flabel">PLKD Filter</label>
-      <span class="status-msg">SA severity · ${SITE_SET.size} PLKD site(s) · ${plkdCount} matched (Site ID / Subject)</span>
+      <span class="status-msg">SA1–SA6 · ไม่รวม Broadband · ${SITE_SET.size} PLKD site(s) · ${plkdCount} ticket(s)</span>
     </div>
     <div class="fgroup"><label class="flabel">ช่วงวันที่</label>
       <span class="status-msg">${dateMsg}</span>
@@ -2778,73 +2789,6 @@ function exportFaultExcel(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Fault PLKD");
   XLSX.writeFile(wb, `PLKD-FaultPLKD-${dateVal}.xlsx`);
-}
-function parsePlkdSiteCodeList(rawRows){
-  const codes = new Set();
-  rawRows.forEach(row=>{
-    if(Array.isArray(row)){
-      row.forEach(v=>{ const s=String(v||"").trim().toUpperCase(); if(s) codes.add(s); });
-      return;
-    }
-    Object.values(row).forEach(v=>{ const s=String(v||"").trim().toUpperCase(); if(s) codes.add(s); });
-  });
-  return [...codes].filter(s=>/^[A-Z0-9][A-Z0-9_-]*$/i.test(s));
-}
-function handlePlkdSiteUpload(evt){
-  const file = evt.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = async (e)=>{
-    let codes = [];
-    if(file.name.match(/\.csv$/i)){
-      const lines = e.target.result.split(/\r?\n/).filter(l=>l.trim());
-      codes = parsePlkdSiteCodeList(lines.map(l=>[l.trim()])).filter(isValidPlkdSiteCode);
-    } else {
-      const wb = XLSX.read(e.target.result, {type:"binary"});
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const raw = XLSX.utils.sheet_to_json(sheet, {header:1, defval:""});
-      codes = parsePlkdSiteCodeList(raw).filter(isValidPlkdSiteCode);
-    }
-    await bulkInsertPlkdSiteCodes(codes);
-    evt.target.value = "";
-  };
-  if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
-}
-async function bulkInsertPlkdSiteCodes(codes){
-  const statusEl = document.getElementById("statusMsgFault");
-  if(codes.length===0){
-    statusEl.textContent = "No site codes found in file.";
-    return;
-  }
-  localStorage.setItem("plkdSiteCodes", JSON.stringify(codes));
-  applyPlkdSiteSet(codes);
-  statusEl.textContent = `Syncing ${codes.length} PLKD site code(s)…`;
-  const delRes = await fetch(REST+"/site_codes?site_code=not.is.null", {
-    method:"DELETE",
-    headers:{...HEADERS, Prefer:"return=minimal"}
-  });
-  if(delRes.ok){
-    const CHUNK = 100;
-    for(let i = 0; i < codes.length; i += CHUNK){
-      const chunk = codes.slice(i, i + CHUNK).map(site_code=>({site_code}));
-      const res = await fetch(REST+"/site_codes", {
-        method:"POST",
-        headers:HEADERS,
-        body: JSON.stringify(chunk)
-      });
-      if(!res.ok){
-        statusEl.textContent = `PLKD list loaded locally (${SITE_SET.size} sites). DB sync failed — ${(await res.text()).slice(0,120)}`;
-        if(currentTab==="fault") renderFault();
-        renderAll();
-        return;
-      }
-    }
-    statusEl.textContent = `PLKD site list updated — ${SITE_SET.size} site(s) loaded ✓`;
-  }else{
-    statusEl.textContent = `PLKD list loaded locally — ${SITE_SET.size} site(s). DB sync skipped (no delete permission).`;
-  }
-  if(currentTab==="fault") renderFault();
-  renderAll();
 }
 
 function esc(s){ return String(s==null?"":s).replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
