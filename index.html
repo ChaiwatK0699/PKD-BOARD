@@ -2061,43 +2061,20 @@ function fmtFaultRawDT(v){
   if(m) return `${m[1]} ${m[2]}`;
   return s;
 }
-const FAULT_RAW_EXPORT_COLS = [
-  {h:"Work Order ID", get:r=>r.work_order_id||""},
-  {h:"Source Ticket ID", get:r=>r.source_ticket_id||""},
-  {h:"SDM TT", get:r=>r.sdm_tt||""},
-  {h:"External Ticket ID", get:r=>r.external_ticket_id||""},
-  {h:"Region", get:r=>r.region||""},
-  {h:"Province", get:r=>r.province||""},
-  {h:"Skill", get:r=>r.skill||""},
-  {h:"Team", get:r=>r.team||""},
-  {h:"Site ID", get:r=>r.site_id||""},
-  {h:"Status", get:r=>r.status||""},
-  {h:"Suspend Status", get:r=>r.suspend_status||""},
-  {h:"Incident Urgency", get:r=>r.incident_urgency||""},
-  {h:"Severity", get:r=>r.severity||""},
-  {h:"Created Time", get:r=>fmtFaultRawDT(r.created_time)},
-  {h:"Require Finish Time", get:r=>fmtFaultRawDT(r.require_finish_time)},
-  {h:"SLA", get:r=>r.source_sla||""},
-  {h:"WO Creator", get:r=>r.wo_creator||""},
-  {h:"Dispatched", get:r=>fmtFaultRawDT(r.dispatched_time)},
-  {h:"Accepted", get:r=>fmtFaultRawDT(r.accepted_time)},
-  {h:"Departed", get:r=>fmtFaultRawDT(r.departed_time)},
-  {h:"Arrived", get:r=>fmtFaultRawDT(r.arrived_time)},
-  {h:"Completed", get:r=>fmtFaultRawDT(r.completed_time)},
-  {h:"Closed", get:r=>fmtFaultRawDT(r.closed_time)},
-  {h:"Time to Arrive", get:r=>r.time_to_arrive||""},
-  {h:"Time to Complete", get:r=>r.time_to_complete||""},
-  {h:"Time to Leave", get:r=>r.time_to_leave||""},
-  {h:"Work Type", get:r=>r.work_type||""},
-  {h:"Fault Size", get:r=>r.fault_size||""},
-  {h:"Point", get:r=>r.point||""},
-  {h:"Root Cause", get:r=>r.root_cause||""},
-  {h:"Sub Root Cause", get:r=>r.sub_root_cause||""},
+const FAULT_EXPORT_COLS = [
+  {h:"Site", get:r=>extractFaultPlkdSite(r)},
+  {h:"Ticket ID", get:r=>{ const tt=r.source_ticket_id||r.sdm_tt||""; return r.work_order_id ? `${tt}\n${r.work_order_id}` : tt; }},
+  {h:"Subject", get:r=>extractFaultSubjectDetail(r)},
+  {h:"SEVERITY", get:r=>r.severity||""},
+  {h:"WO Open", get:r=>r.wo_creator||""},
+  {h:"Ticket Open", get:r=>fmtFaultRawDT(r.created_time)},
+  {h:"Depart", get:r=>fmtFaultRawDT(r.departed_time)},
+  {h:"Arrive", get:r=>fmtFaultRawDT(r.arrived_time)},
+  {h:"Close", get:r=>fmtFaultRawDT(r.closed_time)},
+  {h:"Downtime", get:r=>{ const c=r._fault||classifyFaultTicket(r); return c.downtimeMinutes!=null?fmtHMText(c.downtimeMinutes):""; }},
   {h:"Close Description", get:r=>r.close_description||""},
-  {h:"Complete Solution", get:r=>r.complete_solution||""},
-  {h:"Subject", get:r=>r.subject||""},
   {h:"Group Problem", get:r=>r.group_problem_free_text||""},
-  {h:"INOC log", get:r=>r.inoc_log||""},
+  {h:"INOC log", get:r=>getFaultInocLogDisplay(r).text},
   {h:"In or Out Control", get:r=>r.control_status||""}
 ];
 function fmtFaultDowntime(mins){
@@ -2794,13 +2771,13 @@ function exportFaultExcel(){
   const rows = getFilteredFaultTickets();
   if(rows.length===0){ toast("No rows to export"); return; }
   const dateVal = document.getElementById("boardDate").value;
-  const cols = FAULT_RAW_EXPORT_COLS;
+  const cols = FAULT_EXPORT_COLS;
   const data = rows.map(r=>{ const obj={}; cols.forEach(c=>{ obj[c.h]=c.get(r); }); return obj; });
   const ws = XLSX.utils.json_to_sheet(data);
-  ws["!cols"] = cols.map(c=>({ wch: Math.max(14, Math.min(40, c.h.length+2)) }));
+  ws["!cols"] = cols.map(c=>({ wch: Math.max(14, Math.min(36, c.h.length+2)) }));
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Fault PLKD Raw");
-  XLSX.writeFile(wb, `PLKD-FaultPLKD-Raw-${dateVal}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, "Fault PLKD");
+  XLSX.writeFile(wb, `PLKD-FaultPLKD-${dateVal}.xlsx`);
 }
 function parsePlkdSiteCodeList(rawRows){
   const codes = new Set();
