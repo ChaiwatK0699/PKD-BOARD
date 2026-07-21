@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PKD Board — Ticket Board</title>
+<title>PLKD Board — Ticket Board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root{
   /* Day mode (default) */
@@ -147,7 +148,7 @@ textarea.cell-ta{resize:vertical; min-height:34px; font-family:'JetBrains Mono';
 .site-input{font-family:'JetBrains Mono'; font-weight:700; letter-spacing:.02em;}
 .site-input.valid{color:var(--teal);}
 .site-input.invalid{color:var(--muted);}
-.pkd-badge{display:inline-block; font-size:9.5px; font-family:'JetBrains Mono'; background:var(--teal-dim); color:var(--teal);
+.plkd-badge{display:inline-block; font-size:9.5px; font-family:'JetBrains Mono'; background:var(--teal-dim); color:var(--teal);
   padding:1px 5px; border-radius:8px; margin-left:5px; vertical-align:middle;}
 .tt-line{font-family:'JetBrains Mono'; font-size:12px;}
 .tt-line .ext{color:var(--muted-2); font-size:11px; display:block;}
@@ -226,7 +227,7 @@ table.home-table .locked-col.col-1starrive{left:250px; box-shadow:2px 0 4px rgba
 .plan-cell{display:flex; align-items:center; gap:6px; cursor:grab; justify-content:center;}
 .plan-cell .drag-handle{color:var(--muted-2); font-size:12.5px; user-select:none;}
 .plan-label{font-family:'Barlow Condensed'; font-weight:700; font-size:11.5px; color:var(--muted);}
-.site-pkd-cell{font-family:'JetBrains Mono'; font-weight:700; font-size:11.5px; color:var(--teal); text-align:center;}
+.site-plkd-cell{font-family:'JetBrains Mono'; font-weight:700; font-size:11.5px; color:var(--teal); text-align:center;}
 .status-cell{font-family:'JetBrains Mono'; font-size:10.5px; color:var(--muted); text-align:center;}
 .status-time{font-size:9px; color:var(--muted-2); font-family:'JetBrains Mono'; display:inline-block; margin-top:2px;}
 tr.home-row-node td:first-child{border-left:4px solid var(--blue);}
@@ -305,6 +306,25 @@ table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--bord
 .modal-empty{padding:26px 18px; text-align:center; color:var(--muted);}
 body.screenshotting #screenshotHomeBtn{opacity:.5; pointer-events:none;}
 body.screenshotting .topbar{position:static !important;}
+
+/* ---- Fault PLKD ---- */
+.tab-btn.active.fault{color:var(--coral);}
+.fault-section-title{font-family:'Barlow Condensed'; font-weight:800; font-size:17px; letter-spacing:.04em; text-transform:uppercase;
+  margin:18px 0 10px; color:var(--text); display:flex; align-items:center; gap:10px;}
+.fault-section-title .badge{font-family:'JetBrains Mono'; font-size:12px; font-weight:700; padding:2px 9px; border-radius:10px; background:var(--coral-dim); color:var(--coral);}
+.fault-chart-card{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px 18px 8px; margin-bottom:16px;}
+.fault-chart-title{font-family:'Barlow Condensed'; font-weight:700; font-size:15px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
+.fault-chart-wrap{position:relative; height:400px;}
+.fault-table-block{margin-bottom:22px;}
+.fault-control-summary{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:18px; max-width:640px;}
+.fault-control-summary .summary-card{cursor:pointer; transition:transform .12s, box-shadow .15s;}
+.fault-control-summary .summary-card:hover{transform:translateY(-2px); box-shadow:0 8px 24px var(--shadow-strong);}
+.fault-control-summary .summary-card.active{outline:2px solid var(--blue); outline-offset:2px;}
+.fault-control-summary .summary-line .val{font-size:28px;}
+.fault-legend{display:flex; flex-wrap:wrap; gap:12px; margin:8px 0 4px; font-family:'JetBrains Mono'; font-size:11px; color:var(--muted);}
+.fault-legend span{display:flex; align-items:center; gap:5px;}
+.fault-legend i{display:inline-block; width:12px; height:12px; border-radius:2px;}
+table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono'; font-size:9.5px; text-transform:none; letter-spacing:0; color:var(--muted-2); font-weight:400;}
 </style>
 </head>
 <body>
@@ -313,12 +333,13 @@ body.screenshotting .topbar{position:static !important;}
   <div class="topbar-row1">
     <div class="brand">
       <div class="dot"></div>
-      <div><h1>PKD Board</h1><small>INOC · 6-Team Work Order Tracker</small></div>
+      <div><h1>PLKD Board</h1><small>INOC · 6-Team Work Order Tracker</small></div>
     </div>
     <div class="tabs" id="tabsMain">
       <div class="tab-indicator" id="tabIndicatorMain"></div>
       <button class="tab-btn home active" id="tabHomeBtn" onclick="switchTab('home')">Home</button>
       <button class="tab-btn svcava" id="tabSvcAvaBtn" onclick="switchTab('svcava')">Service Availability</button>
+      <button class="tab-btn fault" id="tabFaultBtn" onclick="switchTab('fault')">Fault PLKD</button>
     </div>
     <div class="tools-group">
       <span class="tools-label">Tools :</span>
@@ -354,7 +375,7 @@ body.screenshotting .topbar{position:static !important;}
         </tr>
         <tr class="home-subhead">
           <th style="width:70px">Plan #</th>
-          <th style="width:100px">Site (PKD)</th>
+          <th style="width:100px">Site (PLKD)</th>
           <th style="width:130px">TT</th>
           <th style="width:90px">SLA</th>
           <th style="width:110px">Status</th>
@@ -423,6 +444,77 @@ body.screenshotting .topbar{position:static !important;}
       <tbody id="svcavaTbody"></tbody>
     </table>
   </div>
+  <div id="faultView" class="tab-view" style="display:none;">
+    <div class="toolbar">
+      <button class="btn primary" onclick="document.getElementById('fileInputFault').click()">⭱ Upload Work Order (Fault PLKD)</button>
+      <input type="file" id="fileInputFault" accept=".csv,.xlsx,.xls" onchange="handleFaultUpload(event)" style="display:none;">
+      <button class="btn sm" onclick="document.getElementById('fileInputPlkdSites').click()">⭱ Upload Site Code PLKD</button>
+      <input type="file" id="fileInputPlkdSites" accept=".csv,.xlsx,.xls" onchange="handlePlkdSiteUpload(event)" style="display:none;">
+      <button class="btn ghost sm" onclick="loadFaultTickets(true)">↻ Refresh</button>
+      <button class="btn green sm" onclick="exportFaultExcel()">⭳ Export Excel</button>
+      <span class="status-msg" id="statusMsgFault"></span>
+    </div>
+    <div class="filterbar" id="faultRegionBar"></div>
+    <div class="tabs" id="tabsFaultSub" style="margin-bottom:16px;">
+      <div class="tab-indicator" id="tabIndicatorFaultSub"></div>
+      <button class="tab-btn active" id="faultSubOverviewBtn" onclick="switchFaultSubTab('overview')">Overview</button>
+      <button class="tab-btn" id="faultSubLtrSlaBtn" onclick="switchFaultSubTab('ltr-sla')">Long time Repair</button>
+      <button class="tab-btn" id="faultSubLtrBtn" onclick="switchFaultSubTab('ltr')">Long time Repair</button>
+      <button class="tab-btn" id="faultSubControlBtn" onclick="switchFaultSubTab('control')">In Control / Out Control</button>
+    </div>
+    <div id="faultSubOverview">
+      <div class="fault-chart-card">
+        <div class="fault-chart-title">Fault trend PLKD</div>
+        <div class="fault-legend" id="faultOverviewLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="faultOverviewChart"></canvas></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">OVER SLA <span class="badge" id="faultOverSlaCount">0</span></div>
+        <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultOverSlaTable"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+    <div id="faultSubLtrSla" style="display:none;">
+      <div class="fault-chart-card">
+        <div class="fault-chart-title">Long time Repair</div>
+        <div class="fault-legend" id="faultLtrSlaLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="faultLtrSlaChart"></canvas></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">&gt;12 Hrs. <span class="badge" id="faultGt12Count">0</span></div>
+        <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultGt12Table"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+    <div id="faultSubLtr" style="display:none;">
+      <div class="fault-table-block">
+        <div class="fault-section-title">6-12 Hrs. <span class="badge" id="fault612Count">0</span></div>
+        <div class="table-scroll"><table class="svcava-table fault-data-table" id="fault612Table"><thead></thead><tbody></tbody></table></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">2-6 Hrs. <span class="badge" id="fault26Count">0</span></div>
+        <div class="table-scroll"><table class="svcava-table fault-data-table" id="fault26Table"><thead></thead><tbody></tbody></table></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">1-2 Hrs. <span class="badge" id="fault12Count">0</span></div>
+        <div class="table-scroll"><table class="svcava-table fault-data-table" id="fault12Table"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+    <div id="faultSubControl" style="display:none;">
+      <div class="fault-control-summary">
+        <div class="summary-card" id="faultInControlCard" onclick="showFaultControlDetail('in')">
+          <h4>In Control</h4>
+          <div class="summary-body"><div class="summary-line"><span class="lbl">รายการ</span><span class="val" style="color:var(--teal)" id="faultInControlCount">0</span></div></div>
+        </div>
+        <div class="summary-card" id="faultOutControlCard" onclick="showFaultControlDetail('out')">
+          <h4>Out Control</h4>
+          <div class="summary-body"><div class="summary-line"><span class="lbl">รายการ</span><span class="val" style="color:var(--coral)" id="faultOutControlCount">0</span></div></div>
+        </div>
+      </div>
+      <div class="fault-table-block" id="faultControlDetailBlock" style="display:none;">
+        <div class="fault-section-title" id="faultControlDetailTitle">Detail</div>
+        <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultControlDetailTable"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="time-pop" id="timePop">
@@ -463,16 +555,26 @@ const CANCEL_STATUSES = ["Cancel","Cancelled","Canceled"];
 function isCancelled(r){ return CANCEL_STATUSES.includes((r.wo_status||"").trim()); }
 
 let SITE_SET = new Set();
-let PKD_REGEX = null;
+let PLKD_REGEX = null;
 let TEAM_MAP = []; // [{team_key, match_key, raw_label, contact_name, phone, sort_order}]
 let tickets = { pending: [], closed: [], svcava: [] };
-let filters = { pending:{severities:new Set(), pkdOnly:false, search:""}, closed:{severities:new Set(), pkdOnly:false, search:""}, manual:{severities:new Set(), pkdOnly:false, search:""} };
+let filters = { pending:{severities:new Set(), plkdOnly:false, search:""}, closed:{severities:new Set(), plkdOnly:false, search:""}, manual:{severities:new Set(), plkdOnly:false, search:""} };
 let currentTab = "home";
 let ATTENDANCE = {}; // team_key -> {clock_in, arrived, plan_override, inoc_feedback}
 let HOME_NOTE = { service_ava: "" };
 const HOME_SEV_CODES = ["SA1","SA2","SA3","SA4","SA5","SA6","NSA1","NSA2","NSA3","NSA4"];
 let homeSevFilter = new Set(HOME_SEV_CODES); // all selected = show all
 let expandedTeams = new Set(); // empty = all teams start collapsed by default
+
+/* ---- Fault PLKD state ---- */
+const FAULT_REST = REST + "/fault_ants_tickets";
+const FAULT_BUCKET_COLORS = {"1-2 Hrs.":"#2f9e44","2-6 Hrs.":"#e6b800","6-12 Hrs.":"#e88b6a",">12 Hrs.":"#d94a35"};
+let faultTickets = [];
+let faultSubTab = "overview";
+let faultRegionFilter = "";
+let faultControlDetail = null;
+let faultOverviewChartInst = null;
+let faultLtrSlaChartInst = null;
 
 document.getElementById("boardDate").valueAsDate = new Date();
 
@@ -502,6 +604,7 @@ function applyTheme(mode){
   document.body.classList.toggle("dark-mode", mode==="dark");
   document.getElementById("themeToggleBtn").textContent = mode==="dark" ? "☀ Day" : "☾ Night";
   localStorage.setItem("noc-theme", mode);
+  if(currentTab==="fault") renderFault();
 }
 function toggleTheme(){
   const isDark = document.body.classList.contains("dark-mode");
@@ -509,21 +612,63 @@ function toggleTheme(){
 }
 applyTheme(localStorage.getItem("noc-theme") || "day");
 
-async function fetchSiteCodes(){
-  const res = await fetch(REST + "/site_codes?select=site_code", {headers:HEADERS});
-  const data = await res.json();
-  SITE_SET = new Set(data.map(d=>d.site_code.toUpperCase()));
-  const codes = [...SITE_SET].sort((a,b)=>b.length-a.length).map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
-  PKD_REGEX = codes.length ? new RegExp("\\b(?:"+codes.join("|")+")\\b", "i") : null;
+async function fetchAllFromRest(url){
+  const rows = [];
+  const page = 1000;
+  for(let from = 0; ; from += page){
+    const res = await fetch(url, {headers:{...HEADERS, Range:`${from}-${from + page - 1}`}});
+    if(!res.ok) throw new Error(await res.text());
+    const chunk = await res.json();
+    rows.push(...chunk);
+    if(chunk.length < page) break;
+  }
+  return rows;
 }
-function pkdMatchType(r){
-  const site = (r.site_code||"").toUpperCase();
+function applyPlkdSiteSet(codes){
+  SITE_SET = new Set(codes.map(c=>String(c).toUpperCase()).filter(isValidPlkdSiteCode));
+  const sorted = [...SITE_SET].sort((a,b)=>b.length-a.length).map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
+  PLKD_REGEX = sorted.length ? new RegExp("\\b(?:"+sorted.join("|")+")\\b", "i") : null;
+}
+async function fetchSiteCodes(){
+  let codes = null;
+  try{
+    const stored = localStorage.getItem("plkdSiteCodes");
+    if(stored){
+      const parsed = JSON.parse(stored);
+      if(Array.isArray(parsed) && parsed.length) codes = parsed;
+    }
+  }catch{}
+  if(!codes || !codes.length){
+    try{
+      const res = await fetch("plkd168.json");
+      if(res.ok){
+        const bundled = await res.json();
+        if(Array.isArray(bundled) && bundled.length) codes = bundled;
+      }
+    }catch{}
+  }
+  if(!codes || !codes.length){
+    const data = await fetchAllFromRest(REST + "/site_codes?select=site_code&order=site_code.asc");
+    codes = data.map(d=>d.site_code.toUpperCase());
+  }
+  applyPlkdSiteSet(codes);
+}
+function isValidPlkdSiteCode(code){
+  const c = String(code||"").toUpperCase().trim();
+  if(c.length < 6) return false;
+  if(/^U\d{2}$/.test(c)) return false;
+  if(!/^[A-Z]{3}[0-9A-Z]+$/.test(c)) return false;
+  return true;
+}
+function plkdMatchType(r){
+  const site = ((r.site_code || r.site_id)||"").toUpperCase();
   if(SITE_SET.has(site)) return "site";
-  if(PKD_REGEX && r.subject && PKD_REGEX.test(r.subject)) return "subject";
-  if(PKD_REGEX && r.close_description && PKD_REGEX.test(r.close_description)) return "subject";
+  if(PLKD_REGEX && r.subject && PLKD_REGEX.test(r.subject)) return "subject";
+  if(PLKD_REGEX && r.close_description && PLKD_REGEX.test(r.close_description)) return "subject";
+  if(PLKD_REGEX && r.root_cause && PLKD_REGEX.test(r.root_cause)) return "subject";
   return null;
 }
-function isPkdMatch(r){ return !!pkdMatchType(r); }
+function isPlkdMatch(r){ return !!plkdMatchType(r); }
 async function fetchTeamMap(){
   const res = await fetch(REST + "/team_mapping?select=*&order=sort_order.asc", {headers:HEADERS});
   TEAM_MAP = await res.json();
@@ -548,6 +693,7 @@ async function loadAll(){
   tickets.pending = await fetchTickets("pending");
   tickets.closed = await fetchTickets("closed");
   tickets.svcava = await fetchTickets("svcava");
+  await loadFaultTickets(false);
   const dateVal = document.getElementById("boardDate").value;
   await fetchAttendance(dateVal);
   await fetchHomeNote(dateVal);
@@ -559,6 +705,7 @@ function renderAll(){
   renderTeams("pending"); renderTeams("closed"); renderTeams("manual");
   renderHome();
   if(currentTab==="svcava") renderSvcAva();
+  if(currentTab==="fault") renderFault();
   document.getElementById("countPending").textContent = groupSourceRows("pending").filter(r=>passFilter(r,"pending")).length;
   document.getElementById("countClosed").textContent = groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length;
   document.getElementById("countManual").textContent = tickets.closed.filter(isManualClosed).length;
@@ -571,16 +718,19 @@ function switchTab(tab){
   document.getElementById("tabClosedBtn").classList.toggle("active", tab==="closed");
   document.getElementById("tabManualBtn").classList.toggle("active", tab==="manual");
   document.getElementById("tabSvcAvaBtn").classList.toggle("active", tab==="svcava");
+  document.getElementById("tabFaultBtn").classList.toggle("active", tab==="fault");
   const homeEl = document.getElementById("homeView"), pendingEl = document.getElementById("pendingView"),
     closedEl = document.getElementById("closedView"), manualEl = document.getElementById("manualView"),
-    svcavaEl = document.getElementById("svcavaView");
+    svcavaEl = document.getElementById("svcavaView"), faultEl = document.getElementById("faultView");
   homeEl.style.display = tab==="home" ? "block":"none";
   pendingEl.style.display = tab==="pending" ? "block":"none";
   closedEl.style.display = tab==="closed" ? "block":"none";
   manualEl.style.display = tab==="manual" ? "block":"none";
   svcavaEl.style.display = tab==="svcava" ? "block":"none";
+  faultEl.style.display = tab==="fault" ? "block":"none";
   if(tab==="svcava") renderSvcAva();
-  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="closed" ? closedEl : tab==="manual" ? manualEl : svcavaEl;
+  if(tab==="fault") renderFault();
+  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="closed" ? closedEl : tab==="manual" ? manualEl : tab==="fault" ? faultEl : svcavaEl;
   shownEl.classList.remove("anim-in");
   void shownEl.offsetWidth; // restart animation
   shownEl.classList.add("anim-in");
@@ -600,7 +750,7 @@ function moveTabIndicator(){
     if(indTools) indTools.style.width = "0px";
   }
 }
-window.addEventListener("resize", moveTabIndicator);
+window.addEventListener("resize", ()=>{ moveTabIndicator(); moveFaultSubTabIndicator(); });
 document.addEventListener("focusout", (e)=>{
   const el = e.target;
   if(el && el.classList && el.classList.contains("free-ta")){
@@ -627,7 +777,7 @@ function renderFilterbar(group){
         ${allSev.map(s=>`<option value="${esc(s)}" ${f.severities.has(s)?'selected':''}>${esc(s)}</option>`).join("")}
       </select>
     </div>
-    <label class="toggle-chip"><input type="checkbox" ${f.pkdOnly?'checked':''} onchange="onPkdToggle('${group}', this.checked)"> PKD Watchlist only</label>
+    <label class="toggle-chip"><input type="checkbox" ${f.plkdOnly?'checked':''} onchange="onPlkdToggle('${group}', this.checked)"> PLKD Watchlist only</label>
     <div class="fgroup"><input class="search-box" placeholder="Search Site / TT…" value="${esc(f.search)}" oninput="onSearch('${group}', this.value)"></div>
   `;
 }
@@ -636,7 +786,7 @@ function onSevChange(group, sel){
   filters[group].severities = new Set(vals);
   renderTeams(group);
 }
-function onPkdToggle(group, val){ filters[group].pkdOnly = val; renderTeams(group); }
+function onPlkdToggle(group, val){ filters[group].plkdOnly = val; renderTeams(group); }
 function onSearch(group, val){ filters[group].search = val; renderTeams(group); }
 
 function passFilter(r, group){
@@ -646,7 +796,7 @@ function passFilter(r, group){
   if(sevUp.startsWith("PSA")) return false; // hide PSA everywhere
   if(sevUp==="NSA5" || sevUp==="NSA6") return false; // hide NSA5/6 everywhere
   if(f.severities.size && !f.severities.has(r.severity)) return false;
-  if(f.pkdOnly && !isPkdMatch(r)) return false;
+  if(f.plkdOnly && !isPlkdMatch(r)) return false;
   if(f.search){
     const q = f.search.toUpperCase();
     const hay = `${r.site_code||""} ${r.tt_number||""} ${r.work_order_id||""}`.toUpperCase();
@@ -714,14 +864,14 @@ function renderTeams(group){
     const tbody = table.querySelector("tbody");
     teamRows.forEach(r=>{
       const tr = document.createElement("tr");
-      const pkdType = pkdMatchType(r);
-      const inPkd = !!pkdType;
+      const plkdType = plkdMatchType(r);
+      const inPlkd = !!plkdType;
       const slaClass = (r.sla||"").toLowerCase().includes("over") ? "sla-over" : "sla-in";
       tr.innerHTML = `
         <td>
-          <input class="cell-input site-input ${inPkd?'valid':'invalid'}" value="${esc(r.site_code||'')}"
+          <input class="cell-input site-input ${inPlkd?'valid':'invalid'}" value="${esc(r.site_code||'')}"
             onchange="updateField('${r.id}','site_code', this.value)" placeholder="Site ID">
-          ${inPkd?`<span class="pkd-badge" title="${pkdType==='site'?'Matched by Site ID':'Matched by Subject/Close Description text'}">PKD${pkdType==='subject'?'*':''}</span>`:''}
+          ${inPlkd?`<span class="plkd-badge" title="${plkdType==='site'?'Matched by Site ID':'Matched by Subject/Close Description text'}">PLKD${plkdType==='subject'?'*':''}</span>`:''}
           <div class="ladder-time">${esc(r.province||'')} ${esc(r.region||'')}</div>
         </td>
         <td class="tt-line">${esc(r.tt_number||'-')}<span class="ext">${esc(r.work_order_id||'')}</span></td>
@@ -763,15 +913,19 @@ function sevBucket(sev){
   if(s.includes("SA")) return "SA"; // covers SA and PSA
   return null;
 }
-function extractPkdSite(r){
-  const site = (r.site_code||"").toUpperCase();
+function extractPlkdSite(r){
+  const site = ((r.site_code || r.site_id)||"").toUpperCase();
   if(SITE_SET.has(site)) return site;
-  if(PKD_REGEX && r.subject){
-    const m = r.subject.toUpperCase().match(PKD_REGEX);
+  if(PLKD_REGEX && r.subject){
+    const m = r.subject.toUpperCase().match(PLKD_REGEX);
     if(m) return m[0];
   }
-  if(PKD_REGEX && r.close_description){
-    const m = r.close_description.toUpperCase().match(PKD_REGEX);
+  if(PLKD_REGEX && r.close_description){
+    const m = r.close_description.toUpperCase().match(PLKD_REGEX);
+    if(m) return m[0];
+  }
+  if(PLKD_REGEX && r.root_cause){
+    const m = r.root_cause.toUpperCase().match(PLKD_REGEX);
     if(m) return m[0];
   }
   return site || "-";
@@ -785,11 +939,11 @@ function statusTimeFor(r){
   return key ? r[key] : null;
 }
 function autoPlanText(team){
-  const rows = tickets.pending.filter(r=>r.team===team && isPkdMatch(r));
+  const rows = tickets.pending.filter(r=>r.team===team && isPlkdMatch(r));
   if(rows.length===0) return "";
   return rows.map((r,i)=>{
     const sevShort = (r.severity||"").split("-")[0] || "";
-    const site = extractPkdSite(r);
+    const site = extractPlkdSite(r);
     return `${i+1}.${site} ${r.tt_number||r.work_order_id||'-'}${sevShort?'/'+sevShort:''}`;
   }).join("\n");
 }
@@ -846,7 +1000,7 @@ function calcServiceAvailability(dateVal){
   const rows = tickets.svcava.filter(r=>{
     const fam = (r.severity||"").split("-")[0] || "";
     if(!fam.toUpperCase().startsWith("SA")) return false; // SA family only (excludes NSA, PSA since those start with N/P)
-    if(!isPkdMatch(r)) return false; // must be a PKD site — matched via site_code, or regex against Subject/Close Description
+    if(!isPlkdMatch(r)) return false; // must be a PLKD site — matched via site_code, or regex against Subject/Close Description
     if(!r.closed_time || r.closed_time.slice(0,10)!==dateVal) return false; // closed_time = Restoration Date
     return true;
   });
@@ -878,10 +1032,10 @@ function renderSvcAva(){
     return;
   }
   tbody.innerHTML = detail.map(r=>{
-    const site = extractPkdSite(r);
+    const site = extractPlkdSite(r);
     const slaOver = (r.sla||"").toLowerCase().includes("over");
     return `<tr>
-      <td class="site-pkd-cell">${esc(site)}</td>
+      <td class="site-plkd-cell">${esc(site)}</td>
       <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}</td>
       <td class="subject-cell">${esc(r.subject||'')}</td>
       <td><textarea class="cell-ta free-ta" onchange="updateSvcAvaField('${r.id}','root_cause', this.value)">${esc(r.root_cause||'')}</textarea></td>
@@ -914,10 +1068,10 @@ function renderHome(){
   TEAM_MAP.forEach(tm=>{
     const team = tm.team_key;
     const att = ATTENDANCE[team] || {};
-    const allPlanRows = tickets.pending.filter(r=>r.team===team && isPkdMatch(r) && homeSevPass(r) && !isCancelled(r))
+    const allPlanRows = tickets.pending.filter(r=>r.team===team && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r))
       .sort((a,b)=>(a.plan_order||9999)-(b.plan_order||9999));
     const pendingCount = allPlanRows.length;
-    const closedCount = tickets.closed.filter(r=>r.team===team && r.closed_time && r.closed_time.slice(0,10)===dateVal && isPkdMatch(r)).length;
+    const closedCount = tickets.closed.filter(r=>r.team===team && r.closed_time && r.closed_time.slice(0,10)===dateVal && isPlkdMatch(r)).length;
     const rowClass = team.startsWith("NODE") ? "home-row-node":"home-row-ofc";
     const collapsed = !expandedTeams.has(team);
     const planRows = collapsed ? allPlanRows.slice(0,1) : allPlanRows;
@@ -935,7 +1089,7 @@ function renderHome(){
         </td>
         <td class="locked-col col-clockin"><input class="home-input" value="${esc(att.clock_in||'')}" placeholder="เวลา" onchange="updateAttendance('${team}','clock_in', this.value)"></td>
         <td class="locked-col col-1starrive"><input class="home-input" value="${esc(att.first_arrive||'')}" placeholder="เวลา" onchange="updateAttendance('${team}','first_arrive', this.value)"></td>
-        <td colspan="7"><span class="muted-dash">No PKD-matched pending tickets</span></td>
+        <td colspan="7"><span class="muted-dash">No PLKD-matched pending tickets</span></td>
         <td><span class="home-count-badge" style="color:var(--teal)">${closedCount}</span></td>
         <td><span class="home-count-badge" style="color:var(--amber)">0</span></td>`;
       tbody.appendChild(tr);
@@ -947,8 +1101,8 @@ function renderHome(){
       tr.className = rowClass + " plan-row";
       tr.dataset.ticketId = r.id;
       tr.dataset.team = team;
-      const pkdType = pkdMatchType(r);
-      const site = extractPkdSite(r);
+      const plkdType = plkdMatchType(r);
+      const site = extractPlkdSite(r);
       const sevShort = (r.severity||"").split("-")[0] || "";
       const statusTime = statusTimeFor(r);
 
@@ -967,7 +1121,7 @@ function renderHome(){
       }
       cells += `
         <td><div class="plan-cell" draggable="true"><span class="drag-handle">⠿</span><span class="plan-label">Plan ${i+1}</span></div></td>
-        <td class="site-pkd-cell">${esc(site)}${pkdType==='subject'?'*':''}</td>
+        <td class="site-plkd-cell">${esc(site)}${plkdType==='subject'?'*':''}</td>
         <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}<div class="tt-subject">${esc(r.subject||'')}</div></td>
         <td><span class="sev-badge">${esc(sevShort)}</span></td>
         <td class="status-cell">${esc(r.wo_status||'-')}<br><span class="status-time">${esc(statusTime||'—')}</span></td>
@@ -990,7 +1144,7 @@ function renderHome(){
   // summary cards
   const nodeTeams = TEAM_MAP.filter(t=>t.team_key.startsWith("NODE")).map(t=>t.team_key);
   const ofcTeams = TEAM_MAP.filter(t=>t.team_key.startsWith("OFC")).map(t=>t.team_key);
-  const totalClosedToday = tickets.closed.filter(r=>r.closed_time && r.closed_time.slice(0,10)===dateVal && isPkdMatch(r)).length;
+  const totalClosedToday = tickets.closed.filter(r=>r.closed_time && r.closed_time.slice(0,10)===dateVal && isPlkdMatch(r)).length;
 
   function sevShort(sev){ return sev ? (sev.split("-")[0]||sev) : null; }
   function sevSortKey(code){
@@ -1005,7 +1159,7 @@ function renderHome(){
     return "var(--blue)";
   }
   function severityLines(teamList, groupName){
-    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPkdMatch(r) && homeSevPass(r) && !isCancelled(r));
+    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r));
     const tally = {};
     rows.forEach(r=>{
       const c = sevShort(r.severity);
@@ -1026,7 +1180,7 @@ function renderHome(){
   }
   window.SEV_GROUP_TEAMS = { node: nodeTeams, ofc: ofcTeams };
   function statusLines(teamList){
-    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPkdMatch(r));
+    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPlkdMatch(r));
     const tally = {};
     rows.forEach(r=>{ if(r.wo_status) tally[r.wo_status] = (tally[r.wo_status]||0)+1; });
     const keys = Object.keys(tally).sort();
@@ -1038,11 +1192,11 @@ function renderHome(){
   const svcAva = calcServiceAvailability(dateVal);
   document.getElementById("homeSummary").innerHTML = `
     <div class="summary-card">
-      <h4>Node Pending <span style="color:var(--muted-2);font-weight:400;font-size:12px;">(PKD only)</span></h4>
+      <h4>Node Pending <span style="color:var(--muted-2);font-weight:400;font-size:12px;">(PLKD only)</span></h4>
       <div class="summary-body">${severityLines(nodeTeams,'node')}</div>
     </div>
     <div class="summary-card">
-      <h4>OFC Pending <span style="color:var(--muted-2);font-weight:400;font-size:12px;">(PKD only)</span></h4>
+      <h4>OFC Pending <span style="color:var(--muted-2);font-weight:400;font-size:12px;">(PLKD only)</span></h4>
       <div class="summary-body">${severityLines(ofcTeams,'ofc')}</div>
     </div>
     <div class="summary-card">
@@ -1060,7 +1214,7 @@ function showSevDetail(groupName, sevCode){
   const teamList = (window.SEV_GROUP_TEAMS && window.SEV_GROUP_TEAMS[groupName]) || [];
   const rows = tickets.pending.filter(r=>{
     if(!teamList.includes(r.team)) return false;
-    if(!isPkdMatch(r)) return false;
+    if(!isPlkdMatch(r)) return false;
     if(!homeSevPass(r)) return false;
     const c = (r.severity||"").split("-")[0] || "";
     return c === sevCode;
@@ -1192,7 +1346,7 @@ async function screenshotHome(){
       // Fallback for browsers without Clipboard image support
       const dateVal = (document.getElementById("boardDate")||{}).value || new Date().toISOString().slice(0,10);
       const link = document.createElement("a");
-      link.download = `PKD-Board-${dateVal}.png`;
+      link.download = `PLKD-Board-${dateVal}.png`;
       link.href = URL.createObjectURL(blob);
       link.click();
       toast("Clipboard not supported on this browser — saved file instead");
@@ -1514,7 +1668,7 @@ function exportGroupExcel(group){
     rows = detail;
     sheetName = "Service Availability";
     cols = [
-      {h:"Site Code", get:r=>extractPkdSite(r)},
+      {h:"Site Code", get:r=>extractPlkdSite(r)},
       {h:"Source Ticket", get:r=>r.tt_number||r.work_order_id||""},
       {h:"Subject", get:r=>r.subject||""},
       {h:"Root Cause", get:r=>r.root_cause||""},               // INOC-filled
@@ -1546,11 +1700,11 @@ function exportGroupExcel(group){
   ws["!cols"] = cols.map(c=>({ wch: Math.max(14, c.h.length+2) }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
-  XLSX.writeFile(wb, `PKD-${sheetName.replace(/\s+/g,"")}-INOC-${dateVal}.xlsx`);
+  XLSX.writeFile(wb, `PLKD-${sheetName.replace(/\s+/g,"")}-INOC-${dateVal}.xlsx`);
 }
 let COL_WIDTHS = {};
-try{ COL_WIDTHS = JSON.parse(localStorage.getItem("pkdColWidths")||"{}"); }catch(e){ COL_WIDTHS = {}; }
-function saveColWidths(){ try{ localStorage.setItem("pkdColWidths", JSON.stringify(COL_WIDTHS)); }catch(e){} }
+try{ COL_WIDTHS = JSON.parse(localStorage.getItem("plkdColWidths")||"{}"); }catch(e){ COL_WIDTHS = {}; }
+function saveColWidths(){ try{ localStorage.setItem("plkdColWidths", JSON.stringify(COL_WIDTHS)); }catch(e){} }
 // Adds a drag handle to the right edge of every <th> in `table` so columns can be resized by
 // hand — widths persist per storageKey (e.g. "team-pending", "home", "svcava") across re-renders
 // and page reloads via localStorage.
@@ -1707,6 +1861,828 @@ async function bulkInsertWorkOrders(rows, groupBtn){
   }
 }
 
+/* ===================== FAULT PLKD ===================== */
+function faultPlkdMatchType(r){
+  const site = String(r?.site_id || r?.site_code || "").toUpperCase().trim();
+  if(isValidPlkdSiteCode(site) && SITE_SET.has(site)) return "site";
+  if(PLKD_REGEX && r?.subject){
+    const text = String(r.subject).toUpperCase();
+    if(PLKD_REGEX.test(text)){
+      for(const m of text.matchAll(new RegExp(PLKD_REGEX.source, "gi"))){
+        if(isValidPlkdSiteCode(m[0])) return "subject";
+      }
+    }
+  }
+  return null;
+}
+function extractFaultPlkdSite(r){
+  const site = String(r.site_id || r.site_code || "").toUpperCase().trim();
+  if(isValidPlkdSiteCode(site) && SITE_SET.has(site)) return site;
+  if(!r.subject) return site || "-";
+  const text = String(r.subject).toUpperCase();
+  const seen = new Set();
+  const matches = [];
+  if(PLKD_REGEX){
+    const reAll = new RegExp(PLKD_REGEX.source, "gi");
+    for(const m of text.matchAll(reAll)){
+      const code = m[0].toUpperCase();
+      if(!isValidPlkdSiteCode(code) || seen.has(code)) continue;
+      seen.add(code);
+      matches.push(code);
+    }
+  }
+  if(!matches.length){
+    for(const m of text.matchAll(/\b([A-Z]{3}[0-9A-Z]{3,})\b/g)){
+      const code = m[1].toUpperCase();
+      if(!isValidPlkdSiteCode(code) || !SITE_SET.has(code) || seen.has(code)) continue;
+      seen.add(code);
+      matches.push(code);
+    }
+  }
+  if(!matches.length) return site || "-";
+  matches.sort((a,b)=> b.length - a.length || a.localeCompare(b));
+  return matches[0];
+}
+function extractFaultSubjectDetail(r){
+  const s = String(r?.subject || "").trim();
+  if(!s) return "";
+  const m = s.match(/-NOP-(.*)$/i);
+  if(!m) return s;
+  return m[1].replace(/\s*\[U\d{2}\]\s*$/i, "").trim() || s;
+}
+function isPlkdFaultTicket(r){
+  return !!faultPlkdMatchType(r);
+}
+function parseFaultTs(v){
+  if(!v) return null;
+  let s = String(v).trim();
+  s = s.replace(" ", "T");
+  if(/[+-]\d{2}$/.test(s)) s += ":00"; // Supabase +00 → +00:00 for reliable parsing
+  if(s.length === 16 && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) s += ":00";
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+function calcFaultDowntimeMinutes(r){
+  const created = parseFaultTs(r.created_time);
+  const closed = parseFaultTs(r.closed_time);
+  if(!created || !closed) return null;
+  return Math.max(0, Math.round((closed - created) / 60000));
+}
+function classifyFaultTicket(r){
+  const created = parseFaultTs(r.created_time);
+  const closed = parseFaultTs(r.closed_time);
+  const requireFinish = parseFaultTs(r.require_finish_time);
+  const downtimeMinutes = calcFaultDowntimeMinutes(r);
+  let slaStatus = null;
+  let bucket = null;
+  if(closed && requireFinish){
+    slaStatus = closed <= requireFinish ? "Within SLA" : "Over SLA";
+  } else if(!closed){
+    slaStatus = "Open";
+  }
+  if(slaStatus === "Within SLA" && downtimeMinutes !== null){
+    const hrs = downtimeMinutes / 60;
+    if(hrs < 2) bucket = "1-2 Hrs.";
+    else if(hrs < 6) bucket = "2-6 Hrs.";
+    else if(hrs < 12) bucket = "6-12 Hrs.";
+    else bucket = ">12 Hrs.";
+  }
+  return { created, closed, requireFinish, downtimeMinutes, slaStatus, bucket };
+}
+function normalizeFaultControl(val){
+  const s = (val||"").trim().toLowerCase();
+  if(!s) return "unspecified";
+  if(s.startsWith("in")) return "in";
+  if(s.startsWith("out")) return "out";
+  return "unspecified";
+}
+function getFaultDateRange(){
+  const dateVal = document.getElementById("boardDate").value;
+  if(!dateVal){
+    const now = new Date();
+    return {start:new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), end:now, dateVal:fmtIsoLocalDate(now)};
+  }
+  const [y, m, d] = dateVal.split("-").map(Number);
+  return {
+    start: new Date(y, m - 1, 1, 0, 0, 0),
+    end: new Date(y, m - 1, d, 23, 59, 59),
+    dateVal
+  };
+}
+function faultTicketInRange(r, range){
+  const closed = parseFaultTs(r.closed_time);
+  if(!closed) return false;
+  return closed >= range.start && closed <= range.end;
+}
+function isFaultSaSeverity(r){
+  const fam = (r.severity||"").split("-")[0] || "";
+  return fam.toUpperCase().startsWith("SA");
+}
+function getFilteredFaultTickets(){
+  const range = getFaultDateRange();
+  return faultTickets.filter(r=>{
+    if(!isFaultSaSeverity(r)) return false;
+    if(!isPlkdFaultTicket(r)) return false;
+    if(faultRegionFilter && (r.region||"") !== faultRegionFilter) return false;
+    return faultTicketInRange(r, range);
+  }).map(r=>({...r, _fault: classifyFaultTicket(r)}));
+}
+function fmtFaultDT(v){
+  if(!v) return '<span class="muted-dash">—</span>';
+  const s = String(v);
+  if(s.length >= 16) return esc(s.slice(0,16));
+  return esc(s);
+}
+function fmtFaultDowntime(mins){
+  if(mins === null || mins === undefined) return '<span class="muted-dash">—</span>';
+  return esc(fmtHMText(mins));
+}
+const FAULT_TABLE_HEAD = `<tr>
+  <th style="width:90px">Site</th>
+  <th style="width:130px">Ticket ID</th>
+  <th style="width:200px">Subject</th>
+  <th style="width:100px">SEVERITY</th>
+  <th style="width:110px">WO Open</th>
+  <th style="width:110px">Ticket Open</th>
+  <th style="width:110px">Depart</th>
+  <th style="width:110px">Arrive</th>
+  <th style="width:110px">Close</th>
+  <th style="width:100px">Downtime<br><span class="th-sub">Created → Closed</span></th>
+  <th style="width:180px">Close Description</th>
+  <th style="width:160px">INOC log</th>
+  <th style="width:140px">In or Out Control</th>
+</tr>`;
+function faultTableRowHtml(r){
+  const c = r._fault || classifyFaultTicket(r);
+  const woId = r.work_order_id || "";
+  const site = extractFaultPlkdSite(r);
+  return `<tr>
+    <td class="site-plkd-cell">${esc(site)}</td>
+    <td class="tt-line">${esc(r.source_ticket_id||r.sdm_tt||'-')}<span class="ext">${esc(r.work_order_id||'')}</span></td>
+    <td class="subject-cell">${esc(extractFaultSubjectDetail(r))}</td>
+    <td><span class="sev-badge">${esc(r.severity||'-')}</span></td>
+    <td>${esc(r.wo_creator || "—")}</td>
+    <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
+    <td class="dt-cell">${fmtFaultDT(r.departed_time)}</td>
+    <td class="dt-cell">${fmtFaultDT(r.arrived_time)}</td>
+    <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
+    <td class="dt-cell">${fmtFaultDowntime(c.downtimeMinutes)}</td>
+    <td class="subject-cell">${esc(r.close_description||'')}</td>
+    <td><textarea class="home-feedback free-ta" placeholder="INOC log…" onchange="updateFaultField('${esc(woId)}','inoc_log', this.value)">${esc(r.inoc_log||'')}</textarea></td>
+    <td><textarea class="cell-ta free-ta" placeholder="In / Out…" onchange="updateFaultField('${esc(woId)}','control_status', this.value)">${esc(r.control_status||'')}</textarea></td>
+  </tr>`;
+}
+function renderFaultTable(tableEl, rows, storageKey){
+  if(!tableEl) return;
+  const thead = tableEl.querySelector("thead");
+  const tbody = tableEl.querySelector("tbody");
+  thead.innerHTML = FAULT_TABLE_HEAD;
+  if(rows.length===0){
+    tbody.innerHTML = `<tr><td colspan="13" class="empty-hint">No tickets in this group.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(faultTableRowHtml).join("");
+  }
+  makeColumnsResizable(tableEl, storageKey);
+}
+function calcFaultServiceAvailability(dateStr, rows){
+  const TOTAL_SITE_MINUTES = 168 * 24 * 60;
+  const dayRows = rows.filter(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    if(!c.closed) return false;
+    return String(r.closed_time).slice(0,10) === dateStr;
+  });
+  let totalDowntime = 0;
+  dayRows.forEach(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    if(c.downtimeMinutes !== null) totalDowntime += c.downtimeMinutes;
+  });
+  const percent = ((TOTAL_SITE_MINUTES - totalDowntime) / TOTAL_SITE_MINUTES) * 100;
+  return Math.max(0, Math.min(100, percent));
+}
+/** SA Avg. สะสมรายวัน: วันที่ N = (168×24×60×N − downtime สะสมวัน 1..N) / (168×24×60×N) */
+function calcFaultServiceAvailabilityCumulative(dayKeys, rows){
+  const MINUTES_PER_DAY = 168 * 24 * 60;
+  let cumulativeDowntime = 0;
+  return dayKeys.map((day, i)=>{
+    rows.forEach(r=>{
+      const c = r._fault || classifyFaultTicket(r);
+      if(!c.closed || String(r.closed_time).slice(0,10) !== day) return;
+      if(c.downtimeMinutes !== null) cumulativeDowntime += c.downtimeMinutes;
+    });
+    const totalSiteMinutes = MINUTES_PER_DAY * (i + 1);
+    const percent = ((totalSiteMinutes - cumulativeDowntime) / totalSiteMinutes) * 100;
+    return Number(Math.max(0, Math.min(100, percent)).toFixed(2));
+  });
+}
+function fmtIsoLocalDate(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function buildFaultDayLabels(range){
+  const labels = [];
+  const d = new Date(range.start);
+  while(d <= range.end){
+    labels.push(fmtIsoLocalDate(d));
+    d.setDate(d.getDate()+1);
+  }
+  return labels;
+}
+function fmtFaultDayLabel(iso){
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString("en-GB",{day:"2-digit",month:"short"});
+}
+const FAULT_LABEL_FONT_LINE = "bold 18px JetBrains Mono, monospace";
+const FAULT_LABEL_FONT_PCT = "bold 12px JetBrains Mono, monospace";
+function faultChartSlotWidth(meta, chartArea){
+  if(!meta?.data?.length) return chartArea?.width || 80;
+  if(meta.data.length === 1) return chartArea?.width || 80;
+  return Math.abs(meta.data[1].x - meta.data[0].x);
+}
+function faultLabelBox(ctx, x, y, text){
+  const w = ctx.measureText(text).width + 8;
+  return {x, y, w, h: 16, left: x - w / 2, right: x + w / 2, top: y - 8, bottom: y + 8};
+}
+function faultLabelOverlaps(a, b){
+  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+}
+function faultShouldShowDenseLabel(i, total, slotW){
+  if(slotW >= 46) return true;
+  if(i === 0 || i === total - 1) return true;
+  if(slotW >= 32) return i % 2 === 0;
+  return i % 3 === 0;
+}
+function drawFaultLinePointLabelAt(ctx, x, y, text, color, font){
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = font || FAULT_LABEL_FONT_LINE;
+  ctx.strokeStyle = "rgba(255,255,255,0.85)";
+  ctx.lineWidth = 3;
+  ctx.lineJoin = "round";
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+  return faultLabelBox(ctx, x, y, text);
+}
+function drawFaultOverviewLineLabels(chart, ctx, dataset, meta){
+  const placed = chart._faultOverviewLabelBoxes || [];
+  const slotW = faultChartSlotWidth(meta, chart.chartArea);
+  const n = meta.data.length;
+  const isSa = dataset.label === "Service Availability";
+  const isSaAvg = dataset.label === "Service Availability Avg.";
+  const isTotal = dataset.label === "Total Ticket";
+
+  meta.data.forEach((pt, i)=>{
+    const val = dataset.data[i];
+    if(val == null) return;
+    if(val === 0 && !isSa && !isSaAvg) return;
+
+    if(isTotal){
+      const withinBar = chart.getDatasetMeta(0).data[i];
+      const overBar = chart.getDatasetMeta(1).data[i];
+      let yTop = pt.y;
+      if(withinBar && !withinBar.skip) yTop = Math.min(yTop, withinBar.y);
+      if(overBar && !overBar.skip && Number(chart.data.datasets[1].data[i]) > 0) yTop = Math.min(yTop, overBar.y);
+      const text = String(Math.round(val));
+      const y = yTop - 12;
+      const box = drawFaultLinePointLabelAt(ctx, pt.x, y, text, dataset.borderColor || "#7c4fd6", FAULT_LABEL_FONT_LINE);
+      placed.push(box);
+      return;
+    }
+
+    if(isSa || isSaAvg){
+      if(!faultShouldShowDenseLabel(i, n, slotW)) return;
+      const text = `${Number(val).toFixed(2)}%`;
+      const y = pt.y + (isSaAvg ? 20 : -14);
+      ctx.font = FAULT_LABEL_FONT_PCT;
+      const box = faultLabelBox(ctx, pt.x, y, text);
+      if(placed.some(b=> faultLabelOverlaps(box, b))) return;
+      drawFaultLinePointLabelAt(ctx, pt.x, y, text, dataset.borderColor || "#7c4fd6", FAULT_LABEL_FONT_PCT);
+      placed.push(box);
+    }
+  });
+}
+function faultCountAxisMax(totals){
+  const maxVal = Math.max(0, ...(totals.length ? totals : [0]));
+  if(maxVal <= 0) return 10;
+  let max;
+  if(maxVal <= 10) max = 10;
+  else if(maxVal <= 50) max = Math.ceil(maxVal / 5) * 5;
+  else if(maxVal <= 100) max = Math.ceil(maxVal / 10) * 10;
+  else max = Math.ceil(maxVal / 20) * 20;
+  if(max <= maxVal) max += faultCountAxisStep(max);
+  return max;
+}
+function faultCountAxisStep(max){
+  if(max <= 10) return 2;
+  if(max <= 30) return 5;
+  if(max <= 100) return 10;
+  return 20;
+}
+function drawFaultOverviewBarLabel(ctx, bar, count){
+  if(!count) return;
+  const h = Math.abs(bar.base - bar.y);
+  if(h < 14) return;
+  const x = bar.x;
+  const cy = bar.y + h / 2;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "bold 16px JetBrains Mono, monospace";
+  ctx.strokeStyle = "rgba(0,0,0,0.72)";
+  ctx.lineWidth = 4;
+  ctx.lineJoin = "round";
+  ctx.strokeText(String(count), x, cy);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(String(count), x, cy);
+}
+function drawFaultLtrSegmentLabel(ctx, bar, count){
+  if(!count) return;
+  const h = Math.abs(bar.base - bar.y);
+  const x = bar.x;
+  const cy = bar.y + h / 2;
+  const fontSize = h >= 28 ? 16 : h >= 18 ? 14 : h >= 10 ? 12 : 10;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `bold ${fontSize}px JetBrains Mono, monospace`;
+  ctx.strokeStyle = "rgba(0,0,0,0.72)";
+  ctx.lineWidth = 3;
+  ctx.lineJoin = "round";
+  ctx.strokeText(String(count), x, cy);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(String(count), x, cy);
+}
+function drawFaultLinePointLabel(ctx, pt, text, color, offsetY){
+  drawFaultLinePointLabelAt(ctx, pt.x, pt.y + offsetY, text, color, FAULT_LABEL_FONT_LINE);
+}
+const faultBarLabelPlugin = {
+  id: "faultBarLabels",
+  afterDraw(chart){
+    const ctx = chart.ctx;
+    const isLtr = chart.canvas && chart.canvas.id === "faultLtrSlaChart";
+    const isOverview = chart.canvas && chart.canvas.id === "faultOverviewChart";
+    if(isOverview) chart._faultOverviewLabelBoxes = [];
+    ctx.save();
+    if(isOverview){
+      const lineOrder = ["Total Ticket", "Service Availability", "Service Availability Avg."];
+      lineOrder.forEach(label=>{
+        const di = chart.data.datasets.findIndex(d=> d.label === label);
+        if(di < 0) return;
+        const meta = chart.getDatasetMeta(di);
+        if(meta.type !== "line") return;
+        drawFaultOverviewLineLabels(chart, ctx, chart.data.datasets[di], meta);
+      });
+    }
+    chart.data.datasets.forEach((dataset, di)=>{
+      const meta = chart.getDatasetMeta(di);
+      if(meta.type === "line"){
+        if(isOverview) return;
+        meta.data.forEach((pt, i)=>{
+          const val = dataset.data[i];
+          if(val == null || (val === 0 && dataset.label !== "Service Availability" && dataset.label !== "Service Availability Avg.")) return;
+          const isPct = dataset.label === "Service Availability" || dataset.label === "Service Availability Avg.";
+          const text = isPct ? `${Number(val).toFixed(2)}%` : String(Math.round(val));
+          const offsetY = dataset.label === "Service Availability Avg." ? 16 : -11;
+          drawFaultLinePointLabel(ctx, pt, text, dataset.borderColor || "#7c4fd6", offsetY);
+        });
+        return;
+      }
+      if(meta.type !== "bar") return;
+      meta.data.forEach((bar, i)=>{
+        if(bar.hidden || bar.skip) return;
+        if(isLtr) drawFaultLtrSegmentLabel(ctx, bar, dataset.data[i]);
+        else drawFaultOverviewBarLabel(ctx, bar, dataset.data[i]);
+      });
+    });
+    ctx.restore();
+  }
+};
+function destroyFaultChart(inst){ if(inst) inst.destroy(); return null; }
+function renderFaultOverviewChart(rows, range){
+  const canvas = document.getElementById("faultOverviewChart");
+  if(!canvas || typeof Chart === "undefined") return;
+  faultOverviewChartInst = destroyFaultChart(faultOverviewChartInst);
+  const labels = buildFaultDayLabels(range).map(fmtFaultDayLabel);
+  const dayKeys = buildFaultDayLabels(range);
+  const withinCounts = [], overCounts = [], totals = [], svcAva = [];
+  dayKeys.forEach(day=>{
+    const dayRows = rows.filter(r=> r.closed_time && String(r.closed_time).slice(0,10) === day);
+    let w = 0, o = 0;
+    dayRows.forEach(r=>{
+      const c = r._fault || classifyFaultTicket(r);
+      if(c.slaStatus === "Within SLA") w++;
+      else if(c.slaStatus === "Over SLA") o++;
+    });
+    withinCounts.push(w);
+    overCounts.push(o);
+    totals.push(w + o); // Total Ticket = Within + Over (same left axis as bars)
+    svcAva.push(Number(calcFaultServiceAvailability(day, rows).toFixed(2)));
+  });
+  const svcAvaCumulative = calcFaultServiceAvailabilityCumulative(dayKeys, rows);
+  const svcAvaCumulativeLast = svcAvaCumulative.length ? svcAvaCumulative[svcAvaCumulative.length - 1] : 0;
+  const countMax = faultCountAxisMax(totals);
+  const countStep = faultCountAxisStep(countMax);
+  document.getElementById("faultOverviewLegend").innerHTML = `
+    <span><i style="background:#2f9e44"></i>Within SLA</span>
+    <span><i style="background:#d94a35"></i>Over SLA</span>
+    <span><i style="background:#7c4fd6"></i>Total Ticket</span>
+    <span><i style="background:var(--blue); border:1px solid var(--blue)"></i>Service Availability</span>
+    <span><i style="background:#0d9488; border:1px solid #0d9488"></i>Service Availability Avg. (สะสม) <strong>${svcAvaCumulativeLast.toFixed(2)}%</strong></span>`;
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  /*
+   * Fault trend PLKD — dual-axis mapping (do not swap):
+   *   yCount  (LEFT)  → Within SLA bar, Over SLA bar, Total Ticket line  — unit: ticket count
+   *   yPercent (RIGHT) → Service Availability + Avg. (สะสม) lines       — unit: 0–100 %
+   *   yPercent max=105 (not 100) so 100% points sit below the chart border; ticks still label 0–100%.
+   * Bars stack on yCount; Total Ticket must use yCount (NOT yPercent) so it aligns with bar tops.
+   */
+  faultOverviewChartInst = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {label:"Within SLA", data:withinCounts, backgroundColor:"#2f9e44", stack:"tickets", yAxisID:"yCount", order:2},
+        {label:"Over SLA", data:overCounts, backgroundColor:"#d94a35", stack:"tickets", yAxisID:"yCount", order:2},
+        {label:"Total Ticket", data:totals, type:"line", borderColor:"#7c4fd6", backgroundColor:"transparent",
+          tension:.3, pointRadius:5, yAxisID:"yCount", order:1},
+        {label:"Service Availability", data:svcAva, type:"line", borderColor:"#1c6fd6", backgroundColor:"transparent",
+          tension:.3, pointRadius:5, pointBackgroundColor:"#1c6fd6", pointBorderColor:"#ffffff", pointBorderWidth:2,
+          borderWidth:2, yAxisID:"yPercent", order:0, borderDash:[4,3], clip:false},
+        {label:"Service Availability Avg.", data:svcAvaCumulative, type:"line", borderColor:"#0d9488", backgroundColor:"transparent",
+          tension:.3, pointRadius:5, pointBackgroundColor:"#0d9488", pointBorderColor:"#ffffff", pointBorderWidth:2,
+          borderWidth:2, yAxisID:"yPercent", order:0, borderDash:[10,5], clip:false}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:18, bottom:8}},
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{stacked:true, ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor}},
+        yCount:{
+          stacked:true, position:"left", beginAtZero:true, min:0, max:countMax,
+          title:{display:true, text:"จำนวน Ticket", color:textColor, font:{size:13, weight:"bold"}},
+          ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}}, grid:{color:gridColor}
+        },
+        yPercent:{
+          position:"right", beginAtZero:true, min:-5, max:105,
+          title:{display:true, text:"% Service Availability", color:textColor, font:{size:12, weight:"bold"}},
+          ticks:{color:textColor, stepSize:20,
+            callback:v=>(v >= 0 && v <= 100 ? v+"%" : ""),
+            font:{size:11}}, grid:{drawOnChartArea:false}
+        }
+      }
+    },
+    plugins:[faultBarLabelPlugin]
+  });
+}
+function renderFaultLtrSlaChart(rows, range){
+  const canvas = document.getElementById("faultLtrSlaChart");
+  if(!canvas || typeof Chart === "undefined") return;
+  faultLtrSlaChartInst = destroyFaultChart(faultLtrSlaChartInst);
+  const dayKeys = buildFaultDayLabels(range);
+  const labels = dayKeys.map(fmtFaultDayLabel);
+  const buckets = ["1-2 Hrs.","2-6 Hrs.","6-12 Hrs.",">12 Hrs."];
+  const rawByBucket = buckets.map(b=>
+    dayKeys.map(day=> rows.filter(r=>{
+      const c = r._fault || classifyFaultTicket(r);
+      if(c.slaStatus !== "Within SLA" || !c.closed) return false;
+      return String(r.closed_time).slice(0,10) === day && c.bucket === b;
+    }).length)
+  );
+  const dayTotals = dayKeys.map((_, di)=> rawByBucket.reduce((sum, arr)=> sum + arr[di], 0));
+  const countMax = faultCountAxisMax(dayTotals);
+  const countStep = faultCountAxisStep(countMax);
+  const datasets = buckets.map((b, bi)=>({
+    label:b, data:rawByBucket[bi], backgroundColor:FAULT_BUCKET_COLORS[b], stack:"downtime", order:2
+  }));
+  datasets.push({
+    label:"Total", data:dayTotals, type:"line", borderColor:"#7c4fd6", backgroundColor:"transparent",
+    tension:.3, pointRadius:5, pointBackgroundColor:"#7c4fd6", pointBorderColor:"#ffffff", pointBorderWidth:2,
+    borderWidth:2, order:1, clip:false
+  });
+  document.getElementById("faultLtrSlaLegend").innerHTML = buckets.map(b=>
+    `<span><i style="background:${FAULT_BUCKET_COLORS[b]}"></i>${b}</span>`).join("") +
+    `<span><i style="background:#7c4fd6"></i>Total</span>`;
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  /*
+   * Long time Repair — stacked bar uses raw ticket counts (NOT % normalized).
+   * Sum of 4 buckets per day must equal Within SLA count from Overview for that day.
+   */
+  faultLtrSlaChartInst = new Chart(canvas, {
+    type:"bar",
+    data:{labels, datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:14}},
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{stacked:true, ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor}},
+        y:{
+          stacked:true, position:"left", beginAtZero:true, min:0, max:countMax,
+          title:{display:true, text:"จำนวน Ticket", color:textColor, font:{size:13, weight:"bold"}},
+          ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}}, grid:{color:gridColor}
+        }
+      }
+    },
+    plugins:[faultBarLabelPlugin]
+  });
+}
+function renderFaultRegionBar(){
+  const el = document.getElementById("faultRegionBar");
+  if(!el) return;
+  const regions = [...new Set(faultTickets.filter(r=>isFaultSaSeverity(r)&&isPlkdFaultTicket(r)).map(r=>r.region).filter(Boolean))].sort();
+  const plkdCount = faultTickets.filter(r=>isFaultSaSeverity(r)&&isPlkdFaultTicket(r)).length;
+  el.innerHTML = `
+    <div class="fgroup"><label class="flabel">Region</label>
+      <select class="sev-select" onchange="onFaultRegionChange(this.value)">
+        <option value="">— All —</option>
+        ${regions.map(r=>`<option value="${esc(r)}" ${faultRegionFilter===r?'selected':''}>${esc(r)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="fgroup"><label class="flabel">PLKD Filter</label>
+      <span class="status-msg">SA severity · ${SITE_SET.size} PLKD site(s) · ${plkdCount} matched (Site ID / Subject)</span>
+    </div>
+    <div class="fgroup"><label class="flabel">ช่วงวันที่</label>
+      <span class="status-msg">${esc(fmtIsoLocalDate(getFaultDateRange().start))} → ${esc(getFaultDateRange().dateVal)}</span>
+    </div>`;
+}
+function onFaultRegionChange(val){ faultRegionFilter = val; renderFault(); }
+function switchFaultSubTab(tab){
+  faultSubTab = tab;
+  ["overview","ltr-sla","ltr","control"].forEach(t=>{
+    const btn = document.getElementById("faultSub"+(t==="overview"?"Overview":t==="ltr-sla"?"LtrSla":t==="ltr"?"Ltr":"Control")+"Btn");
+    if(btn) btn.classList.toggle("active", tab===t);
+    const view = document.getElementById("faultSub"+(t==="overview"?"Overview":t==="ltr-sla"?"LtrSla":t==="ltr"?"Ltr":"Control"));
+    if(view) view.style.display = tab===t ? "block" : "none";
+  });
+  renderFault();
+  moveFaultSubTabIndicator();
+}
+function moveFaultSubTabIndicator(){
+  const activeBtn = document.querySelector("#tabsFaultSub .tab-btn.active");
+  const ind = document.getElementById("tabIndicatorFaultSub");
+  if(!activeBtn || !ind) return;
+  ind.style.width = activeBtn.offsetWidth + "px";
+  ind.style.left = activeBtn.offsetLeft + "px";
+}
+function showFaultControlDetail(kind){
+  faultControlDetail = kind;
+  document.getElementById("faultInControlCard").classList.toggle("active", kind==="in");
+  document.getElementById("faultOutControlCard").classList.toggle("active", kind==="out");
+  const rows = getFilteredFaultTickets().filter(r=>normalizeFaultControl(r.control_status) === kind);
+  const title = kind==="in" ? "In Control" : "Out Control";
+  document.getElementById("faultControlDetailTitle").textContent = `${title} (${rows.length})`;
+  document.getElementById("faultControlDetailBlock").style.display = "block";
+  renderFaultTable(document.getElementById("faultControlDetailTable"), rows, "fault-control-detail");
+}
+function renderFault(){
+  renderFaultRegionBar();
+  const range = getFaultDateRange();
+  const rows = getFilteredFaultTickets();
+  if(faultSubTab === "overview"){
+    renderFaultOverviewChart(rows, range);
+    const overRows = rows.filter(r=>(r._fault||classifyFaultTicket(r)).slaStatus === "Over SLA");
+    document.getElementById("faultOverSlaCount").textContent = overRows.length;
+    renderFaultTable(document.getElementById("faultOverSlaTable"), overRows, "fault-over-sla");
+  } else if(faultSubTab === "ltr-sla"){
+    renderFaultLtrSlaChart(rows, range);
+    const gt12 = rows.filter(r=>{
+      const c = r._fault||classifyFaultTicket(r);
+      return c.slaStatus === "Within SLA" && c.bucket === ">12 Hrs.";
+    });
+    document.getElementById("faultGt12Count").textContent = gt12.length;
+    renderFaultTable(document.getElementById("faultGt12Table"), gt12, "fault-gt12");
+  } else if(faultSubTab === "ltr"){
+    const buckets = [
+      {key:"6-12 Hrs.", el:"fault612Table", cnt:"fault612Count", sk:"fault-612"},
+      {key:"2-6 Hrs.", el:"fault26Table", cnt:"fault26Count", sk:"fault-26"},
+      {key:"1-2 Hrs.", el:"fault12Table", cnt:"fault12Count", sk:"fault-12"}
+    ];
+    buckets.forEach(b=>{
+      const bRows = rows.filter(r=>{
+        const c = r._fault||classifyFaultTicket(r);
+        return c.slaStatus === "Within SLA" && c.bucket === b.key;
+      });
+      document.getElementById(b.cnt).textContent = bRows.length;
+      renderFaultTable(document.getElementById(b.el), bRows, b.sk);
+    });
+  } else if(faultSubTab === "control"){
+    const inCount = rows.filter(r=>normalizeFaultControl(r.control_status)==="in").length;
+    const outCount = rows.filter(r=>normalizeFaultControl(r.control_status)==="out").length;
+    document.getElementById("faultInControlCount").textContent = inCount;
+    document.getElementById("faultOutControlCount").textContent = outCount;
+    if(faultControlDetail) showFaultControlDetail(faultControlDetail);
+  }
+  moveFaultSubTabIndicator();
+}
+async function loadFaultTickets(showToast){
+  faultTickets = await fetchAllFromRest(FAULT_REST + "?select=*&order=created_time.asc");
+  if(showToast) toast(`Fault data loaded (${faultTickets.length} rows)`);
+  if(currentTab==="fault") renderFault();
+}
+async function updateFaultField(workOrderId, field, value){
+  const row = faultTickets.find(r=>r.work_order_id === workOrderId);
+  if(row) row[field] = value;
+  await fetch(FAULT_REST + `?work_order_id=eq.${encodeURIComponent(workOrderId)}`, {
+    method:"PATCH", headers:HEADERS,
+    body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})
+  });
+  toast("Saved");
+  if(currentTab==="fault" && faultSubTab==="control") renderFault();
+}
+function parseFaultWoDate(str){
+  if(!str) return null;
+  const s = String(str).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.length === 16 ? s + ":00" : s;
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})\s+(\d{1,2}:\d{2}(:\d{2})?)$/);
+  if(m){
+    const [, dd, mm, yy, time] = m;
+    const year = yy.length===2 ? `20${yy}` : yy;
+    return `${year}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")} ${time.length===5?time+":00":time}`;
+  }
+  return s;
+}
+function mapFaultImportRow(r){
+  const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
+  const woId = get("Work Order ID");
+  if(!woId) return null;
+  return {
+    work_order_id: woId,
+    source_ticket_id: get("Source Ticket ID"),
+    sdm_tt: get("SDM TT"),
+    external_ticket_id: get("External Ticket ID"),
+    region: get("Region"),
+    province: get("Province"),
+    skill: get("Skill"),
+    team: get("Team"),
+    site_id: get("Site ID").toUpperCase(),
+    status: get("Status"),
+    suspend_status: get("Suspend Status"),
+    incident_urgency: get("Incident Urgency"),
+    severity: get("Severity"),
+    created_time: parseFaultWoDate(get("Created Time")),
+    require_finish_time: parseFaultWoDate(get("Require Finish Time")),
+    source_sla: get("SLA"),
+    wo_creator: get("WO Creator") || get("Wo Creator") || null,
+    dispatched_time: parseFaultWoDate(get("Dispatched")),
+    accepted_time: parseFaultWoDate(get("Accepted")),
+    departed_time: parseFaultWoDate(get("Departed")),
+    arrived_time: parseFaultWoDate(get("Arrived")),
+    completed_time: parseFaultWoDate(get("Completed")),
+    closed_time: parseFaultWoDate(get("Closed")),
+    time_to_arrive: get("Time to Arrive"),
+    time_to_complete: get("Time to Complete"),
+    time_to_leave: get("Time to Leave"),
+    work_type: get("Work Type"),
+    fault_size: get("Fault Size"),
+    point: get("Point"),
+    root_cause: get("Root Cause"),
+    sub_root_cause: get("Sub Root Cause"),
+    close_description: get("Close Description"),
+    update_status: get("Close Description"),
+    complete_solution: get("Complete Solution"),
+    subject: get("Subject")
+  };
+}
+function handleFaultUpload(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    let rows = [];
+    if(file.name.match(/\.csv$/i)){
+      rows = parseCSV(e.target.result);
+    } else {
+      const wb = XLSX.read(e.target.result, {type:"binary"});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
+    }
+    await bulkInsertFaultTickets(rows);
+    evt.target.value = "";
+  };
+  if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
+}
+async function bulkInsertFaultTickets(rows){
+  const statusEl = document.getElementById("statusMsgFault");
+  statusEl.textContent = `Processing ${rows.length} rows…`;
+  const payloads = rows.map(mapFaultImportRow).filter(Boolean);
+  if(payloads.length===0){
+    statusEl.textContent = "No valid rows (missing Work Order ID).";
+    return;
+  }
+  const CHUNK = 80;
+  let synced = 0;
+  for(let i = 0; i < payloads.length; i += CHUNK){
+    const chunk = payloads.slice(i, i + CHUNK);
+    const res = await fetch(FAULT_REST + "?on_conflict=work_order_id", {
+      method:"POST",
+      headers:{...HEADERS, "Prefer":"resolution=merge-duplicates,return=representation"},
+      body: JSON.stringify(chunk)
+    });
+    if(!res.ok){
+      const errText = await res.text();
+      console.error(errText);
+      statusEl.textContent = `Import failed at row ${i+1}: ${errText}`.slice(0, 300);
+      return;
+    }
+    synced += chunk.length;
+    statusEl.textContent = `Processing… ${synced}/${payloads.length}`;
+  }
+  statusEl.textContent = `Synced ${synced} Fault PLKD row(s) ✓`;
+  await loadFaultTickets(false);
+  renderAll();
+}
+function exportFaultExcel(){
+  const rows = getFilteredFaultTickets();
+  if(rows.length===0){ toast("No rows to export"); return; }
+  const dateVal = document.getElementById("boardDate").value;
+  const cols = [
+    {h:"Site", get:r=>extractFaultPlkdSite(r)},
+    {h:"Ticket ID", get:r=>r.source_ticket_id||r.sdm_tt||""},
+    {h:"Work Order ID", get:r=>r.work_order_id||""},
+    {h:"Subject", get:r=>extractFaultSubjectDetail(r)},
+    {h:"SEVERITY", get:r=>r.severity||""},
+    {h:"SLA Status", get:r=>(r._fault||classifyFaultTicket(r)).slaStatus||""},
+    {h:"Bucket", get:r=>(r._fault||classifyFaultTicket(r)).bucket||""},
+    {h:"Downtime", get:r=>{ const c=r._fault||classifyFaultTicket(r); return c.downtimeMinutes!=null?fmtHMText(c.downtimeMinutes):""; }},
+    {h:"Close Description", get:r=>r.close_description||""},
+    {h:"INOC log", get:r=>r.inoc_log||""},
+    {h:"In or Out Control", get:r=>r.control_status||""}
+  ];
+  const data = rows.map(r=>{ const obj={}; cols.forEach(c=>{ obj[c.h]=c.get(r); }); return obj; });
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Fault PLKD");
+  XLSX.writeFile(wb, `PLKD-FaultPLKD-${dateVal}.xlsx`);
+}
+function parsePlkdSiteCodeList(rawRows){
+  const codes = new Set();
+  rawRows.forEach(row=>{
+    if(Array.isArray(row)){
+      row.forEach(v=>{ const s=String(v||"").trim().toUpperCase(); if(s) codes.add(s); });
+      return;
+    }
+    Object.values(row).forEach(v=>{ const s=String(v||"").trim().toUpperCase(); if(s) codes.add(s); });
+  });
+  return [...codes].filter(s=>/^[A-Z0-9][A-Z0-9_-]*$/i.test(s));
+}
+function handlePlkdSiteUpload(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    let codes = [];
+    if(file.name.match(/\.csv$/i)){
+      const lines = e.target.result.split(/\r?\n/).filter(l=>l.trim());
+      codes = parsePlkdSiteCodeList(lines.map(l=>[l.trim()])).filter(isValidPlkdSiteCode);
+    } else {
+      const wb = XLSX.read(e.target.result, {type:"binary"});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(sheet, {header:1, defval:""});
+      codes = parsePlkdSiteCodeList(raw).filter(isValidPlkdSiteCode);
+    }
+    await bulkInsertPlkdSiteCodes(codes);
+    evt.target.value = "";
+  };
+  if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
+}
+async function bulkInsertPlkdSiteCodes(codes){
+  const statusEl = document.getElementById("statusMsgFault");
+  if(codes.length===0){
+    statusEl.textContent = "No site codes found in file.";
+    return;
+  }
+  localStorage.setItem("plkdSiteCodes", JSON.stringify(codes));
+  applyPlkdSiteSet(codes);
+  statusEl.textContent = `Syncing ${codes.length} PLKD site code(s)…`;
+  const delRes = await fetch(REST+"/site_codes?site_code=not.is.null", {
+    method:"DELETE",
+    headers:{...HEADERS, Prefer:"return=minimal"}
+  });
+  if(delRes.ok){
+    const CHUNK = 100;
+    for(let i = 0; i < codes.length; i += CHUNK){
+      const chunk = codes.slice(i, i + CHUNK).map(site_code=>({site_code}));
+      const res = await fetch(REST+"/site_codes", {
+        method:"POST",
+        headers:HEADERS,
+        body: JSON.stringify(chunk)
+      });
+      if(!res.ok){
+        statusEl.textContent = `PLKD list loaded locally (${SITE_SET.size} sites). DB sync failed — ${(await res.text()).slice(0,120)}`;
+        if(currentTab==="fault") renderFault();
+        renderAll();
+        return;
+      }
+    }
+    statusEl.textContent = `PLKD site list updated — ${SITE_SET.size} site(s) loaded ✓`;
+  }else{
+    statusEl.textContent = `PLKD list loaded locally — ${SITE_SET.size} site(s). DB sync skipped (no delete permission).`;
+  }
+  if(currentTab==="fault") renderFault();
+  renderAll();
+}
+
 function esc(s){ return String(s==null?"":s).replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
 let toastTimer;
 function toast(msg){
@@ -1719,7 +2695,9 @@ function toast(msg){
   await fetchTeamMap();
   await loadAll();
   moveTabIndicator();
+  moveFaultSubTabIndicator();
   setTimeout(moveTabIndicator, 300); // re-sync after web fonts finish loading
+  setTimeout(moveFaultSubTabIndicator, 300);
 })();
 </script>
 <div class="modal-overlay" id="sevDetailModal" onclick="if(event.target===this) closeSevModal()">
