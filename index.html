@@ -753,7 +753,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
   </div>
   <div id="svcavaView" class="tab-view" style="display:none;">
     <div class="toolbar">
-      <button class="btn primary" onclick="document.getElementById('fileInputSvcAva').click()">⭱ Upload Service Availability (List of Incidents)</button>
+      <button class="btn primary" onclick="document.getElementById('fileInputSvcAva').click()">⭱ Upload Service Availability (Fault format)</button>
       <input type="file" id="fileInputSvcAva" accept=".csv,.xlsx,.xls" onchange="handleSvcAvaUpload(event)">
       <button class="btn green sm" onclick="exportGroupExcel('svcava')">⭳ Export Excel (INOC columns)</button>
       <span class="status-msg" id="statusMsgSvcAva"></span>
@@ -767,6 +767,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <th style="width:220px">Root Cause</th>
         <th style="width:220px">Close Description</th>
         <th style="width:120px">Severity</th>
+        <th style="width:100px">WO Creator</th>
         <th style="width:110px">SLA</th>
         <th style="width:110px">Downtime (Create → Restoration)</th>
         <th style="width:200px">Update Log Status</th>
@@ -921,7 +922,8 @@ const CLOSED_STATUSES = ["Closed","Closed (Auto)","Completed","Closed (Manual - 
 const MANUAL_CLOSE_STATUS = "Closed (Manual - INOC)"; // set on tickets manually toggled closed via ✓ button in-app — distinct from any source-system "Closed" status so uploaded vs manual never collide
 function isManualClosed(r){ return (r.wo_status||"").trim() === MANUAL_CLOSE_STATUS; }
 const CANCEL_STATUSES = ["Cancel","Cancelled","Canceled"];
-function isCancelled(r){ return CANCEL_STATUSES.includes((r.wo_status||"").trim()); }
+function isCancelStatus(status){ return CANCEL_STATUSES.includes(String(status||"").trim()); }
+function isCancelled(r){ return isCancelStatus(r?.wo_status); }
 
 let SITE_SET = new Set();
 let PLKD_REGEX = null;
@@ -1238,7 +1240,8 @@ const GROUP_CONTAINER = { pending:"pendingTeams", closed:"closedTeams", manual:"
 const GROUP_FILTERBAR = { pending:"filterbarPending", closed:"filterbarClosed", manual:"filterbarManual" };
 function groupSourceRows(group){
   if(group==="manual") return tickets.closed.filter(isManualClosed);
-  if(group==="closed") return tickets.closed.filter(r=>!isManualClosed(r));
+  if(group==="closed") return tickets.closed.filter(r=>!isManualClosed(r) && !isCancelled(r));
+  if(group==="pending") return tickets.pending.filter(r=>!isCancelled(r));
   return tickets[group];
 }
 function renderFilterbar(group){
@@ -1414,7 +1417,7 @@ function statusTimeFor(r){
   return key ? r[key] : null;
 }
 function autoPlanText(team){
-  const rows = tickets.pending.filter(r=>r.team===team && isPlkdMatch(r));
+  const rows = tickets.pending.filter(r=>r.team===team && isPlkdMatch(r) && !isCancelled(r));
   if(rows.length===0) return "";
   return rows.map((r,i)=>{
     const sevShort = (r.severity||"").split("-")[0] || "";
@@ -1648,7 +1651,7 @@ function fmtMin(totalMinutes){
 }
 function calcServiceAvailability(dateVal){
   const TOTAL_SITE_MINUTES = 168 * 24 * 60; // 168 hours/week
-  // Source: tickets.svcava (imported from the "List of Incidents" export).
+  // Source: tickets.svcava (imported from Fault PLKD format export).
   // Downtime window = Create Date -> Restoration Date (stored in created_time / closed_time).
   const rows = tickets.svcava.filter(r=>{
     const fam = (r.severity||"").split("-")[0] || "";
@@ -1680,7 +1683,7 @@ function renderSvcAva(){
   `;
   const tbody = document.getElementById("svcavaTbody");
   if(detail.length===0){
-    tbody.innerHTML = `<tr><td colspan="10" class="empty-hint">No SA-severity tickets restored on this date.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" class="empty-hint">No SA-severity tickets restored on this date.</td></tr>`;
     makeColumnsResizable(document.querySelector("table.svcava-table"), "svcava");
     return;
   }
@@ -1694,6 +1697,7 @@ function renderSvcAva(){
       <td><textarea class="cell-ta free-ta" onchange="updateSvcAvaField('${r.id}','root_cause', this.value)">${esc(r.root_cause||'')}</textarea></td>
       <td><textarea class="cell-ta free-ta" onchange="updateSvcAvaField('${r.id}','close_description', this.value)">${esc(r.close_description||'')}</textarea></td>
       <td><span class="sev-badge">${esc(r.severity||'-')}</span></td>
+      <td>${esc(r.wo_creator||'-')}</td>
       <td class="${slaOver?'sla-over':'sla-in'}">${slaOver?'Over':'Within SLA'}</td>
       <td class="dt-cell">${fmtHMText(r.downtimeMinutes)}</td>
       <td><textarea class="home-evening free-ta" placeholder="Update log status…" onchange="updateSvcAvaField('${r.id}','evening_summary', this.value)">${esc(r.evening_summary||'')}</textarea></td>
@@ -1728,7 +1732,7 @@ function renderHome(){
     const allPlanRows = tickets.pending.filter(r=>r.team===team && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r))
       .sort((a,b)=>(a.plan_order||9999)-(b.plan_order||9999));
     const pendingCount = allPlanRows.length;
-    const closedCount = tickets.closed.filter(r=>r.team===team && r.closed_time && r.closed_time.slice(0,10)===dateVal && isPlkdMatch(r)).length;
+    const closedCount = tickets.closed.filter(r=>r.team===team && r.closed_time && r.closed_time.slice(0,10)===dateVal && isPlkdMatch(r) && !isCancelled(r)).length;
     const rowClass = team.startsWith("NODE") ? "home-row-node":"home-row-ofc";
     const collapsed = !expandedTeams.has(team);
     const planRows = collapsed ? allPlanRows.slice(0,1) : allPlanRows;
@@ -1801,7 +1805,7 @@ function renderHome(){
   // summary cards
   const nodeTeams = TEAM_MAP.filter(t=>t.team_key.startsWith("NODE")).map(t=>t.team_key);
   const ofcTeams = TEAM_MAP.filter(t=>t.team_key.startsWith("OFC")).map(t=>t.team_key);
-  const totalClosedToday = tickets.closed.filter(r=>r.closed_time && r.closed_time.slice(0,10)===dateVal && isPlkdMatch(r)).length;
+  const totalClosedToday = tickets.closed.filter(r=>r.closed_time && r.closed_time.slice(0,10)===dateVal && isPlkdMatch(r) && !isCancelled(r)).length;
 
   function sevShort(sev){ return sev ? (sev.split("-")[0]||sev) : null; }
   function sevSortKey(code){
@@ -1837,7 +1841,7 @@ function renderHome(){
   }
   window.SEV_GROUP_TEAMS = { node: nodeTeams, ofc: ofcTeams };
   function statusLines(teamList){
-    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPlkdMatch(r));
+    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPlkdMatch(r) && !isCancelled(r));
     const tally = {};
     rows.forEach(r=>{ if(r.wo_status) tally[r.wo_status] = (tally[r.wo_status]||0)+1; });
     const keys = Object.keys(tally).sort();
@@ -2218,28 +2222,18 @@ function handleSvcAvaUpload(evt){
   if(!file) return;
   const reader = new FileReader();
   reader.onload = async (e)=>{
-    const buf = e.target.result; // ArrayBuffer
-    const sniff = new TextDecoder("utf-8").decode(buf.slice(0, 2000)).toLowerCase();
     let rows = [];
-    if(sniff.includes("<html") || sniff.includes("<table")){
-      // Many NOC/ticketing "List of Incidents" exports are actually HTML tables saved with a
-      // .xls or .csv extension. Feeding this to XLSX.read(..., {type:"binary"}) silently
-      // "succeeds" but produces thousands of garbage rows of raw HTML text instead of the
-      // real data — parse it as HTML instead.
-      const fullText = new TextDecoder("utf-8").decode(buf);
-      rows = parseHtmlTableRows(fullText);
-    } else if(file.name.match(/\.csv$/i)){
-      const text = new TextDecoder("utf-8").decode(buf);
-      rows = parseCSV(text);
+    if(file.name.match(/\.csv$/i)){
+      rows = parseCSV(e.target.result);
     } else {
-      const wb = XLSX.read(buf, {type:"array"});
-      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const wb = XLSX.read(e.target.result, {type:"binary"});
+      const sheet = getFaultUploadSheet(wb);
       rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
     }
     await bulkInsertSvcAva(rows);
     evt.target.value = "";
   };
-  reader.readAsArrayBuffer(file);
+  if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
 }
 // Parses an HTML <table> export into an array of {header: value} row objects.
 function parseHtmlTableRows(htmlText){
@@ -2269,38 +2263,17 @@ function parseIncidentDate(str){
 async function bulkInsertSvcAva(rows){
   const statusEl = document.getElementById("statusMsgSvcAva");
   statusEl.textContent = `Processing ${rows.length} rows…`;
-  const payloads = rows.map(r=>{
+  let cancelSkipped = 0;
+  const payloads = [];
+  rows.forEach(r=>{
     const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
-    const createdTime = parseIncidentDate(get("Create Date"));
-    const restorationTime = parseIncidentDate(get("Restoration Date"));
-    const expectedFinish = parseIncidentDate(get("Expected Finish"));
-    const severity = get("Severity");
-    const urgency = get("Urgency");
-    let sla = "";
-    if(restorationTime && expectedFinish){
-      sla = (new Date(restorationTime.replace(" ","T")) > new Date(expectedFinish.replace(" ","T"))) ? "Over" : "Within SLA";
-    }
-    return {
-      status_group: "svcava",
-      team: "SVCAVA", // not tied to any of the 6 dispatch teams; placeholder to satisfy the NOT NULL constraint
-      tt_number: get("Incident"),
-      external_ticket_id: get("External Ticket"),
-      subject: get("Subject"),
-      wo_status: get("Status"),
-      incident_urgency: urgency,
-      severity: urgency ? `${severity}-${urgency}` : severity,
-      created_time: createdTime || null,        // Create Date
-      require_finish_time: expectedFinish || null, // Expected Finish
-      closed_time: restorationTime || null,     // Restoration Date
-      sla: sla,
-      root_cause: get("Problem"),
-      close_description: get("Remedy"),
-      sub_root_cause: get("Cause"),
-      ticket_date: document.getElementById("boardDate").value
-    };
-  }).filter(p=>p.tt_number);
+    if(isCancelStatus(get("Status"))) { cancelSkipped++; return; }
+    const p = mapSvcAvaImportRow(r);
+    if(p) payloads.push(p);
+  });
   if(payloads.length===0){
-    statusEl.textContent = "No valid rows found (missing Incident number).";
+    const cancelMsg = cancelSkipped ? ` (${cancelSkipped} Cancel skipped)` : "";
+    statusEl.textContent = `No valid rows (Fault format — need Ticket ID / Source Ticket)${cancelMsg}.`;
     return;
   }
   let res = await fetch(REST+"/tickets?on_conflict=tt_number", {
@@ -2309,13 +2282,12 @@ async function bulkInsertSvcAva(rows){
     body: JSON.stringify(payloads)
   });
   if(!res.ok){
-    // Falls back to a plain insert if the DB doesn't yet have a unique constraint on tt_number
-    // (run: alter table tickets add constraint tickets_tt_number_key unique (tt_number); to enable de-dup on re-upload)
     console.warn("on_conflict upsert failed, falling back to plain insert:", await res.text());
     res = await fetch(REST+"/tickets", {method:"POST", headers:HEADERS, body: JSON.stringify(payloads)});
   }
   if(res.ok){
-    statusEl.textContent = `Synced ${payloads.length} Service Availability ticket(s) ✓`;
+    const cancelMsg = cancelSkipped>0 ? ` — ${cancelSkipped} Cancel row(s) ignored` : "";
+    statusEl.textContent = `Synced ${payloads.length} Service Availability ticket(s) ✓${cancelMsg}`;
     await loadAll();
   } else {
     const errText = await res.text();
@@ -2338,6 +2310,8 @@ function exportGroupExcel(group){
       {h:"Subject", get:r=>r.subject||""},
       {h:"Root Cause", get:r=>r.root_cause||""},               // INOC-filled
       {h:"Close Description", get:r=>r.close_description||""}, // INOC-filled
+      {h:"Severity", get:r=>r.severity||""},
+      {h:"WO Creator", get:r=>r.wo_creator||""},
       {h:"Update Log Status", get:r=>r.evening_summary||""},   // INOC-filled
       {h:"INOC Log", get:r=>r.inoc_feedback||""}                // INOC-filled
     ];
@@ -2420,15 +2394,16 @@ async function bulkInsertWorkOrders(rows, groupBtn){
   const statusEl = document.getElementById(groupBtn==="pending"?"statusMsgPending":"statusMsgClosed");
   statusEl.textContent = `Processing ${rows.length} rows…`;
   const dateVal = document.getElementById("boardDate").value;
-  let matched=0, skipped=0;
+  let matched=0, skipped=0, cancelSkipped=0;
   const payloads = [];
   rows.forEach(r=>{
     const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
     const rawTeam = get("Team");
     const teamKey = matchTeam(rawTeam);
     if(!teamKey){ skipped++; return; }
-    matched++;
     const status = get("Status");
+    if(isCancelStatus(status)){ cancelSkipped++; return; }
+    matched++;
     payloads.push({
       status_group: deriveStatusGroup(status, groupBtn),
       team: teamKey,
@@ -2472,7 +2447,8 @@ async function bulkInsertWorkOrders(rows, groupBtn){
     });
   });
   if(payloads.length===0){
-    statusEl.textContent = `No rows matched the 6 tracked teams (skipped ${skipped}).`;
+    const cancelMsg = cancelSkipped ? ` (${cancelSkipped} Cancel skipped)` : "";
+    statusEl.textContent = `No rows matched the 6 tracked teams (skipped ${skipped}${cancelMsg}).`;
     return;
   }
   const pendingIdsBefore = new Set(tickets.pending.map(r=>r.work_order_id).filter(Boolean));
@@ -2519,7 +2495,8 @@ async function bulkInsertWorkOrders(rows, groupBtn){
   if(ok){
     const movedMsg = movedToClosed>0 ? ` — ${movedToClosed} ticket(s) moved Pending → Closed` : "";
     const reconMsg = reconciledCount>0 ? ` — ${reconciledCount} TT reconciled (incl. manual-closed → closed)` : "";
-    statusEl.textContent = `Synced ${matched} matched rows (updated existing / added new, skipped ${skipped} non-team rows)${movedMsg}${reconMsg} ✓`;
+    const cancelMsg = cancelSkipped>0 ? ` — ${cancelSkipped} Cancel row(s) ignored` : "";
+    statusEl.textContent = `Synced ${matched} matched rows (updated existing / added new, skipped ${skipped} non-team rows)${movedMsg}${reconMsg}${cancelMsg} ✓`;
     await loadAll();
   } else {
     statusEl.textContent = "Import failed — see console.";
@@ -4087,6 +4064,66 @@ function mapFaultImportRow(r){
   const woCreator = get("WO Creator") || get("Wo Creator");
   if(woCreator) payload.wo_creator = woCreator;
   applyFaultGroupProblemImport(payload, get("Group Problem Free Text") || get("Group Problem"), get("Skill"));
+  return payload;
+}
+function mapSvcAvaImportRow(r){
+  const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
+  const ids = parseFaultTicketIds(get);
+  let tt = ids.source_ticket_id || get("Source Ticket ID") || get("SDM TT");
+  const wo = ids.work_order_id || get("Work Order ID") || null;
+  let site = "", subject = "", severity = "", created = null, closed = null, requireFinish = null;
+  let closeDesc = "", inocLog = "", rootCause = "", woStatus = get("Status");
+  const woCreator = get("WO Creator") || get("Wo Creator");
+
+  if(isFaultPlkdExportRow(r)){
+    site = get("Site").toUpperCase();
+    subject = get("Subject");
+    severity = get("SEVERITY") || get("Severity");
+    created = parseFaultWoDate(get("Ticket Open") || get("Created Time"));
+    closed = parseFaultWoDate(get("Close"));
+    closeDesc = get("Close Description");
+    inocLog = get("INOC log");
+    rootCause = get("Root Cause") || "";
+  }else{
+    site = (get("Site ID") || get("Site") || "").toUpperCase();
+    subject = get("Subject");
+    severity = get("Severity");
+    created = parseFaultWoDate(get("Created Time") || get("Ticket Open"));
+    closed = parseFaultWoDate(get("Closed") || get("Close"));
+    requireFinish = parseFaultWoDate(get("Require Finish Time"));
+    closeDesc = get("Close Description");
+    inocLog = get("INOC log");
+    rootCause = get("Root Cause") || "";
+  }
+
+  if(!tt && wo) tt = wo;
+  if(!tt) return null;
+  if(isCancelStatus(woStatus)) return null;
+
+  let sla = "";
+  if(closed && requireFinish){
+    sla = (new Date(closed.replace(" ","T")) > new Date(requireFinish.replace(" ","T"))) ? "Over" : "Within SLA";
+  }
+
+  const payload = {
+    status_group: "svcava",
+    team: "SVCAVA",
+    tt_number: tt,
+    work_order_id: wo,
+    site_code: site,
+    subject,
+    severity,
+    wo_status: woStatus || "",
+    created_time: created,
+    require_finish_time: requireFinish,
+    closed_time: closed,
+    sla,
+    root_cause: rootCause,
+    close_description: closeDesc,
+    inoc_feedback: inocLog,
+    ticket_date: document.getElementById("boardDate").value
+  };
+  if(woCreator) payload.wo_creator = woCreator;
   return payload;
 }
 function getFaultUploadSheet(wb){
