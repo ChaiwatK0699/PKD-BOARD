@@ -574,6 +574,17 @@ body.screenshotting #ltrManageModal{display:none !important;}
   background:var(--panel-2); color:var(--text); font-family:'Inter'; font-size:13px;
 }
 .fault-overview-day input[type="date"]:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim);}
+.fault-ltr-summary-table .fault-ltr-reason-row{cursor:pointer; transition:background .15s;}
+.fault-ltr-summary-table .fault-ltr-reason-row:hover{background:var(--blue-dim);}
+.fault-ltr-summary-table .fault-ltr-reason-row.active{background:var(--blue-dim); outline:2px solid var(--blue); outline-offset:-2px;}
+.fault-ltr-summary-table{font-size:15px;}
+.fault-ltr-summary-table .fault-ltr-reason-name{font-weight:600; font-size:15px; text-align:left; white-space:normal; max-width:280px;}
+.fault-ltr-summary-table td{text-align:center; vertical-align:middle; font-size:16px;}
+.fault-ltr-summary-table th{font-size:14px; font-weight:700;}
+.fault-ltr-summary-table th.fault-ltr-bucket-th{white-space:nowrap;}
+.fault-ltr-num{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:17px; color:var(--text);}
+.fault-ltr-num.is-zero{color:var(--muted); font-weight:500; font-size:16px;}
+.fault-ltr-summary-table .fault-ltr-total{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:17px; color:var(--text);}
 .fault-ctrl-insight{
   background:linear-gradient(135deg, var(--blue-dim) 0%, var(--panel) 55%);
   border:1px solid var(--border); border-left:4px solid var(--blue);
@@ -819,7 +830,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn active" id="faultSubOverviewBtn" onclick="switchFaultSubTab('overview')">Overview</button>
       <button class="tab-btn" id="faultSubOverSlaBtn" onclick="switchFaultSubTab('over-sla')">Over SLA</button>
       <button class="tab-btn" id="faultSubLtrSlaBtn" onclick="switchFaultSubTab('ltr-sla')">Long time Repair</button>
-      <button class="tab-btn" id="faultSubLtrBtn" onclick="switchFaultSubTab('ltr')">Long time Repair</button>
+      <button class="tab-btn" id="faultSubLtrBtn" onclick="switchFaultSubTab('ltr')">Long time Repair Detail</button>
       <button class="tab-btn" id="faultSubControlBtn" onclick="switchFaultSubTab('control')">In Control / Out Control</button>
     </div>
     <div id="faultSubOverview">
@@ -861,14 +872,18 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <div class="fault-legend" id="faultLtrSlaLegend"></div>
         <div class="fault-chart-wrap"><canvas id="faultLtrSlaChart"></canvas></div>
       </div>
-      <div class="fault-section-title">Long time Reason</div>
-      <div class="fault-gp-cards" id="faultLtrCards"></div>
+      <div class="fault-section-title">สรุป Long time Reason <span class="status-msg" style="font-size:12px;text-transform:none;">คลิกหัวข้อเพื่อดู Detail TT แยกตามช่วงเวลา</span></div>
+      <div id="faultLtrReasonSummary"></div>
+      <div id="faultLtrReasonDetail" style="display:none;">
+        <div class="fault-section-title" id="faultLtrReasonDetailTitle">Detail TT</div>
+        <div id="faultLtrReasonDetailBuckets"></div>
+      </div>
+    </div>
+    <div id="faultSubLtr" style="display:none;">
       <div class="fault-table-block">
         <div class="fault-section-title">&gt;12 Hrs. <span class="badge" id="faultGt12Count">0</span></div>
         <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultGt12Table"><thead></thead><tbody></tbody></table></div>
       </div>
-    </div>
-    <div id="faultSubLtr" style="display:none;">
       <div class="fault-table-block">
         <div class="fault-section-title">6-12 Hrs. <span class="badge" id="fault612Count">0</span></div>
         <div class="table-scroll"><table class="svcava-table fault-data-table" id="fault612Table"><thead></thead><tbody></tbody></table></div>
@@ -1000,6 +1015,7 @@ let expandedTeams = new Set(); // empty = all teams start collapsed by default
 /* ---- Fault PLKD state ---- */
 const FAULT_REST = REST + "/fault_ants_tickets";
 const FAULT_BUCKET_COLORS = {"1-2 Hrs.":"#2f9e44","2-6 Hrs.":"#e6b800","6-12 Hrs.":"#e88b6a",">12 Hrs.":"#d94a35"};
+const FAULT_LTR_BUCKETS = ["1-2 Hrs.","2-6 Hrs.","6-12 Hrs.",">12 Hrs."];
 let faultTickets = [];
 let faultSubTab = "overview";
 let faultRegionFilter = "";
@@ -4222,19 +4238,24 @@ function filterFaultOverSlaByCause(rows, coKey){
     return co === coKey;
   });
 }
-function getFaultLongTimeReasonStats(rows){
+function getFaultLtrReasonBucketStats(rows){
   const groups = new Map();
   rows.forEach(r=>{
-    const v = String(r.long_time_reason||"").trim();
-    const key = v || "__blank__";
-    if(!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(r);
+    const c = r._fault || classifyFaultTicket(r);
+    if(c.slaStatus !== "Within SLA" || !c.bucket) return;
+    const reasonKey = String(r.long_time_reason||"").trim() || "__blank__";
+    if(!groups.has(reasonKey)) groups.set(reasonKey, []);
+    groups.get(reasonKey).push(r);
   });
-  const items = [...groups.entries()].map(([key, groupRows])=>({
-    key,
-    label: faultLtrLabel(key),
-    count: groupRows.length
-  }));
+  const items = [...groups.entries()].map(([key, groupRows])=>{
+    const buckets = {};
+    FAULT_LTR_BUCKETS.forEach(b=>{ buckets[b] = 0; });
+    groupRows.forEach(r=>{
+      const c = r._fault || classifyFaultTicket(r);
+      if(c.bucket) buckets[c.bucket] = (buckets[c.bucket] || 0) + 1;
+    });
+    return { key, label: faultLtrLabel(key), buckets, total: groupRows.length, rows: groupRows };
+  });
   items.sort((a, b)=>{
     if(a.key === "__blank__") return 1;
     if(b.key === "__blank__") return -1;
@@ -4242,24 +4263,60 @@ function getFaultLongTimeReasonStats(rows){
   });
   return items;
 }
-function renderFaultLongTimeReasonCards(rows){
-  const container = document.getElementById("faultLtrCards");
-  if(!container) return;
-  const stats = getFaultLongTimeReasonStats(rows);
+function faultLtrBucketPillHtml(count){
+  const n = count || 0;
+  if(!n) return `<span class="fault-ltr-num is-zero">0</span>`;
+  return `<span class="fault-ltr-num">${n}</span>`;
+}
+function renderFaultLtrReasonSummary(ltrRows){
+  const el = document.getElementById("faultLtrReasonSummary");
+  if(!el) return;
+  const stats = getFaultLtrReasonBucketStats(ltrRows);
   if(!stats.length){
-    container.innerHTML = `<div class="empty-hint" style="grid-column:1/-1">ไม่มีรายการ Long time Repair</div>`;
+    el.innerHTML = `<div class="empty-hint">ไม่มีรายการ Long time Repair</div>`;
     return;
   }
-  container.innerHTML = stats.map(s=>{
+  const head = FAULT_LTR_BUCKETS.map(b=>`<th class="fault-ltr-bucket-th">${esc(b)}</th>`).join("");
+  const body = stats.map(s=>{
     const active = faultLtrSlaReasonFilter === s.key ? " active" : "";
-    return `<div class="fault-gp-card${active}" data-ltr-key="${esc(s.key)}" onclick="selectFaultLtrSlaReason(this.getAttribute('data-ltr-key'))">
-      <div class="fault-gp-card-title">${esc(s.label)}</div>
-      <div class="fault-gp-card-foot">
-        <span class="fault-gp-card-lbl">รายการ</span>
-        <span class="fault-gp-card-val" style="color:var(--blue)">${s.count}</span>
-      </div>
-    </div>`;
+    const cells = FAULT_LTR_BUCKETS.map(b=>`<td>${faultLtrBucketPillHtml(s.buckets[b] || 0)}</td>`).join("");
+    return `<tr class="fault-ltr-reason-row${active}" data-ltr-key="${esc(s.key)}" onclick="selectFaultLtrSlaReason(this.getAttribute('data-ltr-key'))">
+      <td class="fault-ltr-reason-name">${esc(s.label)}</td>${cells}<td class="fault-ltr-total">${s.total}</td>
+    </tr>`;
   }).join("");
+  el.innerHTML = `<div class="table-scroll"><table class="svcava-table fault-data-table fault-ltr-summary-table">
+    <thead><tr><th style="text-align:left">Long time Reason</th>${head}<th>รวม</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table></div>`;
+}
+function renderFaultLtrReasonDetail(ltrRows){
+  const wrap = document.getElementById("faultLtrReasonDetail");
+  const bucketsEl = document.getElementById("faultLtrReasonDetailBuckets");
+  const titleEl = document.getElementById("faultLtrReasonDetailTitle");
+  if(!wrap || !bucketsEl) return;
+  if(!faultLtrSlaReasonFilter){
+    wrap.style.display = "none";
+    bucketsEl.innerHTML = "";
+    return;
+  }
+  const filtered = filterFaultLtrByReason(ltrRows, faultLtrSlaReasonFilter);
+  wrap.style.display = "block";
+  if(titleEl) titleEl.textContent = `${faultLtrLabel(faultLtrSlaReasonFilter)} — Detail TT`;
+  const blocks = [];
+  FAULT_LTR_BUCKETS.forEach((b, i)=>{
+    const bRows = filtered.filter(r=>(r._fault||classifyFaultTicket(r)).bucket === b);
+    if(!bRows.length) return;
+    blocks.push(`<div class="fault-table-block">
+      <div class="fault-section-title">${esc(b)} <span class="badge">${bRows.length}</span></div>
+      <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultLtrDetailTable${i}"><thead></thead><tbody></tbody></table></div>
+    </div>`);
+  });
+  bucketsEl.innerHTML = blocks.length ? blocks.join("") : `<div class="empty-hint">ไม่มีรายการในหัวข้อนี้</div>`;
+  FAULT_LTR_BUCKETS.forEach((b, i)=>{
+    const bRows = filtered.filter(r=>(r._fault||classifyFaultTicket(r)).bucket === b);
+    if(!bRows.length) return;
+    renderFaultTable(document.getElementById(`faultLtrDetailTable${i}`), bRows, `fault-ltr-detail-${i}`, { showLongTimeReason:true });
+  });
 }
 function selectFaultLtrSlaReason(key){
   faultLtrSlaReasonFilter = faultLtrSlaReasonFilter === key ? null : key;
@@ -4271,6 +4328,22 @@ function filterFaultLtrByReason(rows, ltrKey){
     const v = String(r.long_time_reason||"").trim();
     if(ltrKey === "__blank__") return !v;
     return v === ltrKey;
+  });
+}
+function renderFaultLtrDetailTables(rows){
+  const buckets = [
+    {key:">12 Hrs.", el:"faultGt12Table", cnt:"faultGt12Count", sk:"fault-gt12"},
+    {key:"6-12 Hrs.", el:"fault612Table", cnt:"fault612Count", sk:"fault-612"},
+    {key:"2-6 Hrs.", el:"fault26Table", cnt:"fault26Count", sk:"fault-26"},
+    {key:"1-2 Hrs.", el:"fault12Table", cnt:"fault12Count", sk:"fault-12"}
+  ];
+  buckets.forEach(b=>{
+    const bRows = rows.filter(r=>{
+      const c = r._fault||classifyFaultTicket(r);
+      return c.slaStatus === "Within SLA" && c.bucket === b.key;
+    });
+    document.getElementById(b.cnt).textContent = bRows.length;
+    renderFaultTable(document.getElementById(b.el), bRows, b.sk, { showLongTimeReason:true });
   });
 }
 function toggleFaultDashGpSites(btn, ev){
@@ -4561,28 +4634,10 @@ function renderFault(){
   } else if(faultSubTab === "ltr-sla"){
     renderFaultLtrSlaChart(rows);
     const ltrRows = rows.filter(isFaultLongTimeRepairTicket);
-    renderFaultLongTimeReasonCards(ltrRows);
-    const gt12 = rows.filter(r=>{
-      const c = r._fault||classifyFaultTicket(r);
-      return c.slaStatus === "Within SLA" && c.bucket === ">12 Hrs.";
-    });
-    document.getElementById("faultGt12Count").textContent = gt12.length;
-    const displayGt12 = filterFaultLtrByReason(gt12, faultLtrSlaReasonFilter);
-    renderFaultTable(document.getElementById("faultGt12Table"), displayGt12, "fault-gt12", { showLongTimeReason:true });
+    renderFaultLtrReasonSummary(ltrRows);
+    renderFaultLtrReasonDetail(ltrRows);
   } else if(faultSubTab === "ltr"){
-    const buckets = [
-      {key:"6-12 Hrs.", el:"fault612Table", cnt:"fault612Count", sk:"fault-612"},
-      {key:"2-6 Hrs.", el:"fault26Table", cnt:"fault26Count", sk:"fault-26"},
-      {key:"1-2 Hrs.", el:"fault12Table", cnt:"fault12Count", sk:"fault-12"}
-    ];
-    buckets.forEach(b=>{
-      const bRows = rows.filter(r=>{
-        const c = r._fault||classifyFaultTicket(r);
-        return c.slaStatus === "Within SLA" && c.bucket === b.key;
-      });
-      document.getElementById(b.cnt).textContent = bRows.length;
-      renderFaultTable(document.getElementById(b.el), bRows, b.sk, { showLongTimeReason:true });
-    });
+    renderFaultLtrDetailTables(rows);
   } else if(faultSubTab === "control"){
     const inCount = rows.filter(r=>normalizeFaultControl(r.control_status)==="in").length;
     const outCount = rows.filter(r=>normalizeFaultControl(r.control_status)==="out").length;
