@@ -551,40 +551,64 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-heat-daytotal.srm-heat-clickable:hover{transform:scale(1.05); box-shadow:0 2px 10px var(--shadow-strong);}
 .srm-detail-kw{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
 .srm-detail-kw span{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.04em; text-transform:uppercase; padding:3px 8px; border-radius:6px;}
-.srm-ft-grid{display:grid; grid-template-columns:repeat(2, minmax(260px, 1fr)); gap:18px; margin-bottom:22px;}
+.srm-ft-grid{display:grid; grid-template-columns:repeat(5, minmax(110px, 1fr)); gap:8px; margin-bottom:14px;}
 .srm-ft-slot{
-  background:var(--panel); border:2px solid var(--border); border-radius:14px; padding:18px 20px;
-  display:flex; flex-direction:column; gap:12px; transition:border-color .15s, box-shadow .15s;
+  background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:8px 10px;
+  display:flex; flex-direction:column; gap:6px;
 }
-.srm-ft-slot.slot-a{border-color:rgba(47,128,237,.45); box-shadow:inset 0 0 0 1px rgba(47,128,237,.12);}
-.srm-ft-slot.slot-b{border-color:rgba(52,216,166,.45); box-shadow:inset 0 0 0 1px rgba(52,216,166,.12);}
-.srm-ft-slot.slot-c{border-color:rgba(255,176,32,.45); box-shadow:inset 0 0 0 1px rgba(255,176,32,.12);}
-.srm-ft-slot.slot-d{border-color:rgba(124,58,237,.45); box-shadow:inset 0 0 0 1px rgba(124,58,237,.12);}
-.srm-ft-slot-head{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.srm-ft-slot.slot-a{border-color:rgba(47,128,237,.35);}
+.srm-ft-slot.slot-b{border-color:rgba(52,216,166,.35);}
+.srm-ft-slot.slot-c{border-color:rgba(255,176,32,.35);}
+.srm-ft-slot.slot-d{border-color:rgba(124,58,237,.35);}
+.srm-ft-slot.slot-e{border-color:rgba(232,74,106,.35);}
+.srm-ft-slot-head{display:flex; align-items:center; justify-content:space-between; gap:6px;}
 .srm-ft-slot-letter{
-  font-family:'Barlow Condensed'; font-weight:800; font-size:36px; line-height:1; width:52px; height:52px;
-  display:flex; align-items:center; justify-content:center; border-radius:12px; color:#fff;
+  font-family:'Barlow Condensed'; font-weight:800; font-size:18px; line-height:1; width:28px; height:28px;
+  display:flex; align-items:center; justify-content:center; border-radius:6px; color:#fff; flex-shrink:0;
 }
 .srm-ft-slot.slot-a .srm-ft-slot-letter{background:linear-gradient(135deg,#2f80ed,#1a5fbf);}
 .srm-ft-slot.slot-b .srm-ft-slot-letter{background:linear-gradient(135deg,#34d8a6,#1fa67a);}
 .srm-ft-slot.slot-c .srm-ft-slot-letter{background:linear-gradient(135deg,#ffb020,#d97706);}
 .srm-ft-slot.slot-d .srm-ft-slot-letter{background:linear-gradient(135deg,#7c3aed,#5b21b6);}
+.srm-ft-slot.slot-e .srm-ft-slot-letter{background:linear-gradient(135deg,#e84a6a,#be123c);}
 .srm-ft-big-select{
   width:100%; appearance:none; -webkit-appearance:none;
-  background:var(--panel-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10' viewBox='0 0 16 10'%3E%3Cpath fill='%235b636b' d='M1 1l7 7 7-7'/%3E%3C/svg%3E") no-repeat right 16px center;
-  border:2px solid var(--border); color:var(--text); padding:16px 44px 16px 18px; border-radius:12px;
-  font-family:'Inter'; font-size:18px; font-weight:600; line-height:1.3; cursor:pointer;
-  transition:border-color .15s, box-shadow .15s;
+  background:var(--panel-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235b636b' d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 8px center;
+  border:1px solid var(--border); color:var(--text); padding:6px 24px 6px 8px; border-radius:6px;
+  font-family:'Inter'; font-size:13px; font-weight:500; line-height:1.25; cursor:pointer;
+  transition:border-color .15s;
 }
 .srm-ft-big-select:hover{border-color:var(--blue);}
-.srm-ft-big-select:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim);}
-.srm-ft-manage-btn{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.04em; text-transform:uppercase; font-size:13px;}
+.srm-ft-big-select:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 2px var(--blue-dim);}
+.srm-ft-manage-btn{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.04em; text-transform:uppercase; font-size:10px; padding:2px 6px;}
 .srm-ft-table-wrap{margin-top:8px;}
 .srm-ft-table{width:100%; border-collapse:collapse; font-size:14px;}
 .srm-ft-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--border); text-align:left;}
 .srm-ft-table tbody td{padding:10px 12px; border-bottom:1px solid var(--border-soft); vertical-align:middle;}
-.srm-ft-table select{width:100%; min-width:120px; padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--panel-2); color:var(--text); font-size:13px;}
-.srm-ft-filter-hint{font-size:13px; color:var(--muted); margin-bottom:14px;}
+.srm-ft-table select{width:100%; min-width:72px; padding:4px 6px; border-radius:6px; border:1px solid var(--border); background:var(--panel-2); color:var(--text); font-size:12px;}
+.srm-ft-count{
+  display:inline-flex; align-items:center; justify-content:center; min-width:36px; padding:4px 10px;
+  border-radius:8px; font-family:'Barlow Condensed'; font-weight:800; font-size:20px; cursor:pointer;
+  border:2px solid transparent; transition:transform .12s, box-shadow .15s;
+}
+.srm-ft-count:hover{transform:scale(1.06); box-shadow:0 4px 12px var(--shadow-strong);}
+.srm-ft-count.sa{background:rgba(47,128,237,.15); color:var(--blue); border-color:rgba(47,128,237,.35);}
+.srm-ft-count.nsa{background:rgba(232,74,106,.12); color:var(--coral); border-color:rgba(232,74,106,.35);}
+.srm-ft-count.zero{opacity:.35; cursor:default; pointer-events:none;}
+.srm-ft-count.active,.srm-ft-site-link.active{outline:2px solid var(--blue); outline-offset:2px; box-shadow:0 0 0 2px var(--blue-dim);}
+.srm-ft-row.expanded td{background:var(--blue-dim);}
+.srm-ft-expand-row td{padding:0 !important; border-bottom:1px solid var(--border); background:var(--panel-2); vertical-align:top;}
+.srm-ft-expand-panel{padding:12px 14px 14px; animation:srmFtExpandIn .2s ease-out;}
+@keyframes srmFtExpandIn{from{opacity:0; transform:translateY(-4px);}to{opacity:1; transform:translateY(0);}}
+.srm-ft-expand-head{font-family:'Barlow Condensed'; font-weight:700; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
+.srm-ft-expand-panel .table-scroll{max-height:420px; overflow:auto; border:1px solid var(--border-soft); border-radius:8px;}
+.srm-ft-ticket-table{width:max-content; min-width:100%; border-collapse:collapse; font-size:13px;}
+.srm-ft-ticket-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:left;}
+.srm-ft-ticket-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
+.srm-ft-ticket-table .subject-cell{max-width:280px; min-width:160px;}
+.srm-detail-box.wide{width:min(1200px,96vw);}
+.srm-ft-site-link{cursor:pointer; font-weight:700; text-decoration:underline; text-underline-offset:3px; transition:color .12s;}
+.srm-ft-site-link:hover{color:var(--blue);}
 .fault-section-title{font-family:'Barlow Condensed'; font-weight:800; font-size:17px; letter-spacing:.04em; text-transform:uppercase;
   margin:18px 0 10px; color:var(--text); display:flex; align-items:center; gap:10px;}
 .fault-section-title .badge{font-family:'JetBrains Mono'; font-size:12px; font-weight:700; padding:2px 9px; border-radius:10px; background:var(--coral-dim); color:var(--coral);}
@@ -890,10 +914,10 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       </div>
     </div>
     <div id="srmSubFreeText" style="display:none;">
-      <div class="srm-ft-filter-hint" id="srmFtHint">เลือกจาก Dropdown A–D เพื่อกรอง ticket · กด ⚙ เพื่อเพิ่ม/แก้/ลบตัวเลือก</div>
+      <div class="srm-ft-filter-hint" id="srmFtHint">Dropdown A–E กรอง Site · คลิก SA / NSA ยืดรายละเอียด TT ใต้แถว</div>
       <div class="srm-ft-grid" id="srmFtGrid"></div>
       <div class="srm-block">
-        <div class="srm-block-title">Ticket ในเดือน <span id="srmFtTicketCount">0</span></div>
+        <div class="srm-block-title">Site ในเดือน <span id="srmFtTicketCount">0</span></div>
         <div class="srm-ft-table-wrap table-scroll" id="srmFtTableWrap"></div>
       </div>
     </div>
@@ -1162,11 +1186,13 @@ const SRM_KEYWORDS = [
   { key:"intrusion", label:"Intrusion", pattern:/intrusion/i, color:"#d97706", bg:"rgba(217,119,6,.2)" },
   { key:"route_cell_down", label:"Route Cell Down", pattern:/route\s*cell\s*down|cell\s*down/i, color:"#7c3aed", bg:"rgba(124,58,237,.18)" }
 ];
-const SRM_FT_SLOTS = ["A","B","C","D"];
-let SRM_FREE_TEXT_OPTS = { A:[], B:[], C:[], D:[] };
+const SRM_FT_SLOTS = ["A","B","C","D","E"];
+let SRM_FREE_TEXT_OPTS = { A:[], B:[], C:[], D:[], E:[] };
 let SRM_FREE_TEXT_ASSIGN = {};
-let srmFreeTextFilters = { A:"", B:"", C:"", D:"" };
+let srmFreeTextFilters = { A:"", B:"", C:"", D:"", E:"" };
 let srmFtManageSlot = "A";
+let srmFtSiteIndex = {};
+let srmFtExpand = null;
 
 document.getElementById("boardDate").valueAsDate = new Date();
 
@@ -1777,12 +1803,12 @@ function saveSrmFreeTextOpts(){
 function saveSrmFreeTextAssign(){
   try{ localStorage.setItem("srmFreeTextAssign", JSON.stringify(SRM_FREE_TEXT_ASSIGN)); }catch(e){}
 }
-function getSrmFtAssign(woId){
-  const id = String(woId||"").trim();
+function getSrmFtSiteAssign(site){
+  const id = String(site||"").trim().toUpperCase();
   return id ? (SRM_FREE_TEXT_ASSIGN[id] || {}) : {};
 }
-function setSrmFtAssign(woId, slot, val){
-  const id = String(woId||"").trim();
+function setSrmFtSiteAssign(site, slot, val){
+  const id = String(site||"").trim().toUpperCase();
   if(!id) return;
   if(!SRM_FREE_TEXT_ASSIGN[id]) SRM_FREE_TEXT_ASSIGN[id] = {};
   if(val) SRM_FREE_TEXT_ASSIGN[id][slot] = val;
@@ -1790,17 +1816,46 @@ function setSrmFtAssign(woId, slot, val){
   if(!Object.keys(SRM_FREE_TEXT_ASSIGN[id]).length) delete SRM_FREE_TEXT_ASSIGN[id];
   saveSrmFreeTextAssign();
 }
-function getActiveSrmFtLabels(slot){
-  return (SRM_FREE_TEXT_OPTS[slot]||[]).filter(o=>o.is_active !== false).map(o=>o.label);
-}
-function passesSrmFreeTextFilters(r){
-  const wo = r.work_order_id || "";
-  const assign = getSrmFtAssign(wo);
+function passesSrmFreeTextSiteFilters(site){
+  const assign = getSrmFtSiteAssign(site);
   return SRM_FT_SLOTS.every(slot=>{
     const f = srmFreeTextFilters[slot];
     if(!f) return true;
     return assign[slot] === f;
   });
+}
+function isFaultNsaSrmSeverity(r){
+  const fam = ((r.severity||"").split("-")[0] || "").toUpperCase();
+  return /^NSA[1-4]$/.test(fam);
+}
+function buildSrmFreeTextSiteRows(){
+  const tickets = srmMonthTickets.length ? srmMonthTickets.slice() : getSrmMonthTickets();
+  const bySite = {};
+  tickets.forEach(r=>{
+    const site = extractFaultPlkdSite(r);
+    if(!site || site === "-") return;
+    if(!bySite[site]) bySite[site] = { site, saCount:0, nsaCount:0, saRows:[], nsaRows:[] };
+    if(isFaultSaSeverity(r)){ bySite[site].saCount++; bySite[site].saRows.push(r); }
+    else if(isFaultNsaSrmSeverity(r)){ bySite[site].nsaCount++; bySite[site].nsaRows.push(r); }
+  });
+  srmFtSiteIndex = bySite;
+  return Object.values(bySite)
+    .filter(row=> row.saCount > 0 || row.nsaCount > 0)
+    .filter(row=> passesSrmFreeTextSiteFilters(row.site))
+    .sort((a,b)=> a.site.localeCompare(b.site));
+}
+function getSrmFtAssign(woId){
+  return getSrmFtSiteAssign(woId);
+}
+function setSrmFtAssign(woId, slot, val){
+  setSrmFtSiteAssign(woId, slot, val);
+}
+function passesSrmFreeTextFilters(r){
+  const site = extractFaultPlkdSite(r);
+  return site ? passesSrmFreeTextSiteFilters(site) : true;
+}
+function getActiveSrmFtLabels(slot){
+  return (SRM_FREE_TEXT_OPTS[slot]||[]).filter(o=>o.is_active !== false).map(o=>o.label);
 }
 function moveSrmSubTabIndicator(){
   const tabs = document.getElementById("tabsSrmSub");
@@ -1817,7 +1872,10 @@ function switchSrmSubTab(tab){
   document.getElementById("srmSubMapping").style.display = tab==="mapping" ? "block" : "none";
   document.getElementById("srmSubFreeText").style.display = tab==="freetext" ? "block" : "none";
   moveSrmSubTabIndicator();
-  if(tab==="freetext") renderSrmFreeTextTab();
+  if(tab==="freetext"){
+    if(!srmMonthTickets.length) buildSiteRepeatData();
+    renderSrmFreeTextTab();
+  }
 }
 function getSrmMonthContext(){
   const boardDate = document.getElementById("boardDate").value;
@@ -2127,7 +2185,8 @@ function openSrmDetail(kind, params){
   document.getElementById("srmDetailModal").classList.add("open");
 }
 function closeSrmDetail(){
-  document.getElementById("srmDetailModal").classList.remove("open");
+  document.getElementById("srmDetailModal")?.classList.remove("open");
+  document.querySelector("#srmDetailModal .srm-detail-box")?.classList.remove("wide");
 }
 function onSrmViewClick(e){
   const kwCard = e.target.closest(".srm-kw-card[data-keyword]");
@@ -2165,46 +2224,125 @@ function renderSrmFreeTextTab(){
     </div>`;
   }).join("");
 
-  let rows = srmMonthTickets.length ? srmMonthTickets.slice() : getSrmMonthTickets();
-  rows = rows.filter(passesSrmFreeTextFilters);
-  if(countEl) countEl.textContent = String(rows.length);
+  const siteRows = buildSrmFreeTextSiteRows();
+  if(countEl) countEl.textContent = String(siteRows.length);
 
-  if(!rows.length){
-    wrap.innerHTML = `<div class="empty-hint" style="padding:24px;">ไม่มี ticket ตรงเงื่อนไข</div>`;
+  if(!siteRows.length){
+    wrap.innerHTML = `<div class="empty-hint" style="padding:24px;">ไม่มี Site ตรงเงื่อนไข</div>`;
     return;
   }
 
   wrap.innerHTML = `<table class="srm-ft-table"><thead><tr>
-    <th>Site</th><th>Ticket ID</th><th>Subject</th><th>Closed</th>
-    ${SRM_FT_SLOTS.map(s=>`<th>Free Text ${s}</th>`).join("")}
+    <th>Site</th>
+    <th>SA</th>
+    <th>NSA</th>
+    ${SRM_FT_SLOTS.map(s=>`<th>${s}</th>`).join("")}
+  </tr></thead><tbody>${siteRows.map(row=>renderSrmFtTableRowHtml(row)).join("")}</tbody></table>`;
+}
+function getSrmFtExpandRows(site, sevKind){
+  site = String(site||"").trim().toUpperCase();
+  const entry = srmFtSiteIndex[site];
+  if(!entry) return [];
+  if(sevKind === "sa") return entry.saRows.slice();
+  if(sevKind === "nsa") return entry.nsaRows.slice();
+  return [];
+}
+function getSrmFtExpandLabel(sevKind){
+  if(sevKind === "sa") return "SA";
+  if(sevKind === "nsa") return "NSA";
+  return "";
+}
+function renderSrmFtTableRowHtml(row){
+  const assign = getSrmFtSiteAssign(row.site);
+  const siteJs = JSON.stringify(row.site);
+  const colSpan = 3 + SRM_FT_SLOTS.length;
+  const exp = srmFtExpand;
+  const isExpanded = exp && exp.site === row.site;
+  const expandSa = isExpanded && exp.sev === "sa";
+  const expandNsa = isExpanded && exp.sev === "nsa";
+  const saCls = row.saCount ? "srm-ft-count sa" : "srm-ft-count sa zero";
+  const nsaCls = row.nsaCount ? "srm-ft-count nsa" : "srm-ft-count nsa zero";
+  let html = `<tr class="srm-ft-row${isExpanded ? " expanded" : ""}" data-site="${esc(row.site)}">
+    <td class="site-plkd-cell">${esc(row.site)}</td>
+    <td><span class="${saCls}${expandSa ? " active" : ""}" data-site="${esc(row.site)}" data-sev="sa" role="button" tabindex="0" title="คลิกยืด/ย่อ TT SA">${row.saCount || ""}</span></td>
+    <td><span class="${nsaCls}${expandNsa ? " active" : ""}" data-site="${esc(row.site)}" data-sev="nsa" role="button" tabindex="0" title="คลิกยืด/ย่อ TT NSA">${row.nsaCount || ""}</span></td>
+    ${SRM_FT_SLOTS.map(slot=>{
+      const labels = getActiveSrmFtLabels(slot);
+      const val = assign[slot] || "";
+      return `<td><select onchange="onSrmFtSiteAssignChange(${siteJs},'${slot}', this.value)">
+        <option value="">—</option>
+        ${labels.map(l=>`<option value="${esc(l)}" ${val===l?"selected":""}>${esc(l)}</option>`).join("")}
+      </select></td>`;
+    }).join("")}
+  </tr>`;
+  if(isExpanded){
+    const rows = getSrmFtExpandRows(row.site, exp.sev).sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
+    html += `<tr class="srm-ft-expand-row" data-expand-site="${esc(row.site)}"><td colspan="${colSpan}">
+      <div class="srm-ft-expand-panel">
+        <div class="srm-ft-expand-head">${esc(row.site)} · ${getSrmFtExpandLabel(exp.sev)} · ${rows.length} ticket(s)</div>
+        ${rows.length ? renderSrmFtTicketTableHtml(rows) : `<div class="empty-hint" style="padding:16px;">ไม่มี ticket</div>`}
+      </div>
+    </td></tr>`;
+  }
+  return html;
+}
+function renderSrmFtTicketTableHtml(rows){
+  return `<div class="table-scroll"><table class="srm-ft-ticket-table"><thead><tr>
+    <th>Ticket ID</th><th>Subject</th><th>Create Time</th><th>Closed</th><th>Downtime</th>
+    <th>Closed Description</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>
   </tr></thead><tbody>${rows.map(r=>{
-    const wo = r.work_order_id || "";
-    const assign = getSrmFtAssign(wo);
+    const c = classifyFaultTicket(r);
     const tt = r.source_ticket_id || r.sdm_tt || "-";
+    const wo = r.work_order_id || "";
+    const inoc = getFaultInocLogDisplay(r);
     return `<tr>
-      <td class="site-plkd-cell">${esc(extractFaultPlkdSite(r))}</td>
       <td class="tt-line">${esc(tt)}${wo && wo !== tt ? `<span class="ext">${esc(wo)}</span>` : ""}</td>
       <td class="subject-cell">${esc(extractFaultSubjectDetail(r) || r.subject || "")}</td>
+      <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
       <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
-      ${SRM_FT_SLOTS.map(slot=>{
-        const labels = getActiveSrmFtLabels(slot);
-        const val = assign[slot] || "";
-        const woJs = JSON.stringify(wo);
-        return `<td><select onchange="onSrmFtAssignChange(${woJs},'${slot}', this.value)">
-          <option value="">—</option>
-          ${labels.map(l=>`<option value="${esc(l)}" ${val===l?"selected":""}>${esc(l)}</option>`).join("")}
-        </select></td>`;
-      }).join("")}
+      <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
+      <td class="subject-cell">${esc(r.close_description||"")}</td>
+      <td>${esc(r.cause_over||"")}</td>
+      <td>${esc(r.long_time_reason||"")}</td>
+      <td class="subject-cell">${esc(inoc.text||"")}</td>
     </tr>`;
-  }).join("")}</tbody></table>`;
+  }).join("")}</tbody></table></div>`;
+}
+function toggleSrmFtExpand(site, sevKind){
+  site = String(site||"").trim().toUpperCase();
+  if(sevKind !== "sa" && sevKind !== "nsa") return;
+  if(srmFtExpand && srmFtExpand.site === site && srmFtExpand.sev === sevKind){
+    srmFtExpand = null;
+  }else{
+    srmFtExpand = { site, sev: sevKind };
+  }
+  renderSrmFreeTextTab();
+  if(srmFtExpand){
+    requestAnimationFrame(()=>{
+      const row = document.querySelector(`.srm-ft-expand-row[data-expand-site="${site}"]`)
+        || document.querySelector(".srm-ft-expand-row");
+      row?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    });
+  }
+}
+function onSrmFtPanelClick(e){
+  if(e.target.closest("select")) return;
+  const countEl = e.target.closest(".srm-ft-count[data-site][data-sev]");
+  if(!countEl || countEl.classList.contains("zero")) return;
+  e.stopPropagation();
+  toggleSrmFtExpand(countEl.dataset.site, countEl.dataset.sev);
 }
 function onSrmFtFilterChange(slot, val){
   srmFreeTextFilters[slot] = val || "";
+  srmFtExpand = null;
+  renderSrmFreeTextTab();
+}
+function onSrmFtSiteAssignChange(site, slot, val){
+  setSrmFtSiteAssign(site, slot, val || "");
   renderSrmFreeTextTab();
 }
 function onSrmFtAssignChange(woId, slot, val){
-  setSrmFtAssign(woId, slot, val || "");
-  renderSrmFreeTextTab();
+  onSrmFtSiteAssignChange(woId, slot, val);
 }
 function openSrmFtManageModal(slot){
   srmFtManageSlot = slot || "A";
@@ -2263,8 +2401,8 @@ function saveSrmFtRow(slot, id){
   if(!row || !label){ toast("ชื่อว่างไม่ได้"); return; }
   const oldLabel = row.label;
   if(oldLabel !== label){
-    Object.keys(SRM_FREE_TEXT_ASSIGN).forEach(wo=>{
-      if(SRM_FREE_TEXT_ASSIGN[wo][slot] === oldLabel) SRM_FREE_TEXT_ASSIGN[wo][slot] = label;
+    Object.keys(SRM_FREE_TEXT_ASSIGN).forEach(key=>{
+      if(SRM_FREE_TEXT_ASSIGN[key][slot] === oldLabel) SRM_FREE_TEXT_ASSIGN[key][slot] = label;
     });
     if(srmFreeTextFilters[slot] === oldLabel) srmFreeTextFilters[slot] = label;
     saveSrmFreeTextAssign();
@@ -2301,9 +2439,9 @@ function deleteSrmFtRow(slot, id){
   if(!row) return;
   if(!confirm(`ลบ "${row.label}" จาก Free Text ${slot}?`)) return;
   SRM_FREE_TEXT_OPTS[slot] = list.filter(o=> o.id !== id);
-  Object.keys(SRM_FREE_TEXT_ASSIGN).forEach(wo=>{
-    if(SRM_FREE_TEXT_ASSIGN[wo][slot] === row.label) delete SRM_FREE_TEXT_ASSIGN[wo][slot];
-    if(SRM_FREE_TEXT_ASSIGN[wo] && !Object.keys(SRM_FREE_TEXT_ASSIGN[wo]).length) delete SRM_FREE_TEXT_ASSIGN[wo];
+  Object.keys(SRM_FREE_TEXT_ASSIGN).forEach(key=>{
+    if(SRM_FREE_TEXT_ASSIGN[key][slot] === row.label) delete SRM_FREE_TEXT_ASSIGN[key][slot];
+    if(SRM_FREE_TEXT_ASSIGN[key] && !Object.keys(SRM_FREE_TEXT_ASSIGN[key]).length) delete SRM_FREE_TEXT_ASSIGN[key];
   });
   if(srmFreeTextFilters[slot] === row.label) srmFreeTextFilters[slot] = "";
   saveSrmFreeTextOpts();
@@ -5633,6 +5771,7 @@ function toast(msg){
     setTimeout(moveSrmSubTabIndicator, 300);
     loadSrmFreeTextStore();
     document.getElementById("srmView")?.addEventListener("click", onSrmViewClick);
+    document.getElementById("srmSubFreeText")?.addEventListener("click", onSrmFtPanelClick);
     Promise.all([fetchGroupProblems(), fetchCauseOvers(), fetchLongTimeReasons()]).catch(e=>{
       console.warn("Fault config load failed:", e);
     });
