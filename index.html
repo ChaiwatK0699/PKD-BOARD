@@ -191,7 +191,7 @@ input.search-box{background:var(--panel-2); border:1px solid var(--border); colo
 .team-count{color:var(--muted); font-size:12.5px; font-family:'JetBrains Mono';}
 table{width:100%; table-layout:fixed; border-collapse:collapse; font-size:13.5px; border:1px solid var(--border-soft);}
 thead th{position:relative; text-align:left; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); border-right:1px solid var(--border-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); border-right:1px solid var(--border-soft); white-space:nowrap; overflow:visible; text-overflow:clip;}
 thead th:last-child{border-right:none;}
 .col-resizer{position:absolute; top:0; right:0; width:8px; height:100%; cursor:col-resize; user-select:none; z-index:5; touch-action:none;}
 .col-resizer:hover, .col-resizer.resizing{background:var(--blue);}
@@ -216,8 +216,8 @@ textarea.cell-ta{resize:vertical; min-height:34px; font-family:'JetBrains Mono';
 .site-input.invalid{color:var(--muted);}
 .plkd-badge{display:inline-block; font-size:9.5px; font-family:'JetBrains Mono'; background:var(--teal-dim); color:var(--teal);
   padding:1px 5px; border-radius:8px; margin-left:5px; vertical-align:middle;}
-.tt-line{font-family:'JetBrains Mono'; font-size:12px;}
-.tt-line .ext{color:var(--muted-2); font-size:11px; display:block;}
+.tt-line{font-family:'JetBrains Mono'; font-size:12px; display:flex; flex-direction:column; align-items:flex-start; gap:2px; line-height:1.35; min-width:max-content;}
+.tt-line .ext{color:var(--muted-2); font-size:11px; display:block; white-space:nowrap;}
 .sev-badge{display:inline-block; font-family:'JetBrains Mono'; font-size:11px; padding:1px 6px; border-radius:4px; background:var(--border-soft); color:var(--muted);}
 .sla-over{color:var(--coral); font-size:11.5px; font-family:'JetBrains Mono';}
 .sla-in{color:var(--teal); font-size:11.5px; font-family:'JetBrains Mono';}
@@ -257,20 +257,40 @@ textarea.cell-ta{resize:vertical; min-height:34px; font-family:'JetBrains Mono';
 .toast{position:fixed; bottom:20px; right:20px; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
   padding:10px 16px; border-radius:6px; font-size:14px; z-index:300; opacity:0; transform:translateY(10px); transition:.25s;}
 .toast.show{opacity:1; transform:translateY(0);}
-.subject-cell{max-width:220px; font-size:12px; color:var(--muted); line-height:1.4; white-space:normal; word-break:break-word; overflow-wrap:anywhere; box-sizing:border-box;}
+.subject-cell{font-size:12px; color:var(--muted); line-height:1.4; white-space:normal; word-break:break-word; overflow-wrap:anywhere; box-sizing:border-box;}
 .dt-cell{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text); white-space:nowrap; line-height:1.35; vertical-align:middle;}
 .dt-cell .dt-date{display:block; font-size:11px; line-height:1.3; white-space:nowrap;}
 .dt-cell .dt-time{display:block; font-size:11px; color:var(--muted-2); line-height:1.3; white-space:nowrap;}
-table.fault-data-table th.dt-col{width:96px; min-width:96px;}
-table.fault-data-table td.dt-cell{width:96px; min-width:96px; max-width:96px; white-space:normal; overflow:hidden;}
-table.fault-data-table th.dt-col-downtime{width:100px; min-width:100px;}
-table.fault-data-table td.dt-downtime{white-space:nowrap; width:100px; min-width:100px; max-width:100px;}
+.table-scroll > table{table-layout:auto; width:max-content; min-width:100%;}
+.table-scroll > table thead th{overflow:visible; text-overflow:clip;}
+.table-scroll > table .subject-cell{max-width:none; min-width:160px;}
+table.fault-data-table,
+table.svcava-table.fault-data-table{table-layout:auto; width:max-content; min-width:100%;}
+table.fault-data-table thead th,
+table.svcava-table.fault-data-table thead th{overflow:visible; text-overflow:clip;}
+table.fault-data-table .fault-col-site{min-width:72px;}
+table.fault-data-table .fault-col-ticket{min-width:150px;}
+table.fault-data-table .fault-col-subject{min-width:240px;}
+table.fault-data-table .fault-col-sev{min-width:88px;}
+table.fault-data-table .fault-col-desc{min-width:180px;}
+table.fault-data-table .fault-col-gp,
+table.fault-data-table .fault-col-cause,
+table.fault-data-table .fault-col-ltr{min-width:180px;}
+table.fault-data-table .fault-col-inoc{min-width:180px;}
+table.fault-data-table .fault-col-ctrl{min-width:140px;}
+table.fault-data-table th.dt-col{min-width:112px; width:auto; max-width:none;}
+table.fault-data-table td.dt-cell{min-width:112px; width:auto; max-width:none; overflow:visible; white-space:nowrap;}
+table.fault-data-table th.dt-col-downtime{min-width:128px; white-space:normal;}
+table.fault-data-table td.dt-downtime{white-space:nowrap; min-width:128px; max-width:none;}
+table.fault-data-table .subject-cell{max-width:none; min-width:240px;}
+table.fault-data-table thead th .th-sub{white-space:nowrap;}
 
 /* ---- Home summary page ---- */
 .home-title{font-family:'Barlow Condensed'; font-weight:800; font-size:21px; letter-spacing:.04em; margin-bottom:14px; color:var(--text);}
 .home-table-scroll{overflow-x:auto; border-radius:8px; border:1px solid var(--border-soft);}
 .table-scroll{overflow-x:auto;}
-table.home-table{width:100%; border-collapse:collapse; background:var(--panel);}
+table.home-table{width:max-content; min-width:100%; table-layout:auto; border-collapse:collapse; background:var(--panel);}
+table.home-table thead th{overflow:visible; text-overflow:clip;}
 table.home-table thead th{background:var(--panel-2); text-align:center; font-family:'Barlow Condensed'; font-weight:700;
   letter-spacing:.04em; text-transform:uppercase; font-size:12.5px; color:var(--muted); padding:10px 8px;
   border-bottom:1px solid var(--border); border-right:1px solid var(--border-soft);}
@@ -345,7 +365,8 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
 .svcava-hero{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:24px 28px; margin-bottom:20px;}
 .svcava-big{font-family:'Barlow Condensed'; font-weight:800; font-size:48px; color:var(--coral); letter-spacing:.01em;}
 .svcava-sub{font-family:'JetBrains Mono'; font-size:12.5px; color:var(--muted); margin-top:6px;}
-table.svcava-table{width:100%; table-layout:fixed; border-collapse:collapse; font-size:13.5px; background:var(--panel); border:1px solid var(--border-soft); border-radius:8px;}
+table.svcava-table{width:max-content; min-width:100%; table-layout:auto; border-collapse:collapse; font-size:13.5px; background:var(--panel); border:1px solid var(--border-soft); border-radius:8px;}
+table.svcava-table thead th{overflow:visible; text-overflow:clip;}
 table.svcava-table thead th{text-align:left; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
   color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--panel-2);}
 table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft);}
@@ -387,7 +408,8 @@ body.screenshotting .sev-modal,
 body.screenshotting #srmDetailModal,
 body.screenshotting #gpManageModal,
 body.screenshotting #coManageModal,
-body.screenshotting #ltrManageModal{display:none !important;}
+body.screenshotting #ltrManageModal,
+body.screenshotting #srmFtManageModal{display:none !important;}
 .gp-manage-box{width:min(720px,94vw);}
 .gp-manage-toolbar{display:flex; gap:8px; padding:12px 18px; border-bottom:1px solid var(--border-soft); align-items:center;}
 .gp-manage-toolbar input{
@@ -481,14 +503,14 @@ body.screenshotting #ltrManageModal{display:none !important;}
 .srm-heat-cell.srm-heat-clickable{cursor:pointer;}
 .srm-heat-cell:not(.srm-heat-empty):hover{transform:scale(1.06); z-index:1; box-shadow:0 2px 8px var(--shadow-strong);}
 .srm-heat-total{
-  display:flex; align-items:center; justify-content:center; font-weight:700; border-radius:6px;
-  background:var(--panel-2); min-height:28px; padding:2px 6px; font-family:'JetBrains Mono'; font-size:11px;
+  display:flex; align-items:center; justify-content:center; font-weight:800; border-radius:6px;
+  background:var(--panel-2); min-height:30px; padding:2px 6px; font-family:'JetBrains Mono'; font-size:13px;
 }
 .srm-heat-total.grand{background:var(--violet-dim, rgba(124,58,237,.15)); color:var(--violet);}
 .srm-heat-daytotal{
   position:sticky; top:0; z-index:3; display:flex; align-items:center; justify-content:center;
-  font-weight:700; border-radius:6px; background:var(--panel-2); min-height:28px; padding:2px 4px;
-  font-family:'JetBrains Mono'; font-size:11px;
+  font-weight:800; border-radius:6px; background:var(--panel-2); min-height:30px; padding:2px 4px;
+  font-family:'JetBrains Mono'; font-size:13px;
 }
 .srm-heat-daytotal.count{color:var(--blue);}
 .srm-heat-daytotal.dt{color:var(--coral);}
@@ -510,6 +532,59 @@ body.screenshotting #ltrManageModal{display:none !important;}
 .srm-detail-subj{font-size:13px; line-height:1.5; color:var(--text); margin-bottom:8px; word-break:break-word;}
 .srm-detail-meta{display:flex; flex-wrap:wrap; gap:8px 16px; font-size:11.5px; color:var(--muted); font-family:'JetBrains Mono';}
 .srm-detail-meta span{white-space:nowrap;}
+.srm-kw-panel{display:grid; grid-template-columns:repeat(4, minmax(140px, 1fr)); gap:14px; margin-bottom:22px;}
+.srm-kw-card{
+  border-radius:12px; padding:16px 18px; cursor:pointer; border:2px solid transparent;
+  transition:transform .12s, box-shadow .15s, border-color .15s; min-height:96px;
+  display:flex; flex-direction:column; justify-content:center; gap:4px;
+}
+.srm-kw-card:hover{transform:translateY(-2px); box-shadow:0 10px 28px var(--shadow-strong);}
+.srm-kw-card.active{outline:3px solid currentColor; outline-offset:2px;}
+.srm-kw-label{font-family:'Barlow Condensed'; font-weight:700; font-size:14px; letter-spacing:.06em; text-transform:uppercase; opacity:.92;}
+.srm-kw-count{font-family:'Barlow Condensed'; font-weight:800; font-size:42px; line-height:1; letter-spacing:.02em;}
+.srm-kw-hint{font-family:'JetBrains Mono'; font-size:10.5px; opacity:.75;}
+.srm-kw-dots{display:flex; flex-wrap:wrap; gap:2px; justify-content:center; margin-top:3px; min-height:8px;}
+.srm-kw-dot{width:7px; height:7px; border-radius:50%; flex-shrink:0;}
+.srm-heat-total.srm-heat-clickable,
+.srm-heat-daytotal.srm-heat-clickable{cursor:pointer; transition:transform .12s, box-shadow .15s;}
+.srm-heat-total.srm-heat-clickable:hover,
+.srm-heat-daytotal.srm-heat-clickable:hover{transform:scale(1.05); box-shadow:0 2px 10px var(--shadow-strong);}
+.srm-detail-kw{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
+.srm-detail-kw span{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.04em; text-transform:uppercase; padding:3px 8px; border-radius:6px;}
+.srm-ft-grid{display:grid; grid-template-columns:repeat(2, minmax(260px, 1fr)); gap:18px; margin-bottom:22px;}
+.srm-ft-slot{
+  background:var(--panel); border:2px solid var(--border); border-radius:14px; padding:18px 20px;
+  display:flex; flex-direction:column; gap:12px; transition:border-color .15s, box-shadow .15s;
+}
+.srm-ft-slot.slot-a{border-color:rgba(47,128,237,.45); box-shadow:inset 0 0 0 1px rgba(47,128,237,.12);}
+.srm-ft-slot.slot-b{border-color:rgba(52,216,166,.45); box-shadow:inset 0 0 0 1px rgba(52,216,166,.12);}
+.srm-ft-slot.slot-c{border-color:rgba(255,176,32,.45); box-shadow:inset 0 0 0 1px rgba(255,176,32,.12);}
+.srm-ft-slot.slot-d{border-color:rgba(124,58,237,.45); box-shadow:inset 0 0 0 1px rgba(124,58,237,.12);}
+.srm-ft-slot-head{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.srm-ft-slot-letter{
+  font-family:'Barlow Condensed'; font-weight:800; font-size:36px; line-height:1; width:52px; height:52px;
+  display:flex; align-items:center; justify-content:center; border-radius:12px; color:#fff;
+}
+.srm-ft-slot.slot-a .srm-ft-slot-letter{background:linear-gradient(135deg,#2f80ed,#1a5fbf);}
+.srm-ft-slot.slot-b .srm-ft-slot-letter{background:linear-gradient(135deg,#34d8a6,#1fa67a);}
+.srm-ft-slot.slot-c .srm-ft-slot-letter{background:linear-gradient(135deg,#ffb020,#d97706);}
+.srm-ft-slot.slot-d .srm-ft-slot-letter{background:linear-gradient(135deg,#7c3aed,#5b21b6);}
+.srm-ft-big-select{
+  width:100%; appearance:none; -webkit-appearance:none;
+  background:var(--panel-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10' viewBox='0 0 16 10'%3E%3Cpath fill='%235b636b' d='M1 1l7 7 7-7'/%3E%3C/svg%3E") no-repeat right 16px center;
+  border:2px solid var(--border); color:var(--text); padding:16px 44px 16px 18px; border-radius:12px;
+  font-family:'Inter'; font-size:18px; font-weight:600; line-height:1.3; cursor:pointer;
+  transition:border-color .15s, box-shadow .15s;
+}
+.srm-ft-big-select:hover{border-color:var(--blue);}
+.srm-ft-big-select:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim);}
+.srm-ft-manage-btn{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.04em; text-transform:uppercase; font-size:13px;}
+.srm-ft-table-wrap{margin-top:8px;}
+.srm-ft-table{width:100%; border-collapse:collapse; font-size:14px;}
+.srm-ft-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--border); text-align:left;}
+.srm-ft-table tbody td{padding:10px 12px; border-bottom:1px solid var(--border-soft); vertical-align:middle;}
+.srm-ft-table select{width:100%; min-width:120px; padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--panel-2); color:var(--text); font-size:13px;}
+.srm-ft-filter-hint{font-size:13px; color:var(--muted); margin-bottom:14px;}
 .fault-section-title{font-family:'Barlow Condensed'; font-weight:800; font-size:17px; letter-spacing:.04em; text-transform:uppercase;
   margin:18px 0 10px; color:var(--text); display:flex; align-items:center; gap:10px;}
 .fault-section-title .badge{font-family:'JetBrains Mono'; font-size:12px; font-weight:700; padding:2px 9px; border-radius:10px; background:var(--coral-dim); color:var(--coral);}
@@ -715,7 +790,6 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="tabs tabs-vertical" id="tabsMain">
         <div class="tab-indicator" id="tabIndicatorMain"></div>
         <button class="tab-btn home active" id="tabHomeBtn" onclick="switchTab('home')" title="Home"><span class="tab-ico">H</span><span class="tab-text">Home</span></button>
-        <button class="tab-btn svcava" id="tabSvcAvaBtn" onclick="switchTab('svcava')" title="Service Availability"><span class="tab-ico">SA</span><span class="tab-text">Service Availability</span></button>
         <button class="tab-btn fault" id="tabFaultBtn" onclick="switchTab('fault')" title="Fault PLKD"><span class="tab-ico">F</span><span class="tab-text">Fault PLKD</span></button>
         <button class="tab-btn srm" id="tabSrmBtn" onclick="switchTab('srm')" title="Site Repeat Mapping"><span class="tab-ico">SR</span><span class="tab-text">Site Repeat Mapping</span></button>
       </div>
@@ -725,7 +799,6 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="tabs tabs-vertical" id="tabsTools">
         <div class="tab-indicator" id="tabIndicatorTools"></div>
         <button class="tab-btn pending" id="tabPendingBtn" onclick="switchTab('pending')" title="Pending"><span class="tab-ico">P</span><span class="tab-text">Pending</span> <span class="count" id="countPending">0</span></button>
-        <button class="tab-btn closed" id="tabClosedBtn" onclick="switchTab('closed')" title="Closed"><span class="tab-ico">C</span><span class="tab-text">Closed</span> <span class="count" id="countClosed">0</span></button>
         <button class="tab-btn manual" id="tabManualBtn" onclick="switchTab('manual')" title="Manual Closed By INOC"><span class="tab-ico">M</span><span class="tab-text">Manual Closed By INOC</span> <span class="count" id="countManual">0</span></button>
       </div>
     </div>
@@ -784,18 +857,6 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div class="filterbar" id="filterbarPending"></div>
     <div id="pendingTeams"></div>
   </div>
-  <div id="closedView" class="tab-view" style="display:none;">
-    <div class="toolbar">
-      <button class="btn teal" onclick="document.getElementById('fileInputClosed').click()">⭱ Upload Work Order (Closed)</button>
-      <input type="file" id="fileInputClosed" accept=".csv,.xlsx,.xls" onchange="handleUpload(event,'closed')">
-      <button class="btn" onclick="addRowPrompt('closed')">+ Add Ticket</button>
-      <button class="btn ghost sm" onclick="loadAll()">↻ Refresh</button>
-      <button class="btn green sm" onclick="exportGroupExcel('closed')">⭳ Export Excel (INOC columns)</button>
-      <span class="status-msg" id="statusMsgClosed"></span>
-    </div>
-    <div class="filterbar" id="filterbarClosed"></div>
-    <div id="closedTeams"></div>
-  </div>
   <div id="manualView" class="tab-view" style="display:none;">
     <div class="toolbar">
       <button class="btn ghost sm" onclick="loadAll()">↻ Refresh</button>
@@ -804,43 +865,37 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div class="filterbar" id="filterbarManual"></div>
     <div id="manualTeams"></div>
   </div>
-  <div id="svcavaView" class="tab-view" style="display:none;">
-    <div class="toolbar">
-      <button class="btn primary" onclick="document.getElementById('fileInputSvcAva').click()">⭱ Upload Service Availability (Fault format)</button>
-      <input type="file" id="fileInputSvcAva" accept=".csv,.xlsx,.xls" onchange="handleSvcAvaUpload(event)">
-      <button class="btn green sm" onclick="exportGroupExcel('svcava')">⭳ Export Excel (INOC columns)</button>
-      <span class="status-msg" id="statusMsgSvcAva"></span>
-    </div>
-    <div class="svcava-hero" id="svcavaHero"></div>
-    <table class="svcava-table">
-      <thead><tr>
-        <th style="width:120px">Site Code</th>
-        <th style="width:150px">Source Ticket</th>
-        <th style="width:220px">Subject</th>
-        <th style="width:220px">Root Cause</th>
-        <th style="width:220px">Close Description</th>
-        <th style="width:120px">Severity</th>
-        <th style="width:100px">WO Creator</th>
-        <th style="width:110px">SLA</th>
-        <th style="width:110px">Downtime (Create → Restoration)</th>
-        <th style="width:200px">Update Log Status</th>
-        <th style="width:180px">INOC LOG</th>
-      </tr></thead>
-      <tbody id="svcavaTbody"></tbody>
-    </table>
-  </div>
   <div id="srmView" class="tab-view" style="display:none;">
     <div class="srm-head">
       <h2>Site Repeat Mapping</h2>
-      <p id="srmSubtitle">Severity SA (SA1–SA6) · ไม่รวม Broadband · นับจากวันที่ Closed (00:00–23:59)</p>
+      <p id="srmSubtitle">Severity SA1–SA6 · NSA1–NSA4 · ไม่รวม Broadband · นับจากวันที่ Closed (00:00–23:59)</p>
     </div>
-    <div class="srm-block">
-      <div class="srm-block-title">Count TT ต่อวัน</div>
-      <div class="srm-scroll" id="srmCountWrap"></div>
+    <div class="tabs" id="tabsSrmSub" style="margin-bottom:16px;">
+      <div class="tab-indicator" id="tabIndicatorSrmSub"></div>
+      <button class="tab-btn active" id="srmSubMappingBtn" onclick="switchSrmSubTab('mapping')">Mapping</button>
+      <button class="tab-btn" id="srmSubFreeTextBtn" onclick="switchSrmSubTab('freetext')">Free Text</button>
     </div>
-    <div class="srm-block">
-      <div class="srm-block-title">Downtime (H:m) · รวม Grand Total ต่อวัน</div>
-      <div class="srm-scroll" id="srmDtWrap"></div>
+    <div id="srmSubMapping">
+      <div class="srm-block">
+        <div class="srm-block-title">Keyword Summary · คลิกดู TT</div>
+        <div class="srm-kw-panel" id="srmKwPanel"></div>
+      </div>
+      <div class="srm-block">
+        <div class="srm-block-title">Count TT ต่อวัน</div>
+        <div class="srm-scroll" id="srmCountWrap"></div>
+      </div>
+      <div class="srm-block">
+        <div class="srm-block-title">Downtime (H:m) · รวม Grand Total ต่อวัน</div>
+        <div class="srm-scroll" id="srmDtWrap"></div>
+      </div>
+    </div>
+    <div id="srmSubFreeText" style="display:none;">
+      <div class="srm-ft-filter-hint" id="srmFtHint">เลือกจาก Dropdown A–D เพื่อกรอง ticket · กด ⚙ เพื่อเพิ่ม/แก้/ลบตัวเลือก</div>
+      <div class="srm-ft-grid" id="srmFtGrid"></div>
+      <div class="srm-block">
+        <div class="srm-block-title">Ticket ในเดือน <span id="srmFtTicketCount">0</span></div>
+        <div class="srm-ft-table-wrap table-scroll" id="srmFtTableWrap"></div>
+      </div>
     </div>
   </div>
   <div id="faultView" class="tab-view" style="display:none;">
@@ -1099,6 +1154,19 @@ let faultOverviewChartInst = null;
 let faultLtrSlaChartInst = null;
 let INOC_LOG_BY_TT = new Map();
 let srmCellTickets = {};
+let srmMonthTickets = [];
+let srmSubTab = "mapping";
+const SRM_KEYWORDS = [
+  { key:"main_ac", label:"Main AC", pattern:/main\s*ac/i, color:"#0891b2", bg:"rgba(8,145,178,.2)" },
+  { key:"power_fail", label:"Power Fail", pattern:/power\s*fail/i, color:"#dc2626", bg:"rgba(220,38,38,.18)" },
+  { key:"intrusion", label:"Intrusion", pattern:/intrusion/i, color:"#d97706", bg:"rgba(217,119,6,.2)" },
+  { key:"route_cell_down", label:"Route Cell Down", pattern:/route\s*cell\s*down|cell\s*down/i, color:"#7c3aed", bg:"rgba(124,58,237,.18)" }
+];
+const SRM_FT_SLOTS = ["A","B","C","D"];
+let SRM_FREE_TEXT_OPTS = { A:[], B:[], C:[], D:[] };
+let SRM_FREE_TEXT_ASSIGN = {};
+let srmFreeTextFilters = { A:"", B:"", C:"", D:"" };
+let srmFtManageSlot = "A";
 
 document.getElementById("boardDate").valueAsDate = new Date();
 
@@ -1349,13 +1417,11 @@ async function loadAll(){
 function renderAll(){
   try{ renderHome(); }catch(e){ console.error("renderHome failed:", e); }
   try{
-    renderFilterbar("pending"); renderFilterbar("closed"); renderFilterbar("manual");
-    renderTeams("pending"); renderTeams("closed"); renderTeams("manual");
-    if(currentTab==="svcava") renderSvcAva();
+    renderFilterbar("pending"); renderFilterbar("manual");
+    renderTeams("pending"); renderTeams("manual");
     if(currentTab==="fault") renderFault();
     if(currentTab==="srm") renderSiteRepeatMapping();
     document.getElementById("countPending").textContent = groupSourceRows("pending").filter(r=>passFilter(r,"pending")).length;
-    document.getElementById("countClosed").textContent = groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length;
     document.getElementById("countManual").textContent = tickets.closed.filter(isManualClosed).length;
     renderUploadTs();
   }catch(e){
@@ -1366,26 +1432,22 @@ function switchTab(tab){
   currentTab = tab;
   document.getElementById("tabHomeBtn").classList.toggle("active", tab==="home");
   document.getElementById("tabPendingBtn").classList.toggle("active", tab==="pending");
-  document.getElementById("tabClosedBtn").classList.toggle("active", tab==="closed");
   document.getElementById("tabManualBtn").classList.toggle("active", tab==="manual");
-  document.getElementById("tabSvcAvaBtn").classList.toggle("active", tab==="svcava");
   document.getElementById("tabFaultBtn").classList.toggle("active", tab==="fault");
   document.getElementById("tabSrmBtn").classList.toggle("active", tab==="srm");
   const homeEl = document.getElementById("homeView"), pendingEl = document.getElementById("pendingView"),
-    closedEl = document.getElementById("closedView"), manualEl = document.getElementById("manualView"),
-    svcavaEl = document.getElementById("svcavaView"), srmEl = document.getElementById("srmView"), faultEl = document.getElementById("faultView");
+    manualEl = document.getElementById("manualView"),
+    srmEl = document.getElementById("srmView"), faultEl = document.getElementById("faultView");
   homeEl.style.display = tab==="home" ? "block":"none";
   pendingEl.style.display = tab==="pending" ? "block":"none";
-  closedEl.style.display = tab==="closed" ? "block":"none";
   manualEl.style.display = tab==="manual" ? "block":"none";
-  svcavaEl.style.display = tab==="svcava" ? "block":"none";
   srmEl.style.display = tab==="srm" ? "block":"none";
   faultEl.style.display = tab==="fault" ? "block":"none";
   if(tab==="home") renderHome();
-  if(tab==="svcava") renderSvcAva();
   if(tab==="fault") renderFault();
   if(tab==="srm") renderSiteRepeatMapping();
-  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="closed" ? closedEl : tab==="manual" ? manualEl : tab==="srm" ? srmEl : tab==="fault" ? faultEl : svcavaEl;
+  moveSrmSubTabIndicator();
+  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="manual" ? manualEl : tab==="srm" ? srmEl : faultEl;
   shownEl.classList.remove("anim-in");
   void shownEl.offsetWidth; // restart animation
   shownEl.classList.add("anim-in");
@@ -1434,6 +1496,7 @@ function groupSourceRows(group){
 }
 function renderFilterbar(group){
   const el = document.getElementById(GROUP_FILTERBAR[group]);
+  if(!el) return;
   const allSev = [...new Set(groupSourceRows(group).map(r=>r.severity).filter(Boolean))].sort();
   const f = filters[group];
   el.innerHTML = `
@@ -1477,6 +1540,7 @@ function fmtDT(v){
 }
 function renderTeams(group){
   const container = document.getElementById(GROUP_CONTAINER[group]);
+  if(!container) return;
   container.innerHTML = "";
   const rows = groupSourceRows(group).filter(r=>passFilter(r, group));
   const extraCols = group==="pending"
@@ -1512,19 +1576,19 @@ function renderTeams(group){
     const table = document.createElement("table");
     table.innerHTML = `
       <thead><tr>
-        <th style="width:150px">Site ID</th>
-        <th style="width:150px">TT / Ext ID</th>
-        <th style="width:120px">Severity / SLA</th>
-        <th style="width:170px">Subject</th>
-        <th style="width:120px">Dispatched</th>
-        <th style="width:120px">Accepted</th>
-        <th style="width:120px">Departed</th>
-        <th style="width:120px">Arrived</th>
-        <th style="width:120px">Completed</th>
-        <th style="width:120px">Closed</th>
-        ${extraCols.map(c=>`<th style="width:${c.w}px">${c.h}</th>`).join("")}
-        <th style="width:150px">INOC LOG</th>
-        <th style="width:60px"></th>
+        <th style="min-width:150px">Site ID</th>
+        <th style="min-width:150px">TT / Ext ID</th>
+        <th style="min-width:120px">Severity / SLA</th>
+        <th style="min-width:170px">Subject</th>
+        <th style="min-width:112px">Dispatched</th>
+        <th style="min-width:112px">Accepted</th>
+        <th style="min-width:112px">Departed</th>
+        <th style="min-width:112px">Arrived</th>
+        <th style="min-width:112px">Completed</th>
+        <th style="min-width:112px">Closed</th>
+        ${extraCols.map(c=>`<th style="min-width:${c.w}px">${c.h}</th>`).join("")}
+        <th style="min-width:150px">INOC LOG</th>
+        <th style="min-width:60px"></th>
       </tr></thead><tbody></tbody>`;
     scrollDiv.appendChild(table);
     const tbody = table.querySelector("tbody");
@@ -1657,6 +1721,104 @@ function fmtSrmDayLabel(iso){
   const [y, mo, d] = iso.split("-");
   return `${parseInt(d,10)}/${parseInt(mo,10)}/${y}`;
 }
+function getSrmTicketHay(r){
+  return `${r.subject||""} ${r.close_description||""} ${extractFaultSubjectDetail(r)||""}`;
+}
+function matchSrmKeywords(r){
+  const hay = getSrmTicketHay(r);
+  return SRM_KEYWORDS.filter(kw=> kw.pattern.test(hay));
+}
+function highlightSrmKeywords(text){
+  let s = String(text||"");
+  if(!s) return "";
+  const reps = [];
+  SRM_KEYWORDS.forEach(kw=>{
+    s = s.replace(kw.pattern, m=>{
+      const token = `{{HL${reps.length}}}`;
+      reps.push({ token, html: `<mark style="background:${kw.bg};color:${kw.color};padding:0 3px;border-radius:3px;font-weight:700;">${esc(m)}</mark>` });
+      return token;
+    });
+  });
+  s = esc(s);
+  reps.forEach(r=>{ s = s.replaceAll(r.token, r.html); });
+  return s;
+}
+function getSrmMonthTickets(){
+  const { days } = getSrmMonthContext();
+  return faultTickets.filter(r=>{
+    if(!isFaultSrmSeverity(r)) return false;
+    if(isFaultBroadbandTicket(r)) return false;
+    if(!r?.closed_time) return false;
+    const day = String(r.closed_time).slice(0,10);
+    if(!days.includes(day)) return false;
+    const site = extractFaultPlkdSite(r);
+    if(!site || !SITE_SET.has(site)) return false;
+    return true;
+  });
+}
+function loadSrmFreeTextStore(){
+  try{
+    const opts = JSON.parse(localStorage.getItem("srmFreeTextOpts")||"{}");
+    SRM_FT_SLOTS.forEach(s=>{
+      SRM_FREE_TEXT_OPTS[s] = Array.isArray(opts[s]) ? opts[s] : [];
+    });
+  }catch(e){
+    SRM_FT_SLOTS.forEach(s=>{ SRM_FREE_TEXT_OPTS[s] = []; });
+  }
+  try{
+    SRM_FREE_TEXT_ASSIGN = JSON.parse(localStorage.getItem("srmFreeTextAssign")||"{}") || {};
+  }catch(e){
+    SRM_FREE_TEXT_ASSIGN = {};
+  }
+}
+function saveSrmFreeTextOpts(){
+  try{ localStorage.setItem("srmFreeTextOpts", JSON.stringify(SRM_FREE_TEXT_OPTS)); }catch(e){}
+}
+function saveSrmFreeTextAssign(){
+  try{ localStorage.setItem("srmFreeTextAssign", JSON.stringify(SRM_FREE_TEXT_ASSIGN)); }catch(e){}
+}
+function getSrmFtAssign(woId){
+  const id = String(woId||"").trim();
+  return id ? (SRM_FREE_TEXT_ASSIGN[id] || {}) : {};
+}
+function setSrmFtAssign(woId, slot, val){
+  const id = String(woId||"").trim();
+  if(!id) return;
+  if(!SRM_FREE_TEXT_ASSIGN[id]) SRM_FREE_TEXT_ASSIGN[id] = {};
+  if(val) SRM_FREE_TEXT_ASSIGN[id][slot] = val;
+  else delete SRM_FREE_TEXT_ASSIGN[id][slot];
+  if(!Object.keys(SRM_FREE_TEXT_ASSIGN[id]).length) delete SRM_FREE_TEXT_ASSIGN[id];
+  saveSrmFreeTextAssign();
+}
+function getActiveSrmFtLabels(slot){
+  return (SRM_FREE_TEXT_OPTS[slot]||[]).filter(o=>o.is_active !== false).map(o=>o.label);
+}
+function passesSrmFreeTextFilters(r){
+  const wo = r.work_order_id || "";
+  const assign = getSrmFtAssign(wo);
+  return SRM_FT_SLOTS.every(slot=>{
+    const f = srmFreeTextFilters[slot];
+    if(!f) return true;
+    return assign[slot] === f;
+  });
+}
+function moveSrmSubTabIndicator(){
+  const tabs = document.getElementById("tabsSrmSub");
+  const ind = document.getElementById("tabIndicatorSrmSub");
+  const btn = document.getElementById(srmSubTab==="mapping" ? "srmSubMappingBtn" : "srmSubFreeTextBtn");
+  if(!tabs || !ind || !btn) return;
+  ind.style.left = btn.offsetLeft + "px";
+  ind.style.width = btn.offsetWidth + "px";
+}
+function switchSrmSubTab(tab){
+  srmSubTab = tab;
+  document.getElementById("srmSubMappingBtn")?.classList.toggle("active", tab==="mapping");
+  document.getElementById("srmSubFreeTextBtn")?.classList.toggle("active", tab==="freetext");
+  document.getElementById("srmSubMapping").style.display = tab==="mapping" ? "block" : "none";
+  document.getElementById("srmSubFreeText").style.display = tab==="freetext" ? "block" : "none";
+  moveSrmSubTabIndicator();
+  if(tab==="freetext") renderSrmFreeTextTab();
+}
 function getSrmMonthContext(){
   const boardDate = document.getElementById("boardDate").value;
   const [y, m] = boardDate.split("-").map(Number);
@@ -1681,7 +1843,7 @@ function buildSiteRepeatData(){
   let grandCount = 0, grandDt = 0, maxCellDt = 0, maxCellCount = 0;
 
   faultTickets.forEach(r=>{
-    if(!isFaultSaSeverity(r)) return;
+    if(!isFaultSrmSeverity(r)) return;
     if(isFaultBroadbandTicket(r)) return;
     if(!r?.closed_time) return;
     const day = String(r.closed_time).slice(0,10);
@@ -1700,6 +1862,23 @@ function buildSiteRepeatData(){
       grandDt += mins;
       if(downtime[site][day] > maxCellDt) maxCellDt = downtime[site][day];
     }
+  });
+
+  const monthTickets = [];
+  sites.forEach(site=>{
+    days.forEach(d=>{
+      cellTickets[site][d].forEach(r=> monthTickets.push(r));
+    });
+  });
+  srmMonthTickets = monthTickets;
+
+  const keywordCounts = Object.fromEntries(SRM_KEYWORDS.map(kw=>[kw.key, 0]));
+  const keywordTickets = Object.fromEntries(SRM_KEYWORDS.map(kw=>[kw.key, []]));
+  monthTickets.forEach(r=>{
+    matchSrmKeywords(r).forEach(kw=>{
+      keywordCounts[kw.key]++;
+      keywordTickets[kw.key].push(r);
+    });
   });
 
   const siteRowCount = {}, siteRowDt = {};
@@ -1724,7 +1903,20 @@ function buildSiteRepeatData(){
     });
   });
 
-  return { sites: activeSites, days: activeDays, monthDays: days, count, downtime, cellTickets, dayCount, dayDt, siteRowCount, siteRowDt, grandCount, grandDt, maxCellDt, maxCellCount, streakLen };
+  return { sites: activeSites, days: activeDays, monthDays: days, count, downtime, cellTickets, dayCount, dayDt, siteRowCount, siteRowDt, grandCount, grandDt, maxCellDt, maxCellCount, streakLen, monthTickets, keywordCounts, keywordTickets };
+}
+function srmCellKeywordDots(site, day, cellTicketsMap){
+  const rows = (cellTicketsMap[site] && cellTicketsMap[site][day]) || [];
+  const seen = new Set();
+  const dots = [];
+  rows.forEach(r=>{
+    matchSrmKeywords(r).forEach(kw=>{
+      if(seen.has(kw.key)) return;
+      seen.add(kw.key);
+      dots.push(`<i class="srm-kw-dot" style="background:${kw.color}" title="${esc(kw.label)}"></i>`);
+    });
+  });
+  return dots.length ? `<div class="srm-kw-dots">${dots.join("")}</div>` : "";
 }
 function srmCellBgStyle(val, alpha, rgba, streak){
   if(streak >= 3) return "background:rgba(217,74,53,.88);color:#fff";
@@ -1737,7 +1929,7 @@ function srmHeatAlpha(val, maxVal){
   return Math.min(1, Math.max(0.22, val / maxVal));
 }
 function buildSrmHeatGrid(opts){
-  const { sites, days, getVal, fmtVal, maxVal, rgba, dayTotals, rowTotals, grandTotal, dayTotalClass, legendBarClass, legendLabel, streakLen } = opts;
+  const { sites, days, getVal, fmtVal, maxVal, rgba, dayTotals, rowTotals, grandTotal, dayTotalClass, legendBarClass, legendLabel, streakLen, cellTicketsMap } = opts;
   const gridStyle = `grid-template-columns:88px repeat(${days.length}, minmax(52px, 1fr)) 72px;`;
   let html = `<div class="srm-heat-wrap"><div class="srm-heat-grid" style="${gridStyle}">`;
   html += `<div class="srm-heat-corner">Site</div>`;
@@ -1752,20 +1944,27 @@ function buildSrmHeatGrid(opts){
       const alpha = srmHeatAlpha(val, maxVal);
       const bg = srmCellBgStyle(val, alpha, rgba, streak);
       const cellCls = val ? "srm-heat-cell srm-heat-clickable" : "srm-heat-cell srm-heat-empty";
-      const dataAttrs = val ? ` data-site="${esc(site)}" data-day="${esc(d)}"` : "";
+      const dataAttrs = val ? ` data-srm-kind="cell" data-site="${esc(site)}" data-day="${esc(d)}"` : "";
       const streakHint = streak >= 3 ? " · ติดกัน 3+ วัน" : streak === 2 ? " · ติดกัน 2 วัน" : "";
-      html += `<div class="${cellCls}"${dataAttrs} style="${bg}" title="${esc(site)} · ${esc(fmtSrmDayLabel(d))}${val ? " · " + esc(fmtVal(val)) + streakHint + " · คลิกดูรายละเอียด" : ""}">${val ? esc(fmtVal(val)) : ""}</div>`;
+      const kwDots = cellTicketsMap ? srmCellKeywordDots(site, d, cellTicketsMap) : "";
+      html += `<div class="${cellCls}"${dataAttrs} style="${bg}" title="${esc(site)} · ${esc(fmtSrmDayLabel(d))}${val ? " · " + esc(fmtVal(val)) + streakHint + " · คลิกดู TT" : ""}">${val ? esc(fmtVal(val)) : ""}${kwDots}</div>`;
     });
     const rowT = rowTotals[site];
-    html += `<div class="srm-heat-total">${rowT ? esc(fmtVal(rowT)) : ""}</div>`;
+    const rowCls = rowT ? "srm-heat-total srm-heat-clickable" : "srm-heat-total";
+    const rowAttrs = rowT ? ` data-srm-kind="row" data-site="${esc(site)}" title="Total ${esc(site)} · คลิกดู TT"` : "";
+    html += `<div class="${rowCls}"${rowAttrs}>${rowT ? esc(fmtVal(rowT)) : ""}</div>`;
   });
 
   html += `<div class="srm-heat-row srm-total-row">Grand Total</div>`;
   days.forEach(d=>{
     const v = dayTotals[d];
-    html += `<div class="srm-heat-daytotal ${dayTotalClass}">${v ? esc(fmtVal(v)) : ""}</div>`;
+    const dayCls = v ? `srm-heat-daytotal ${dayTotalClass} srm-heat-clickable` : `srm-heat-daytotal ${dayTotalClass}`;
+    const dayAttrs = v ? ` data-srm-kind="day" data-day="${esc(d)}" title="Total ${esc(fmtSrmDayLabel(d))} · คลิกดู TT"` : "";
+    html += `<div class="${dayCls}"${dayAttrs}>${v ? esc(fmtVal(v)) : ""}</div>`;
   });
-  html += `<div class="srm-heat-total grand">${grandTotal ? esc(fmtVal(grandTotal)) : ""}</div>`;
+  const grandCls = grandTotal ? "srm-heat-total grand srm-heat-clickable" : "srm-heat-total grand";
+  const grandAttrs = grandTotal ? ` data-srm-kind="grand" title="Grand Total · คลิกดู TT ทั้งเดือน"` : "";
+  html += `<div class="${grandCls}"${grandAttrs}>${grandTotal ? esc(fmtVal(grandTotal)) : ""}</div>`;
   html += `</div><div class="srm-heat-legend"><span>น้อย</span><div class="srm-heat-legend-bar ${legendBarClass}"></div><span>มาก (${legendLabel})</span></div>
   <div class="srm-heat-legend-streaks">
     <span><i class="srm-heat-legend-swatch streak2"></i>TT ติดกัน 2 วัน</span>
@@ -1773,18 +1972,37 @@ function buildSrmHeatGrid(opts){
   </div></div>`;
   return html;
 }
+function renderSrmKeywordPanel(data){
+  const el = document.getElementById("srmKwPanel");
+  if(!el) return;
+  if(!data){
+    el.innerHTML = "";
+    return;
+  }
+  const { keywordCounts } = data;
+  el.innerHTML = SRM_KEYWORDS.map(kw=>{
+    const n = keywordCounts[kw.key] || 0;
+    return `<div class="srm-kw-card" style="background:${kw.bg};color:${kw.color};" data-srm-kind="keyword" data-keyword="${kw.key}" title="คลิกดู TT · ${esc(kw.label)}">
+      <div class="srm-kw-label">${esc(kw.label)}</div>
+      <div class="srm-kw-count">${n}</div>
+      <div class="srm-kw-hint">TT ในเดือนนี้</div>
+    </div>`;
+  }).join("");
+}
 function renderSiteRepeatMapping(){
   const sub = document.getElementById("srmSubtitle");
   const countWrap = document.getElementById("srmCountWrap");
   const dtWrap = document.getElementById("srmDtWrap");
   if(!countWrap || !dtWrap) return;
   const ctx = getSrmMonthContext();
-  if(sub) sub.textContent = `Severity SA (SA1–SA6) · ไม่รวม Broadband · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}`;
+  if(sub) sub.textContent = `Severity SA1–SA6 · NSA1–NSA4 · ไม่รวม Broadband · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}`;
 
   if(!SITE_SET.size){
     const empty = `<div class="empty-hint" style="padding:24px;">ยังไม่มีรายชื่อ 168 Site — รอโหลด site codes</div>`;
     countWrap.innerHTML = empty;
     dtWrap.innerHTML = empty;
+    renderSrmKeywordPanel(null);
+    if(srmSubTab==="freetext") renderSrmFreeTextTab();
     return;
   }
 
@@ -1796,28 +2014,33 @@ function renderSiteRepeatMapping(){
     const empty = `<div class="empty-hint" style="padding:24px;">ไม่มี TT ในเดือน ${ctx.monthLabel}</div>`;
     countWrap.innerHTML = empty;
     dtWrap.innerHTML = empty;
+    renderSrmKeywordPanel(null);
     if(sub) sub.textContent += ` · 0 Site · 0 วัน`;
+    if(srmSubTab==="freetext") renderSrmFreeTextTab();
     return;
   }
 
   if(sub) sub.textContent += ` · ${sites.length} Site มีงาน · ${days.length} วันมีงาน`;
+  renderSrmKeywordPanel(data);
+
+  const gridOpts = {
+    sites, days, streakLen, cellTicketsMap: data.cellTickets,
+    dayTotalClass: "count", legendBarClass: "count", legendLabel: "TT"
+  };
 
   countWrap.innerHTML = buildSrmHeatGrid({
-    sites, days, streakLen,
+    ...gridOpts,
     getVal: (site, d)=> count[site][d],
     fmtVal: v=> String(v),
     maxVal: maxCellCount,
     rgba: "rgba(47,128,237,{a})",
     dayTotals: dayCount,
     rowTotals: siteRowCount,
-    grandTotal: grandCount,
-    dayTotalClass: "count",
-    legendBarClass: "count",
-    legendLabel: "TT"
+    grandTotal: grandCount
   });
 
   dtWrap.innerHTML = buildSrmHeatGrid({
-    sites, days, streakLen,
+    ...gridOpts,
     getVal: (site, d)=> downtime[site][d],
     fmtVal: v=> fmtHM(v),
     maxVal: maxCellDt,
@@ -1829,12 +2052,49 @@ function renderSiteRepeatMapping(){
     legendBarClass: "dt",
     legendLabel: "H:m"
   });
+
+  if(srmSubTab==="freetext") renderSrmFreeTextTab();
 }
-function openSrmDetail(site, day){
-  const rows = ((srmCellTickets[site] && srmCellTickets[site][day]) || [])
-    .slice()
-    .sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
-  document.getElementById("srmDetailTitle").textContent = `${site} · ${fmtSrmDayLabel(day)} · ${rows.length} ticket(s)`;
+function collectSrmDetailRows(kind, params){
+  params = params || {};
+  let rows = [];
+  if(kind === "cell"){
+    rows = ((srmCellTickets[params.site] && srmCellTickets[params.site][params.day]) || []).slice();
+  }else if(kind === "row"){
+    const { days } = getSrmMonthContext();
+    days.forEach(d=>{
+      const part = (srmCellTickets[params.site] && srmCellTickets[params.site][d]) || [];
+      rows.push(...part);
+    });
+  }else if(kind === "day"){
+    Object.keys(srmCellTickets).forEach(site=>{
+      const part = (srmCellTickets[site] && srmCellTickets[site][params.day]) || [];
+      rows.push(...part);
+    });
+  }else if(kind === "grand"){
+    rows = srmMonthTickets.slice();
+  }else if(kind === "keyword"){
+    const data = buildSiteRepeatData();
+    rows = (data.keywordTickets[params.keyword] || []).slice();
+  }
+  if(params.keyword && kind !== "keyword"){
+    rows = rows.filter(r=> matchSrmKeywords(r).some(kw=> kw.key === params.keyword));
+  }
+  return rows.sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
+}
+function openSrmDetail(kind, params){
+  params = params || {};
+  const rows = collectSrmDetailRows(kind, params);
+  let title = "Ticket Detail";
+  if(kind === "cell") title = `${params.site} · ${fmtSrmDayLabel(params.day)} · ${rows.length} ticket(s)`;
+  else if(kind === "row") title = `${params.site} · Total · ${rows.length} ticket(s)`;
+  else if(kind === "day") title = `${fmtSrmDayLabel(params.day)} · Total · ${rows.length} ticket(s)`;
+  else if(kind === "grand") title = `Grand Total · ${rows.length} ticket(s)`;
+  else if(kind === "keyword"){
+    const kw = SRM_KEYWORDS.find(k=>k.key===params.keyword);
+    title = `${kw ? kw.label : params.keyword} · ${rows.length} ticket(s)`;
+  }
+  document.getElementById("srmDetailTitle").textContent = title;
   const body = document.getElementById("srmDetailBody");
   if(!rows.length){
     body.innerHTML = `<div class="modal-empty">ไม่มี ticket</div>`;
@@ -1843,13 +2103,19 @@ function openSrmDetail(site, day){
       const c = classifyFaultTicket(r);
       const tt = r.source_ticket_id || r.sdm_tt || "-";
       const wo = r.work_order_id || "";
+      const site = extractFaultPlkdSite(r);
+      const kws = matchSrmKeywords(r);
+      const kwHtml = kws.length ? `<div class="srm-detail-kw">${kws.map(kw=>`<span style="background:${kw.bg};color:${kw.color}">${esc(kw.label)}</span>`).join("")}</div>` : "";
+      const subj = extractFaultSubjectDetail(r) || r.subject || "-";
       return `<div class="srm-detail-card">
         <div class="srm-detail-head">
           <span class="srm-detail-tt">${esc(tt)}</span>
           ${wo && wo !== tt ? `<span class="srm-detail-wo">${esc(wo)}</span>` : ""}
           <span class="sev-badge">${esc(r.severity||"-")}</span>
+          ${site ? `<span class="site-plkd-cell" style="font-size:12px;">${esc(site)}</span>` : ""}
         </div>
-        <div class="srm-detail-subj">${esc(extractFaultSubjectDetail(r) || r.subject || "-")}</div>
+        ${kwHtml}
+        <div class="srm-detail-subj">${highlightSrmKeywords(subj)}</div>
         <div class="srm-detail-meta">
           <span>Created: ${esc(fmtFaultRawDT(r.created_time)||"-")}</span>
           <span>Closed: ${esc(fmtFaultRawDT(r.closed_time)||"-")}</span>
@@ -1864,10 +2130,187 @@ function closeSrmDetail(){
   document.getElementById("srmDetailModal").classList.remove("open");
 }
 function onSrmViewClick(e){
-  const cell = e.target.closest(".srm-heat-clickable");
+  const kwCard = e.target.closest(".srm-kw-card[data-keyword]");
+  if(kwCard){
+    openSrmDetail("keyword", { keyword: kwCard.dataset.keyword });
+    return;
+  }
+  const cell = e.target.closest("[data-srm-kind]");
   if(!cell) return;
-  const site = cell.dataset.site, day = cell.dataset.day;
-  if(site && day) openSrmDetail(site, day);
+  const kind = cell.dataset.srmKind;
+  if(kind === "cell") openSrmDetail("cell", { site: cell.dataset.site, day: cell.dataset.day });
+  else if(kind === "row") openSrmDetail("row", { site: cell.dataset.site });
+  else if(kind === "day") openSrmDetail("day", { day: cell.dataset.day });
+  else if(kind === "grand") openSrmDetail("grand", {});
+  else if(kind === "keyword") openSrmDetail("keyword", { keyword: cell.dataset.keyword });
+}
+function renderSrmFreeTextTab(){
+  const grid = document.getElementById("srmFtGrid");
+  const wrap = document.getElementById("srmFtTableWrap");
+  const countEl = document.getElementById("srmFtTicketCount");
+  if(!grid || !wrap) return;
+  grid.innerHTML = SRM_FT_SLOTS.map(slot=>{
+    const labels = getActiveSrmFtLabels(slot);
+    const cur = srmFreeTextFilters[slot] || "";
+    const slotClass = slot.toLowerCase();
+    return `<div class="srm-ft-slot slot-${slotClass}">
+      <div class="srm-ft-slot-head">
+        <div class="srm-ft-slot-letter">${slot}</div>
+        <button type="button" class="btn sm ghost srm-ft-manage-btn" onclick="openSrmFtManageModal('${slot}')">⚙ จัดการ</button>
+      </div>
+      <select class="srm-ft-big-select" onchange="onSrmFtFilterChange('${slot}', this.value)">
+        <option value="">— ทั้งหมด —</option>
+        ${labels.map(l=>`<option value="${esc(l)}" ${cur===l?"selected":""}>${esc(l)}</option>`).join("")}
+      </select>
+    </div>`;
+  }).join("");
+
+  let rows = srmMonthTickets.length ? srmMonthTickets.slice() : getSrmMonthTickets();
+  rows = rows.filter(passesSrmFreeTextFilters);
+  if(countEl) countEl.textContent = String(rows.length);
+
+  if(!rows.length){
+    wrap.innerHTML = `<div class="empty-hint" style="padding:24px;">ไม่มี ticket ตรงเงื่อนไข</div>`;
+    return;
+  }
+
+  wrap.innerHTML = `<table class="srm-ft-table"><thead><tr>
+    <th>Site</th><th>Ticket ID</th><th>Subject</th><th>Closed</th>
+    ${SRM_FT_SLOTS.map(s=>`<th>Free Text ${s}</th>`).join("")}
+  </tr></thead><tbody>${rows.map(r=>{
+    const wo = r.work_order_id || "";
+    const assign = getSrmFtAssign(wo);
+    const tt = r.source_ticket_id || r.sdm_tt || "-";
+    return `<tr>
+      <td class="site-plkd-cell">${esc(extractFaultPlkdSite(r))}</td>
+      <td class="tt-line">${esc(tt)}${wo && wo !== tt ? `<span class="ext">${esc(wo)}</span>` : ""}</td>
+      <td class="subject-cell">${esc(extractFaultSubjectDetail(r) || r.subject || "")}</td>
+      <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
+      ${SRM_FT_SLOTS.map(slot=>{
+        const labels = getActiveSrmFtLabels(slot);
+        const val = assign[slot] || "";
+        const woJs = JSON.stringify(wo);
+        return `<td><select onchange="onSrmFtAssignChange(${woJs},'${slot}', this.value)">
+          <option value="">—</option>
+          ${labels.map(l=>`<option value="${esc(l)}" ${val===l?"selected":""}>${esc(l)}</option>`).join("")}
+        </select></td>`;
+      }).join("")}
+    </tr>`;
+  }).join("")}</tbody></table>`;
+}
+function onSrmFtFilterChange(slot, val){
+  srmFreeTextFilters[slot] = val || "";
+  renderSrmFreeTextTab();
+}
+function onSrmFtAssignChange(woId, slot, val){
+  setSrmFtAssign(woId, slot, val || "");
+  renderSrmFreeTextTab();
+}
+function openSrmFtManageModal(slot){
+  srmFtManageSlot = slot || "A";
+  renderSrmFtManageList();
+  document.getElementById("srmFtManageModal")?.classList.add("open");
+  document.getElementById("srmFtNewLabelInput")?.focus();
+}
+function closeSrmFtManageModal(){
+  document.getElementById("srmFtManageModal")?.classList.remove("open");
+}
+function renderSrmFtManageList(){
+  const title = document.getElementById("srmFtManageTitle");
+  const body = document.getElementById("srmFtManageBody");
+  if(title) title.textContent = `จัดการ Free Text ${srmFtManageSlot}`;
+  if(!body) return;
+  const list = (SRM_FREE_TEXT_OPTS[srmFtManageSlot] || []).slice();
+  if(!list.length){
+    body.innerHTML = `<div class="modal-empty">ยังไม่มีตัวเลือก — พิมพ์ด้านบนแล้วกด + เพิ่ม</div>`;
+    return;
+  }
+  body.innerHTML = list.map((g,i)=>`
+    <div class="gp-manage-row${g.is_active===false?" inactive":""}" data-ft-id="${g.id}">
+      <div class="gp-manage-sort">
+        <button type="button" title="เลื่อนขึ้น" onclick="moveSrmFtRow('${srmFtManageSlot}',${g.id},'up')" ${i===0?"disabled":""}>▲</button>
+        <button type="button" title="เลื่อนลง" onclick="moveSrmFtRow('${srmFtManageSlot}',${g.id},'down')" ${i===list.length-1?"disabled":""}>▼</button>
+      </div>
+      <input class="gp-manage-label srm-ft-label-input" data-id="${g.id}" value="${esc(g.label)}" onkeydown="if(event.key==='Enter') saveSrmFtRow('${srmFtManageSlot}',${g.id})">
+      <label class="gp-manage-active"><input type="checkbox" ${g.is_active!==false?"checked":""} onchange="toggleSrmFtActive('${srmFtManageSlot}',${g.id}, this.checked)"> ใช้งาน</label>
+      <div class="gp-manage-actions">
+        <button type="button" class="btn sm" onclick="saveSrmFtRow('${srmFtManageSlot}',${g.id})">บันทึก</button>
+        <button type="button" class="btn sm ghost gp-manage-del" onclick="deleteSrmFtRow('${srmFtManageSlot}',${g.id})">ลบ</button>
+      </div>
+    </div>`).join("");
+}
+function addSrmFtFromInput(){
+  const input = document.getElementById("srmFtNewLabelInput");
+  const label = input?.value?.trim();
+  if(!label){ toast("พิมพ์ชื่อตัวเลือกก่อน"); return; }
+  const slot = srmFtManageSlot;
+  const list = SRM_FREE_TEXT_OPTS[slot] || [];
+  if(list.some(o=> String(o.label).toLowerCase() === label.toLowerCase())){ toast("ชื่อซ้ำ"); return; }
+  const id = Date.now() + Math.floor(Math.random()*1000);
+  list.push({ id, label, is_active:true, sort_order: list.length + 1 });
+  SRM_FREE_TEXT_OPTS[slot] = list;
+  saveSrmFreeTextOpts();
+  if(input) input.value = "";
+  renderSrmFtManageList();
+  renderSrmFreeTextTab();
+  toast(`เพิ่ม Free Text ${slot} แล้ว`);
+}
+function saveSrmFtRow(slot, id){
+  const rowEl = document.querySelector(`.gp-manage-row[data-ft-id="${id}"]`);
+  const label = rowEl?.querySelector(".srm-ft-label-input")?.value?.trim();
+  const list = SRM_FREE_TEXT_OPTS[slot] || [];
+  const row = list.find(o=> o.id === id);
+  if(!row || !label){ toast("ชื่อว่างไม่ได้"); return; }
+  const oldLabel = row.label;
+  if(oldLabel !== label){
+    Object.keys(SRM_FREE_TEXT_ASSIGN).forEach(wo=>{
+      if(SRM_FREE_TEXT_ASSIGN[wo][slot] === oldLabel) SRM_FREE_TEXT_ASSIGN[wo][slot] = label;
+    });
+    if(srmFreeTextFilters[slot] === oldLabel) srmFreeTextFilters[slot] = label;
+    saveSrmFreeTextAssign();
+  }
+  row.label = label;
+  saveSrmFreeTextOpts();
+  renderSrmFtManageList();
+  renderSrmFreeTextTab();
+  toast("บันทึกแล้ว");
+}
+function toggleSrmFtActive(slot, id, checked){
+  const row = (SRM_FREE_TEXT_OPTS[slot]||[]).find(o=> o.id === id);
+  if(!row) return;
+  row.is_active = !!checked;
+  saveSrmFreeTextOpts();
+  renderSrmFtManageList();
+  renderSrmFreeTextTab();
+}
+function moveSrmFtRow(slot, id, dir){
+  const list = (SRM_FREE_TEXT_OPTS[slot]||[]).slice();
+  const idx = list.findIndex(o=> o.id === id);
+  const swapIdx = dir === "up" ? idx - 1 : idx + 1;
+  if(idx < 0 || swapIdx < 0 || swapIdx >= list.length) return;
+  [list[idx], list[swapIdx]] = [list[swapIdx], list[idx]];
+  list.forEach((o,i)=>{ o.sort_order = i + 1; });
+  SRM_FREE_TEXT_OPTS[slot] = list;
+  saveSrmFreeTextOpts();
+  renderSrmFtManageList();
+  renderSrmFreeTextTab();
+}
+function deleteSrmFtRow(slot, id){
+  const list = SRM_FREE_TEXT_OPTS[slot] || [];
+  const row = list.find(o=> o.id === id);
+  if(!row) return;
+  if(!confirm(`ลบ "${row.label}" จาก Free Text ${slot}?`)) return;
+  SRM_FREE_TEXT_OPTS[slot] = list.filter(o=> o.id !== id);
+  Object.keys(SRM_FREE_TEXT_ASSIGN).forEach(wo=>{
+    if(SRM_FREE_TEXT_ASSIGN[wo][slot] === row.label) delete SRM_FREE_TEXT_ASSIGN[wo][slot];
+    if(SRM_FREE_TEXT_ASSIGN[wo] && !Object.keys(SRM_FREE_TEXT_ASSIGN[wo]).length) delete SRM_FREE_TEXT_ASSIGN[wo];
+  });
+  if(srmFreeTextFilters[slot] === row.label) srmFreeTextFilters[slot] = "";
+  saveSrmFreeTextOpts();
+  saveSrmFreeTextAssign();
+  renderSrmFtManageList();
+  renderSrmFreeTextTab();
+  toast("ลบแล้ว");
 }
 function fmtHMText(totalMinutes){
   const m = Math.max(0, Math.round(totalMinutes));
@@ -2099,7 +2542,6 @@ function renderHome(){
       <h4>Service Availability</h4>
       <div class="summary-body">
         <div class="summary-line"><span class="lbl">SA Severity — ${esc(dateVal)}</span><span class="val" style="color:var(--coral)">${svcAva.percent.toFixed(4)}%</span></div>
-        <div class="more-link" onclick="switchTab('svcava')">View detail →</div>
         <textarea class="summary-note free-ta" placeholder="หมายเหตุในเหตุการณ์สำคัญ…" onchange="updateHomeNote(this.value)">${esc(HOME_NOTE.service_ava||'')}</textarea>
       </div>
     </div>
@@ -2375,8 +2817,8 @@ async function updateField(id, field, value){
     rebuildInocLogByTt();
     if(currentTab === "fault") renderFault();
   }
-  renderTeams(group);
-  if(group==="closed") renderTeams("manual");
+  if(group==="pending") renderTeams("pending");
+  else renderTeams("manual");
   renderHome();
 }
 function toggleGroup(id, fromGroup){
@@ -2592,12 +3034,32 @@ function saveColWidths(){ try{ localStorage.setItem("plkdColWidths", JSON.string
 // Adds a drag handle to the right edge of every <th> in `table` so columns can be resized by
 // hand — widths persist per storageKey (e.g. "team-pending", "home", "svcava") across re-renders
 // and page reloads via localStorage.
+function colMinWidth(th){
+  if(!th) return 56;
+  if(th.classList.contains("dt-col-downtime")) return 128;
+  if(th.classList.contains("dt-col")) return 112;
+  if(th.classList.contains("fault-col-ticket")) return 150;
+  if(th.classList.contains("fault-col-subject")) return 240;
+  if(th.classList.contains("fault-col-desc") || th.classList.contains("fault-col-gp") ||
+     th.classList.contains("fault-col-cause") || th.classList.contains("fault-col-ltr") ||
+     th.classList.contains("fault-col-inoc")) return 180;
+  const t = (th.textContent||"").trim().toLowerCase();
+  if(t.includes("ticket") || t.includes("tt /")) return 140;
+  if(t.includes("subject")) return 170;
+  if(t.includes("inoc")) return 150;
+  if(t.includes("description")) return 180;
+  if(t.includes("dispatched") || t.includes("accepted") || t.includes("departed") ||
+     t.includes("arrived") || t.includes("completed") || t.includes("closed")) return 112;
+  return 56;
+}
 function makeColumnsResizable(table, storageKey){
   if(!table) return;
   const ths = table.querySelectorAll("thead th");
   ths.forEach((th, i)=>{
     const key = `${storageKey}:${i}`;
-    if(COL_WIDTHS[key]) th.style.width = COL_WIDTHS[key]+"px";
+    const minW = colMinWidth(th);
+    if(COL_WIDTHS[key]) th.style.width = Math.max(minW, COL_WIDTHS[key])+"px";
+    else th.style.minWidth = minW+"px";
     if(th.querySelector(".col-resizer")) return; // already wired up
     const handle = document.createElement("div");
     handle.className = "col-resizer";
@@ -2609,7 +3071,7 @@ function makeColumnsResizable(table, storageKey){
       handle.classList.add("resizing");
       document.body.style.cursor = "col-resize";
       const onMove = (ev)=>{
-        const newWidth = Math.max(40, startWidth + (ev.pageX - startX));
+        const newWidth = Math.max(colMinWidth(th), startWidth + (ev.pageX - startX));
         th.style.width = newWidth+"px";
       };
       const onUp = ()=>{
@@ -2867,13 +3329,19 @@ function getFaultDateRange(){
   };
 }
 function faultTicketInRange(r, range){
-  const closed = parseFaultTs(r.closed_time);
-  if(!closed) return false;
-  return closed >= range.start && closed <= range.end;
+  if(!r.closed_time) return false;
+  const closedDay = String(r.closed_time).slice(0, 10);
+  const startDay = fmtIsoLocalDate(range.start);
+  const endDay = range.dateVal || fmtIsoLocalDate(range.end);
+  return closedDay >= startDay && closedDay <= endDay;
 }
 function isFaultSaSeverity(r){
   const fam = ((r.severity||"").split("-")[0] || "").toUpperCase();
   return /^SA[1-6]$/.test(fam);
+}
+function isFaultSrmSeverity(r){
+  const fam = ((r.severity||"").split("-")[0] || "").toUpperCase();
+  return /^(SA[1-6]|NSA[1-4])$/.test(fam);
 }
 function isFaultBroadbandTicket(r){
   return isBroadbandRow(r);
@@ -3753,60 +4221,60 @@ async function promptAddFaultLongTimeReason(woId){
   }
 }
 const FAULT_TABLE_HEAD = `<tr>
-  <th style="width:90px">Site</th>
-  <th style="width:120px">Ticket ID</th>
-  <th style="width:200px">Subject</th>
-  <th style="width:100px">SEVERITY</th>
+  <th class="fault-col-site">Site</th>
+  <th class="fault-col-ticket">Ticket ID</th>
+  <th class="fault-col-subject">Subject</th>
+  <th class="fault-col-sev">SEVERITY</th>
   <th class="dt-col">Ticket Open</th>
   <th class="dt-col">Depart</th>
   <th class="dt-col">Arrive</th>
   <th class="dt-col">Close</th>
   <th class="dt-col dt-col-downtime">Downtime<br><span class="th-sub">Created → Closed</span></th>
-  <th style="width:180px">Close Description</th>
-  <th style="width:200px">Group Problem</th>
-  <th style="width:160px">INOC log</th>
-  <th style="width:140px">In or Out Control</th>
+  <th class="fault-col-desc">Close Description</th>
+  <th class="fault-col-gp">Group Problem</th>
+  <th class="fault-col-inoc">INOC log</th>
+  <th class="fault-col-ctrl">In or Out Control</th>
 </tr>`;
 function faultTableHeadHtml(opts){
   opts = opts || {};
   if(opts.overviewReasonCols){
     return `<tr>
-  <th style="width:90px">Site</th>
-  <th style="width:120px">Ticket ID</th>
-  <th style="width:200px">Subject</th>
-  <th style="width:100px">SEVERITY</th>
+  <th class="fault-col-site">Site</th>
+  <th class="fault-col-ticket">Ticket ID</th>
+  <th class="fault-col-subject">Subject</th>
+  <th class="fault-col-sev">SEVERITY</th>
   <th class="dt-col">Ticket Open</th>
   <th class="dt-col">Depart</th>
   <th class="dt-col">Arrive</th>
   <th class="dt-col">Close</th>
   <th class="dt-col dt-col-downtime">Downtime<br><span class="th-sub">Created → Closed</span></th>
-  <th style="width:180px">Close Description</th>
-  <th style="width:200px">Group Problem</th>
-  <th style="width:200px">Cause Over</th>
-  <th style="width:200px">Long time Reason</th>
-  <th style="width:160px">INOC log</th>
-  <th style="width:140px">In or Out Control</th>
+  <th class="fault-col-desc">Close Description</th>
+  <th class="fault-col-gp">Group Problem</th>
+  <th class="fault-col-cause">Cause Over</th>
+  <th class="fault-col-ltr">Long time Reason</th>
+  <th class="fault-col-inoc">INOC log</th>
+  <th class="fault-col-ctrl">In or Out Control</th>
 </tr>`;
   }
   if(!opts.showCauseOver && !opts.showLongTimeReason) return FAULT_TABLE_HEAD;
   let extra = "";
-  if(opts.showCauseOver) extra += `<th style="width:200px">Cause Over</th>`;
-  if(opts.showLongTimeReason) extra += `<th style="width:200px">Long time Reason</th>`;
+  if(opts.showCauseOver) extra += `<th class="fault-col-cause">Cause Over</th>`;
+  if(opts.showLongTimeReason) extra += `<th class="fault-col-ltr">Long time Reason</th>`;
   return `<tr>
-  <th style="width:90px">Site</th>
-  <th style="width:120px">Ticket ID</th>
-  <th style="width:200px">Subject</th>
-  <th style="width:100px">SEVERITY</th>
+  <th class="fault-col-site">Site</th>
+  <th class="fault-col-ticket">Ticket ID</th>
+  <th class="fault-col-subject">Subject</th>
+  <th class="fault-col-sev">SEVERITY</th>
   <th class="dt-col">Ticket Open</th>
   <th class="dt-col">Depart</th>
   <th class="dt-col">Arrive</th>
   <th class="dt-col">Close</th>
   <th class="dt-col dt-col-downtime">Downtime<br><span class="th-sub">Created → Closed</span></th>
-  <th style="width:180px">Close Description</th>
-  <th style="width:200px">Group Problem</th>
+  <th class="fault-col-desc">Close Description</th>
+  <th class="fault-col-gp">Group Problem</th>
   ${extra}
-  <th style="width:160px">INOC log</th>
-  <th style="width:140px">In or Out Control</th>
+  <th class="fault-col-inoc">INOC log</th>
+  <th class="fault-col-ctrl">In or Out Control</th>
 </tr>`;
 }
 function faultTableColSpan(opts){
@@ -5159,8 +5627,11 @@ function toast(msg){
     await loadAll();
     moveTabIndicator();
     moveFaultSubTabIndicator();
+    moveSrmSubTabIndicator();
     setTimeout(moveTabIndicator, 300);
     setTimeout(moveFaultSubTabIndicator, 300);
+    setTimeout(moveSrmSubTabIndicator, 300);
+    loadSrmFreeTextStore();
     document.getElementById("srmView")?.addEventListener("click", onSrmViewClick);
     Promise.all([fetchGroupProblems(), fetchCauseOvers(), fetchLongTimeReasons()]).catch(e=>{
       console.warn("Fault config load failed:", e);
@@ -5230,6 +5701,20 @@ function toast(msg){
     </div>
     <div class="modal-body gp-manage-list" id="ltrManageBody"></div>
     <div class="gp-manage-hint">ปิดใช้ = ไม่แสดงใน dropdown · ลบ = หายจากรายการ (ticket เก่ายังเก็บค่าเดิม) · แก้ชื่อแล้วกด บันทึก</div>
+  </div>
+</div>
+<div class="modal-overlay" id="srmFtManageModal" onclick="if(event.target===this) closeSrmFtManageModal()">
+  <div class="modal-box gp-manage-box">
+    <div class="modal-head">
+      <h3 id="srmFtManageTitle">จัดการ Free Text</h3>
+      <button class="modal-close" onclick="closeSrmFtManageModal()">✕</button>
+    </div>
+    <div class="gp-manage-toolbar">
+      <input type="text" id="srmFtNewLabelInput" placeholder="ตัวเลือกใหม่…" onkeydown="if(event.key==='Enter') addSrmFtFromInput()">
+      <button class="btn sm primary" onclick="addSrmFtFromInput()">+ เพิ่ม</button>
+    </div>
+    <div class="modal-body gp-manage-list" id="srmFtManageBody"></div>
+    <div class="gp-manage-hint">เพิ่ม / แก้ / ลบ ตัวเลือกใน Dropdown · ปิดใช้ = ไม่แสดงใน dropdown</div>
   </div>
 </div>
 
