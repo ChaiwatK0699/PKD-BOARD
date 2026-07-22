@@ -191,7 +191,7 @@ input.search-box{background:var(--panel-2); border:1px solid var(--border); colo
 .team-count{color:var(--muted); font-size:12.5px; font-family:'JetBrains Mono';}
 table{width:100%; table-layout:fixed; border-collapse:collapse; font-size:13.5px; border:1px solid var(--border-soft);}
 thead th{position:relative; text-align:left; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
-  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); border-right:1px solid var(--border-soft); white-space:nowrap; overflow:visible; text-overflow:clip;}
+  color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); border-right:1px solid var(--border-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 thead th:last-child{border-right:none;}
 .col-resizer{position:absolute; top:0; right:0; width:8px; height:100%; cursor:col-resize; user-select:none; z-index:5; touch-action:none;}
 .col-resizer:hover, .col-resizer.resizing{background:var(--blue);}
@@ -216,8 +216,8 @@ textarea.cell-ta{resize:vertical; min-height:34px; font-family:'JetBrains Mono';
 .site-input.invalid{color:var(--muted);}
 .plkd-badge{display:inline-block; font-size:9.5px; font-family:'JetBrains Mono'; background:var(--teal-dim); color:var(--teal);
   padding:1px 5px; border-radius:8px; margin-left:5px; vertical-align:middle;}
-.tt-line{font-family:'JetBrains Mono'; font-size:12px; display:flex; flex-direction:column; align-items:flex-start; gap:2px; line-height:1.35; min-width:max-content;}
-.tt-line .ext{color:var(--muted-2); font-size:11px; display:block; white-space:nowrap;}
+.tt-line{font-family:'JetBrains Mono'; font-size:12px; line-height:1.35;}
+.tt-line .ext{color:var(--muted-2); font-size:11px; margin-left:6px;}
 .sev-badge{display:inline-block; font-family:'JetBrains Mono'; font-size:11px; padding:1px 6px; border-radius:4px; background:var(--border-soft); color:var(--muted);}
 .sla-over{color:var(--coral); font-size:11.5px; font-family:'JetBrains Mono';}
 .sla-in{color:var(--teal); font-size:11.5px; font-family:'JetBrains Mono';}
@@ -257,40 +257,17 @@ textarea.cell-ta{resize:vertical; min-height:34px; font-family:'JetBrains Mono';
 .toast{position:fixed; bottom:20px; right:20px; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
   padding:10px 16px; border-radius:6px; font-size:14px; z-index:300; opacity:0; transform:translateY(10px); transition:.25s;}
 .toast.show{opacity:1; transform:translateY(0);}
-.subject-cell{font-size:12px; color:var(--muted); line-height:1.4; white-space:normal; word-break:break-word; overflow-wrap:anywhere; box-sizing:border-box;}
-.dt-cell{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text); white-space:nowrap; line-height:1.35; vertical-align:middle;}
+.subject-cell{font-size:12px; color:var(--muted); line-height:1.4; white-space:normal; word-break:break-word; overflow-wrap:anywhere; max-width:220px; box-sizing:border-box;}
+.dt-cell{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text); line-height:1.35; vertical-align:middle; white-space:normal;}
 .dt-cell .dt-date{display:block; font-size:11px; line-height:1.3; white-space:nowrap;}
 .dt-cell .dt-time{display:block; font-size:11px; color:var(--muted-2); line-height:1.3; white-space:nowrap;}
-.table-scroll > table{table-layout:auto; width:max-content; min-width:100%;}
-.table-scroll > table thead th{overflow:visible; text-overflow:clip;}
-.table-scroll > table .subject-cell{max-width:none; min-width:160px;}
-table.fault-data-table,
-table.svcava-table.fault-data-table{table-layout:auto; width:max-content; min-width:100%;}
-table.fault-data-table thead th,
-table.svcava-table.fault-data-table thead th{overflow:visible; text-overflow:clip;}
-table.fault-data-table .fault-col-site{min-width:72px;}
-table.fault-data-table .fault-col-ticket{min-width:150px;}
-table.fault-data-table .fault-col-subject{min-width:240px;}
-table.fault-data-table .fault-col-sev{min-width:88px;}
-table.fault-data-table .fault-col-desc{min-width:180px;}
-table.fault-data-table .fault-col-gp,
-table.fault-data-table .fault-col-cause,
-table.fault-data-table .fault-col-ltr{min-width:180px;}
-table.fault-data-table .fault-col-inoc{min-width:180px;}
-table.fault-data-table .fault-col-ctrl{min-width:140px;}
-table.fault-data-table th.dt-col{min-width:112px; width:auto; max-width:none;}
-table.fault-data-table td.dt-cell{min-width:112px; width:auto; max-width:none; overflow:visible; white-space:nowrap;}
-table.fault-data-table th.dt-col-downtime{min-width:128px; white-space:normal;}
-table.fault-data-table td.dt-downtime{white-space:nowrap; min-width:128px; max-width:none;}
-table.fault-data-table .subject-cell{max-width:none; min-width:240px;}
-table.fault-data-table thead th .th-sub{white-space:nowrap;}
+.dt-cell.dt-downtime{white-space:nowrap;}
 
 /* ---- Home summary page ---- */
 .home-title{font-family:'Barlow Condensed'; font-weight:800; font-size:21px; letter-spacing:.04em; margin-bottom:14px; color:var(--text);}
 .home-table-scroll{overflow-x:auto; border-radius:8px; border:1px solid var(--border-soft);}
 .table-scroll{overflow-x:auto;}
-table.home-table{width:max-content; min-width:100%; table-layout:auto; border-collapse:collapse; background:var(--panel);}
-table.home-table thead th{overflow:visible; text-overflow:clip;}
+table.home-table{width:100%; table-layout:fixed; border-collapse:collapse; background:var(--panel);}
 table.home-table thead th{background:var(--panel-2); text-align:center; font-family:'Barlow Condensed'; font-weight:700;
   letter-spacing:.04em; text-transform:uppercase; font-size:12.5px; color:var(--muted); padding:10px 8px;
   border-bottom:1px solid var(--border); border-right:1px solid var(--border-soft);}
@@ -365,8 +342,7 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
 .svcava-hero{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:24px 28px; margin-bottom:20px;}
 .svcava-big{font-family:'Barlow Condensed'; font-weight:800; font-size:48px; color:var(--coral); letter-spacing:.01em;}
 .svcava-sub{font-family:'JetBrains Mono'; font-size:12.5px; color:var(--muted); margin-top:6px;}
-table.svcava-table{width:max-content; min-width:100%; table-layout:auto; border-collapse:collapse; font-size:13.5px; background:var(--panel); border:1px solid var(--border-soft); border-radius:8px;}
-table.svcava-table thead th{overflow:visible; text-overflow:clip;}
+table.svcava-table{width:100%; table-layout:fixed; border-collapse:collapse; font-size:13.5px; background:var(--panel); border:1px solid var(--border-soft); border-radius:8px;}
 table.svcava-table thead th{text-align:left; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
   color:var(--muted); font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--border); background:var(--panel-2);}
 table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft);}
@@ -532,7 +508,7 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-detail-subj{font-size:13px; line-height:1.5; color:var(--text); margin-bottom:8px; word-break:break-word;}
 .srm-detail-meta{display:flex; flex-wrap:wrap; gap:8px 16px; font-size:11.5px; color:var(--muted); font-family:'JetBrains Mono';}
 .srm-detail-meta span{white-space:nowrap;}
-.srm-kw-panel{display:grid; grid-template-columns:repeat(4, minmax(140px, 1fr)); gap:14px; margin-bottom:22px;}
+.srm-kw-panel{display:grid; grid-template-columns:repeat(3, minmax(160px, 1fr)); gap:14px; margin-bottom:22px;}
 .srm-kw-card{
   border-radius:12px; padding:16px 18px; cursor:pointer; border:2px solid transparent;
   transition:transform .12s, box-shadow .15s, border-color .15s; min-height:96px;
@@ -602,10 +578,10 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 @keyframes srmFtExpandIn{from{opacity:0; transform:translateY(-4px);}to{opacity:1; transform:translateY(0);}}
 .srm-ft-expand-head{font-family:'Barlow Condensed'; font-weight:700; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
 .srm-ft-expand-panel .table-scroll{max-height:420px; overflow:auto; border:1px solid var(--border-soft); border-radius:8px;}
-.srm-ft-ticket-table{width:max-content; min-width:100%; border-collapse:collapse; font-size:13px;}
+.srm-ft-ticket-table{width:100%; border-collapse:collapse; font-size:13px;}
 .srm-ft-ticket-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:left;}
 .srm-ft-ticket-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
-.srm-ft-ticket-table .subject-cell{max-width:280px; min-width:160px;}
+.srm-ft-ticket-table .subject-cell{max-width:220px;}
 .srm-detail-box.wide{width:min(1200px,96vw);}
 .srm-ft-site-link{cursor:pointer; font-weight:700; text-decoration:underline; text-underline-offset:3px; transition:color .12s;}
 .srm-ft-site-link:hover{color:var(--blue);}
@@ -616,26 +592,6 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .fault-chart-title{font-family:'Barlow Condensed'; font-weight:700; font-size:15px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
 .fault-chart-wrap{position:relative; height:400px;}
 .fault-table-block{margin-bottom:22px;}
-#faultView table.fault-data-table{font-size:17px;}
-#faultView table.fault-data-table thead th{font-size:15.5px; padding:11px 14px;}
-#faultView table.fault-data-table tbody td{padding:11px 14px; font-size:17px; vertical-align:middle;}
-#faultView table.fault-data-table .site-plkd-cell{font-size:16.5px;}
-#faultView table.fault-data-table .tt-line{font-size:16.5px;}
-#faultView table.fault-data-table .tt-line .ext{font-size:14.5px;}
-#faultView table.fault-data-table .subject-cell{font-size:16px; line-height:1.45;}
-#faultView table.fault-data-table .sev-badge{font-size:14.5px; padding:3px 9px;}
-#faultView table.fault-data-table .dt-cell{font-size:15.5px;}
-#faultView table.fault-data-table .dt-cell .dt-date,
-#faultView table.fault-data-table .dt-cell .dt-time{font-size:14.5px;}
-#faultView table.fault-data-table .home-feedback.free-ta{font-size:16px; line-height:1.5; min-height:96px;}
-#faultView table.fault-data-table .empty-hint{font-size:16px; padding:22px;}
-#faultView .fault-dd-select{font-size:16px; padding:8px 30px 8px 12px;}
-#faultView .fault-dd-add{height:40px; font-size:20px;}
-#faultView table.fault-data-table.fault-ltr-summary-table{font-size:20px;}
-#faultView table.fault-data-table.fault-ltr-summary-table .fault-ltr-reason-name{font-size:20px;}
-#faultView table.fault-data-table.fault-ltr-summary-table td{font-size:22px;}
-#faultView table.fault-data-table.fault-ltr-summary-table th{font-size:19px;}
-#faultView table.fault-data-table.fault-ltr-summary-table .fault-ltr-total{font-size:23px;}
 .fault-control-summary{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:18px; max-width:640px;}
 .fault-control-summary .summary-card{cursor:pointer; transition:transform .12s, box-shadow .15s;}
 .fault-control-summary .summary-card:hover{transform:translateY(-2px); box-shadow:0 8px 24px var(--shadow-strong);}
@@ -706,14 +662,14 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .fault-ltr-summary-table .fault-ltr-reason-row{cursor:pointer; transition:background .15s;}
 .fault-ltr-summary-table .fault-ltr-reason-row:hover{background:var(--blue-dim);}
 .fault-ltr-summary-table .fault-ltr-reason-row.active{background:var(--blue-dim); outline:2px solid var(--blue); outline-offset:-2px;}
-.fault-ltr-summary-table{font-size:17px;}
-.fault-ltr-summary-table .fault-ltr-reason-name{font-weight:600; font-size:17px; text-align:left; white-space:normal; max-width:320px;}
-.fault-ltr-summary-table td{text-align:center; vertical-align:middle; font-size:19px;}
-.fault-ltr-summary-table th{font-size:16px; font-weight:700;}
+.fault-ltr-summary-table{font-size:13.5px;}
+.fault-ltr-summary-table .fault-ltr-reason-name{font-weight:600; font-size:13.5px; text-align:left; white-space:normal; max-width:220px;}
+.fault-ltr-summary-table td{text-align:center; vertical-align:middle; font-size:13.5px;}
+.fault-ltr-summary-table th{font-size:11.5px; font-weight:700;}
 .fault-ltr-summary-table th.fault-ltr-bucket-th{white-space:nowrap;}
-.fault-ltr-num{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; color:var(--text);}
-.fault-ltr-num.is-zero{color:var(--muted); font-weight:500; font-size:18px;}
-.fault-ltr-summary-table .fault-ltr-total{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; color:var(--text);}
+.fault-ltr-num{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13.5px; color:var(--text);}
+.fault-ltr-num.is-zero{color:var(--muted); font-weight:500; font-size:12px;}
+.fault-ltr-summary-table .fault-ltr-total{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px; color:var(--text);}
 .fault-ctrl-insight{
   background:linear-gradient(135deg, var(--blue-dim) 0%, var(--panel) 55%);
   border:1px solid var(--border); border-left:4px solid var(--blue);
@@ -892,7 +848,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
   <div id="srmView" class="tab-view" style="display:none;">
     <div class="srm-head">
       <h2>Site Repeat Mapping</h2>
-      <p id="srmSubtitle">Severity SA1–SA6 · NSA1–NSA4 · ไม่รวม Broadband · นับจากวันที่ Closed (00:00–23:59)</p>
+      <p id="srmSubtitle">Severity SA1–SA6 · NSA1–NSA4 · WO Creator System · มี Source Ticket ID · ไม่รวม Broadband · Closed 00:00–23:59</p>
     </div>
     <div class="tabs" id="tabsSrmSub" style="margin-bottom:16px;">
       <div class="tab-indicator" id="tabIndicatorSrmSub"></div>
@@ -1093,9 +1049,18 @@ function getImportWoCreator(r){
 function rowHasWoCreatorColumn(r){
   return !!(r && ("WO Creator" in r || "Wo Creator" in r));
 }
+function isSystemWoCreatorValue(val){
+  return String(val || "").trim().toLowerCase() === "system";
+}
 function isSystemWoCreatorRow(r){
-  if(!rowHasWoCreatorColumn(r)) return true;
-  return getImportWoCreator(r).toLowerCase() === "system";
+  const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
+  return isSystemWoCreatorValue(get("WO Creator") || get("Wo Creator"));
+}
+function isFaultSystemWoCreator(r){
+  return isSystemWoCreatorValue(r?.wo_creator);
+}
+function hasFaultSourceTicketId(r){
+  return !!String(r?.source_ticket_id || "").trim();
 }
 function isBroadbandRow(r){
   if(!r) return false;
@@ -1181,10 +1146,9 @@ let srmCellTickets = {};
 let srmMonthTickets = [];
 let srmSubTab = "mapping";
 const SRM_KEYWORDS = [
-  { key:"main_ac", label:"Main AC", pattern:/main\s*ac/i, color:"#0891b2", bg:"rgba(8,145,178,.2)" },
-  { key:"power_fail", label:"Power Fail", pattern:/power\s*fail/i, color:"#dc2626", bg:"rgba(220,38,38,.18)" },
-  { key:"intrusion", label:"Intrusion", pattern:/intrusion/i, color:"#d97706", bg:"rgba(217,119,6,.2)" },
-  { key:"route_cell_down", label:"Route Cell Down", pattern:/route\s*cell\s*down|cell\s*down/i, color:"#7c3aed", bg:"rgba(124,58,237,.18)" }
+  { key:"main_ac_power_fail", label:"MAIN AC POWER FAIL", pattern:/main\s*ac\s*power\s*fail/i, color:"#0891b2", bg:"rgba(8,145,178,.2)" },
+  { key:"main_power_fail", label:"Main Power Fail", pattern:/main\s*power\s*fail/i, color:"#dc2626", bg:"rgba(220,38,38,.18)" },
+  { key:"battery_stolen", label:"Battery Stolen", pattern:/battery\s*stolen/i, color:"#d97706", bg:"rgba(217,119,6,.2)" }
 ];
 const SRM_FT_SLOTS = ["A","B","C","D","E"];
 let SRM_FREE_TEXT_OPTS = { A:[], B:[], C:[], D:[], E:[] };
@@ -1562,7 +1526,10 @@ function passFilter(r, group){
 
 function fmtDT(v){
   if(!v) return '<span class="muted-dash">—</span>';
-  return esc(v);
+  const s = String(v).trim();
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+  if(m) return `<span class="dt-date">${esc(m[1])}</span><span class="dt-time">${esc(m[2])}</span>`;
+  return esc(s);
 }
 function renderTeams(group){
   const container = document.getElementById(GROUP_CONTAINER[group]);
@@ -1602,19 +1569,19 @@ function renderTeams(group){
     const table = document.createElement("table");
     table.innerHTML = `
       <thead><tr>
-        <th style="min-width:150px">Site ID</th>
-        <th style="min-width:150px">TT / Ext ID</th>
-        <th style="min-width:120px">Severity / SLA</th>
-        <th style="min-width:170px">Subject</th>
-        <th style="min-width:112px">Dispatched</th>
-        <th style="min-width:112px">Accepted</th>
-        <th style="min-width:112px">Departed</th>
-        <th style="min-width:112px">Arrived</th>
-        <th style="min-width:112px">Completed</th>
-        <th style="min-width:112px">Closed</th>
-        ${extraCols.map(c=>`<th style="min-width:${c.w}px">${c.h}</th>`).join("")}
-        <th style="min-width:150px">INOC LOG</th>
-        <th style="min-width:60px"></th>
+        <th>Site ID</th>
+        <th>TT / Ext ID</th>
+        <th>Severity / SLA</th>
+        <th>Subject</th>
+        <th>Dispatched</th>
+        <th>Accepted</th>
+        <th>Departed</th>
+        <th>Arrived</th>
+        <th>Completed</th>
+        <th>Closed</th>
+        ${extraCols.map(c=>`<th>${c.h}</th>`).join("")}
+        <th>INOC LOG</th>
+        <th></th>
       </tr></thead><tbody></tbody>`;
     scrollDiv.appendChild(table);
     const tbody = table.querySelector("tbody");
@@ -1774,6 +1741,8 @@ function getSrmMonthTickets(){
   return faultTickets.filter(r=>{
     if(!isFaultSrmSeverity(r)) return false;
     if(isFaultBroadbandTicket(r)) return false;
+    if(!isFaultSystemWoCreator(r)) return false;
+    if(!hasFaultSourceTicketId(r)) return false;
     if(!r?.closed_time) return false;
     const day = String(r.closed_time).slice(0,10);
     if(!days.includes(day)) return false;
@@ -1903,6 +1872,8 @@ function buildSiteRepeatData(){
   faultTickets.forEach(r=>{
     if(!isFaultSrmSeverity(r)) return;
     if(isFaultBroadbandTicket(r)) return;
+    if(!isFaultSystemWoCreator(r)) return;
+    if(!hasFaultSourceTicketId(r)) return;
     if(!r?.closed_time) return;
     const day = String(r.closed_time).slice(0,10);
     if(!days.includes(day)) return;
@@ -2053,7 +2024,7 @@ function renderSiteRepeatMapping(){
   const dtWrap = document.getElementById("srmDtWrap");
   if(!countWrap || !dtWrap) return;
   const ctx = getSrmMonthContext();
-  if(sub) sub.textContent = `Severity SA1–SA6 · NSA1–NSA4 · ไม่รวม Broadband · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}`;
+  if(sub) sub.textContent = `Severity SA1–SA6 · NSA1–NSA4 · WO Creator System · มี Source Ticket ID · ไม่รวม Broadband · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}`;
 
   if(!SITE_SET.size){
     const empty = `<div class="empty-hint" style="padding:24px;">ยังไม่มีรายชื่อ 168 Site — รอโหลด site codes</div>`;
@@ -3172,32 +3143,12 @@ function saveColWidths(){ try{ localStorage.setItem("plkdColWidths", JSON.string
 // Adds a drag handle to the right edge of every <th> in `table` so columns can be resized by
 // hand — widths persist per storageKey (e.g. "team-pending", "home", "svcava") across re-renders
 // and page reloads via localStorage.
-function colMinWidth(th){
-  if(!th) return 56;
-  if(th.classList.contains("dt-col-downtime")) return 128;
-  if(th.classList.contains("dt-col")) return 112;
-  if(th.classList.contains("fault-col-ticket")) return 150;
-  if(th.classList.contains("fault-col-subject")) return 240;
-  if(th.classList.contains("fault-col-desc") || th.classList.contains("fault-col-gp") ||
-     th.classList.contains("fault-col-cause") || th.classList.contains("fault-col-ltr") ||
-     th.classList.contains("fault-col-inoc")) return 180;
-  const t = (th.textContent||"").trim().toLowerCase();
-  if(t.includes("ticket") || t.includes("tt /")) return 140;
-  if(t.includes("subject")) return 170;
-  if(t.includes("inoc")) return 150;
-  if(t.includes("description")) return 180;
-  if(t.includes("dispatched") || t.includes("accepted") || t.includes("departed") ||
-     t.includes("arrived") || t.includes("completed") || t.includes("closed")) return 112;
-  return 56;
-}
 function makeColumnsResizable(table, storageKey){
   if(!table) return;
   const ths = table.querySelectorAll("thead th");
   ths.forEach((th, i)=>{
     const key = `${storageKey}:${i}`;
-    const minW = colMinWidth(th);
-    if(COL_WIDTHS[key]) th.style.width = Math.max(minW, COL_WIDTHS[key])+"px";
-    else th.style.minWidth = minW+"px";
+    if(COL_WIDTHS[key]) th.style.width = COL_WIDTHS[key]+"px";
     if(th.querySelector(".col-resizer")) return; // already wired up
     const handle = document.createElement("div");
     handle.className = "col-resizer";
@@ -3209,7 +3160,7 @@ function makeColumnsResizable(table, storageKey){
       handle.classList.add("resizing");
       document.body.style.cursor = "col-resize";
       const onMove = (ev)=>{
-        const newWidth = Math.max(colMinWidth(th), startWidth + (ev.pageX - startX));
+        const newWidth = Math.max(40, startWidth + (ev.pageX - startX));
         th.style.width = newWidth+"px";
       };
       const onUp = ()=>{
@@ -3488,6 +3439,8 @@ function passesFaultPlkdFocus(r){
   if(!isFaultSaSeverity(r)) return false;
   if(isFaultBroadbandTicket(r)) return false;
   if(!isPlkdFaultTicket(r)) return false;
+  if(!isFaultSystemWoCreator(r)) return false;
+  if(!hasFaultSourceTicketId(r)) return false;
   return true;
 }
 function getFilteredFaultTickets(){
@@ -3540,11 +3493,7 @@ function renderFaultOverviewToolbar(){
   document.getElementById("faultOverviewFilterOverBtn")?.classList.toggle("active", faultOverviewStatusFilter === "over-sla");
 }
 function fmtFaultDT(v){
-  if(!v) return '<span class="muted-dash">—</span>';
-  const s = String(v).trim();
-  const m = s.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
-  if(m) return `<span class="dt-date">${esc(m[1])}</span><span class="dt-time">${esc(m[2])}</span>`;
-  return esc(s);
+  return fmtDT(v);
 }
 function fmtFaultRawDT(v){
   if(!v) return "";
@@ -4935,7 +4884,7 @@ function renderFaultRegionBar(){
       </select>
     </div>
     <div class="fgroup"><label class="flabel">PLKD Filter</label>
-      <span class="status-msg">SA1–SA6 · ไม่รวม Broadband · ${SITE_SET.size} PLKD site(s) · ${plkdCount} ticket(s)</span>
+      <span class="status-msg">SA1–SA6 · WO Creator System · มี Source Ticket ID · ไม่รวม Broadband · ${SITE_SET.size} PLKD site(s) · ${plkdCount} ticket(s)</span>
     </div>
     <div class="fgroup"><label class="flabel">ช่วงวันที่</label>
       <span class="status-msg">${dateMsg}</span>
@@ -5701,17 +5650,21 @@ async function bulkInsertFaultTickets(rows){
   statusEl.textContent = `Processing ${rows.length} rows…`;
   let woCreatorSkipped = 0;
   let broadbandSkipped = 0;
+  let noSourceTicketSkipped = 0;
   const payloads = [];
   rows.forEach(r=>{
     if(!isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
     if(isBroadbandRow(r)){ broadbandSkipped++; return; }
     const p = mapFaultImportRow(r);
-    if(p) payloads.push(p);
+    if(!p) return;
+    if(!hasFaultSourceTicketId(p)){ noSourceTicketSkipped++; return; }
+    payloads.push(p);
   });
   if(payloads.length===0){
     const woMsg = woCreatorSkipped ? ` (${woCreatorSkipped} non-System WO Creator skipped)` : "";
     const bbMsg = broadbandSkipped ? ` (${broadbandSkipped} Broadband skipped)` : "";
-    statusEl.textContent = `No valid rows (missing Work Order ID)${woMsg}${bbMsg}.`;
+    const ttMsg = noSourceTicketSkipped ? ` (${noSourceTicketSkipped} no Source Ticket ID skipped)` : "";
+    statusEl.textContent = `No valid rows (missing Work Order ID)${woMsg}${bbMsg}${ttMsg}.`;
     return;
   }
   const CHUNK = 40;
@@ -5734,7 +5687,7 @@ async function bulkInsertFaultTickets(rows){
       statusEl.textContent = `Processing… ${synced}/${payloads.length}`;
     }
   }
-  statusEl.textContent = `Synced ${synced} Fault PLKD row(s) ✓${woCreatorSkipped>0 ? ` — ${woCreatorSkipped} non-System WO Creator skipped` : ""}${broadbandSkipped>0 ? ` — ${broadbandSkipped} Broadband row(s) skipped` : ""}`;
+  statusEl.textContent = `Synced ${synced} Fault PLKD row(s) ✓${woCreatorSkipped>0 ? ` — ${woCreatorSkipped} non-System WO Creator skipped` : ""}${broadbandSkipped>0 ? ` — ${broadbandSkipped} Broadband row(s) skipped` : ""}${noSourceTicketSkipped>0 ? ` — ${noSourceTicketSkipped} no Source Ticket ID skipped` : ""}`;
   await loadFaultTickets(false);
   renderAll();
 }
