@@ -560,6 +560,11 @@ body.screenshotting #ltrManageModal{display:none !important;}
 .fault-gp-card-foot{display:flex; justify-content:space-between; align-items:center; padding:14px 18px 16px; margin-top:auto;}
 .fault-gp-card-lbl{font-family:'Inter',sans-serif; font-size:14px; color:var(--muted); font-weight:500;}
 .fault-gp-card-val{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:30px; line-height:1;}
+.fault-gp-card-sites{padding:10px 14px 12px; border-bottom:1px solid var(--border-soft); flex:1; min-height:0;}
+.fault-gp-card-sites-label{font-size:11px; color:var(--muted); margin-bottom:6px; font-family:'Barlow Condensed'; text-transform:uppercase; letter-spacing:.04em; font-weight:600;}
+.fault-gp-card-sites .fault-ctrl-prob-site-tags{max-height:96px; overflow-y:auto;}
+.fault-gp-card--sites .fault-gp-card-title{flex:0; min-height:auto; padding:12px 16px;}
+.fault-gp-card--sites{min-height:200px;}
 .fault-ctrl-panel{margin-top:4px;}
 .fault-ctrl-subtabs{display:flex; gap:8px; margin-bottom:18px;}
 .fault-ctrl-subtab{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.05em; text-transform:uppercase; font-size:15px;
@@ -577,14 +582,14 @@ body.screenshotting #ltrManageModal{display:none !important;}
 .fault-ltr-summary-table .fault-ltr-reason-row{cursor:pointer; transition:background .15s;}
 .fault-ltr-summary-table .fault-ltr-reason-row:hover{background:var(--blue-dim);}
 .fault-ltr-summary-table .fault-ltr-reason-row.active{background:var(--blue-dim); outline:2px solid var(--blue); outline-offset:-2px;}
-.fault-ltr-summary-table{font-size:15px;}
-.fault-ltr-summary-table .fault-ltr-reason-name{font-weight:600; font-size:15px; text-align:left; white-space:normal; max-width:280px;}
-.fault-ltr-summary-table td{text-align:center; vertical-align:middle; font-size:16px;}
-.fault-ltr-summary-table th{font-size:14px; font-weight:700;}
+.fault-ltr-summary-table{font-size:17px;}
+.fault-ltr-summary-table .fault-ltr-reason-name{font-weight:600; font-size:17px; text-align:left; white-space:normal; max-width:320px;}
+.fault-ltr-summary-table td{text-align:center; vertical-align:middle; font-size:19px;}
+.fault-ltr-summary-table th{font-size:16px; font-weight:700;}
 .fault-ltr-summary-table th.fault-ltr-bucket-th{white-space:nowrap;}
-.fault-ltr-num{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:17px; color:var(--text);}
-.fault-ltr-num.is-zero{color:var(--muted); font-weight:500; font-size:16px;}
-.fault-ltr-summary-table .fault-ltr-total{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:17px; color:var(--text);}
+.fault-ltr-num{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; color:var(--text);}
+.fault-ltr-num.is-zero{color:var(--muted); font-weight:500; font-size:18px;}
+.fault-ltr-summary-table .fault-ltr-total{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; color:var(--text);}
 .fault-ctrl-insight{
   background:linear-gradient(135deg, var(--blue-dim) 0%, var(--panel) 55%);
   border:1px solid var(--border); border-left:4px solid var(--blue);
@@ -1173,12 +1178,73 @@ function isValidPlkdSiteCode(code){
   if(!/^[A-Z]{3}[0-9A-Z]+$/.test(c)) return false;
   return true;
 }
+function isRelayPrefixedSiteInText(text, matchIndex){
+  if(matchIndex < 3) return false;
+  const prefix = String(text).slice(matchIndex - 3, matchIndex).toUpperCase();
+  return prefix === "DN-" || prefix === "RN-" || prefix === "PN-";
+}
+function isRelayPrefixedSiteRefInText(text, siteCode){
+  if(!text || !siteCode) return false;
+  const esc = String(siteCode).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?:DN|RN|PN)-${esc}(?:\\b|[\\]\\),;:\\s]|$)`, "i").test(String(text));
+}
+function hasStandalonePlkdSiteInFields(fields, siteCode){
+  if(!siteCode) return false;
+  const esc = String(siteCode).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`\\b${esc}\\b`, "gi");
+  for(const f of fields){
+    if(!f) continue;
+    const upper = String(f).toUpperCase();
+    for(const m of upper.matchAll(re)){
+      if(!isRelayPrefixedSiteInText(upper, m.index)) return true;
+    }
+  }
+  return false;
+}
+function isRelayOnlySiteReference(r, siteCode){
+  const fields = [r?.subject, r?.close_description, r?.root_cause];
+  const hasRelay = fields.some(f=> f && isRelayPrefixedSiteRefInText(f, siteCode));
+  if(!hasRelay) return false;
+  return !hasStandalonePlkdSiteInFields(fields, siteCode);
+}
+function collectPlkdSitesFromText(text){
+  if(!text) return [];
+  const upper = String(text).toUpperCase();
+  const seen = new Set();
+  const matches = [];
+  if(PLKD_REGEX){
+    const reAll = new RegExp(PLKD_REGEX.source, "gi");
+    for(const m of upper.matchAll(reAll)){
+      const code = m[0].toUpperCase();
+      if(!isValidPlkdSiteCode(code) || seen.has(code)) continue;
+      if(isRelayPrefixedSiteInText(upper, m.index)) continue;
+      seen.add(code);
+      matches.push(code);
+    }
+  }
+  if(!matches.length){
+    for(const m of upper.matchAll(/\b([A-Z]{3}[0-9A-Z]{3,})\b/g)){
+      const code = m[1].toUpperCase();
+      if(!isValidPlkdSiteCode(code) || !SITE_SET.has(code) || seen.has(code)) continue;
+      if(isRelayPrefixedSiteInText(upper, m.index)) continue;
+      seen.add(code);
+      matches.push(code);
+    }
+  }
+  return matches;
+}
+function findPlkdSiteInText(text){
+  const matches = collectPlkdSitesFromText(text);
+  if(!matches.length) return null;
+  matches.sort((a,b)=> b.length - a.length || a.localeCompare(b));
+  return matches[0];
+}
 function plkdMatchType(r){
   const site = ((r.site_code || r.site_id)||"").toUpperCase();
-  if(SITE_SET.has(site)) return "site";
-  if(PLKD_REGEX && r.subject && PLKD_REGEX.test(r.subject)) return "subject";
-  if(PLKD_REGEX && r.close_description && PLKD_REGEX.test(r.close_description)) return "subject";
-  if(PLKD_REGEX && r.root_cause && PLKD_REGEX.test(r.root_cause)) return "subject";
+  if(SITE_SET.has(site) && !isRelayOnlySiteReference(r, site)) return "site";
+  if(findPlkdSiteInText(r.subject)) return "subject";
+  if(findPlkdSiteInText(r.close_description)) return "subject";
+  if(findPlkdSiteInText(r.root_cause)) return "subject";
   return null;
 }
 function isPlkdMatch(r){ return !!plkdMatchType(r); }
@@ -1478,19 +1544,13 @@ function sevBucket(sev){
 }
 function extractPlkdSite(r){
   const site = ((r.site_code || r.site_id)||"").toUpperCase();
-  if(SITE_SET.has(site)) return site;
-  if(PLKD_REGEX && r.subject){
-    const m = r.subject.toUpperCase().match(PLKD_REGEX);
-    if(m) return m[0];
-  }
-  if(PLKD_REGEX && r.close_description){
-    const m = r.close_description.toUpperCase().match(PLKD_REGEX);
-    if(m) return m[0];
-  }
-  if(PLKD_REGEX && r.root_cause){
-    const m = r.root_cause.toUpperCase().match(PLKD_REGEX);
-    if(m) return m[0];
-  }
+  if(SITE_SET.has(site) && !isRelayOnlySiteReference(r, site)) return site;
+  const fromSubject = findPlkdSiteInText(r.subject);
+  if(fromSubject) return fromSubject;
+  const fromClose = findPlkdSiteInText(r.close_description);
+  if(fromClose) return fromClose;
+  const fromRoot = findPlkdSiteInText(r.root_cause);
+  if(fromRoot) return fromRoot;
   return site || "-";
 }
 function statusTimeFor(r){
@@ -2635,41 +2695,14 @@ function getFaultInocLogDisplay(r){
 }
 function faultPlkdMatchType(r){
   const site = String(r?.site_id || r?.site_code || "").toUpperCase().trim();
-  if(isValidPlkdSiteCode(site) && SITE_SET.has(site)) return "site";
-  if(PLKD_REGEX && r?.subject){
-    const text = String(r.subject).toUpperCase();
-    if(PLKD_REGEX.test(text)){
-      for(const m of text.matchAll(new RegExp(PLKD_REGEX.source, "gi"))){
-        if(isValidPlkdSiteCode(m[0])) return "subject";
-      }
-    }
-  }
+  if(isValidPlkdSiteCode(site) && SITE_SET.has(site) && !isRelayOnlySiteReference(r, site)) return "site";
+  if(findPlkdSiteInText(r?.subject)) return "subject";
   return null;
 }
 function extractFaultPlkdSite(r){
   const site = String(r.site_id || r.site_code || "").toUpperCase().trim();
-  if(isValidPlkdSiteCode(site) && SITE_SET.has(site)) return site;
-  if(!r.subject) return site || "-";
-  const text = String(r.subject).toUpperCase();
-  const seen = new Set();
-  const matches = [];
-  if(PLKD_REGEX){
-    const reAll = new RegExp(PLKD_REGEX.source, "gi");
-    for(const m of text.matchAll(reAll)){
-      const code = m[0].toUpperCase();
-      if(!isValidPlkdSiteCode(code) || seen.has(code)) continue;
-      seen.add(code);
-      matches.push(code);
-    }
-  }
-  if(!matches.length){
-    for(const m of text.matchAll(/\b([A-Z]{3}[0-9A-Z]{3,})\b/g)){
-      const code = m[1].toUpperCase();
-      if(!isValidPlkdSiteCode(code) || !SITE_SET.has(code) || seen.has(code)) continue;
-      seen.add(code);
-      matches.push(code);
-    }
-  }
+  if(isValidPlkdSiteCode(site) && SITE_SET.has(site) && !isRelayOnlySiteReference(r, site)) return site;
+  const matches = collectPlkdSitesFromText(r?.subject);
   if(!matches.length) return site || "-";
   matches.sort((a,b)=> b.length - a.length || a.localeCompare(b));
   return matches[0];
@@ -2869,6 +2902,19 @@ async function migrateLocalGpCustomToDb(){
   }
   try{ localStorage.removeItem("faultGpCustom"); }catch(e){}
 }
+function normalizeGroupProblemText(val){
+  return String(val||"").trim().replace(/\s+/g, " ");
+}
+function canonicalGroupProblemLabel(val){
+  const norm = normalizeGroupProblemText(val);
+  if(!norm) return "";
+  const labels = getActiveGroupProblemLabels();
+  const exact = labels.find(l=>l === norm);
+  if(exact) return exact;
+  const lower = norm.toLowerCase();
+  const ci = labels.find(l=>String(l).toLowerCase() === lower);
+  return ci || norm;
+}
 function getActiveGroupProblemLabels(){
   const active = GROUP_PROBLEMS.filter(g=>g.is_active !== false).map(g=>g.label);
   if(active.length) return active;
@@ -2881,24 +2927,29 @@ function saveFaultGroupProblemCustom(list){
   console.warn("saveFaultGroupProblemCustom is deprecated — use Group Problem modal / DB");
 }
 function getFaultGroupProblemOptions(){
-  const merged = [...getActiveGroupProblemLabels()];
+  const seen = new Set();
+  const merged = [];
+  getActiveGroupProblemLabels().forEach(l=>{
+    const c = canonicalGroupProblemLabel(l);
+    if(c && !seen.has(c)){ seen.add(c); merged.push(c); }
+  });
   faultTickets.forEach(r=>{
     const gp = resolveFaultSkillAndGp(r).group_problem_free_text;
-    if(gp && !merged.includes(gp)) merged.push(gp);
+    if(gp && !seen.has(gp)){ seen.add(gp); merged.push(gp); }
   });
   return merged;
 }
 function isKnownGroupProblemLabel(val){
-  const s = String(val||"").trim();
+  const s = canonicalGroupProblemLabel(val);
   if(!s) return false;
-  if(GROUP_PROBLEMS.some(g=>g.label===s)) return true;
-  if(FAULT_GP_PRESETS.includes(s)) return true;
+  if(GROUP_PROBLEMS.some(g=>canonicalGroupProblemLabel(g.label)===s)) return true;
+  if(FAULT_GP_PRESETS.some(p=>canonicalGroupProblemLabel(p)===s)) return true;
   return false;
 }
 async function createGroupProblemRow(label){
-  const text = String(label||"").trim();
+  const text = canonicalGroupProblemLabel(label);
   if(!text) throw new Error("empty label");
-  if(GROUP_PROBLEMS.some(g=>g.label===text)) return GROUP_PROBLEMS.find(g=>g.label===text);
+  if(GROUP_PROBLEMS.some(g=>canonicalGroupProblemLabel(g.label)===text)) return GROUP_PROBLEMS.find(g=>canonicalGroupProblemLabel(g.label)===text);
   const maxSort = GROUP_PROBLEMS.reduce((m,g)=>Math.max(m, g.sort_order||0), 0);
   const res = await fetch(GP_REST, {
     method:"POST",
@@ -3386,7 +3437,33 @@ function resolveFaultSkillAndGp(r){
     if(!skill) skill = normalizeFaultSkill(gp) || gp;
     gp = "";
   }
+  gp = canonicalGroupProblemLabel(gp);
   return { skill, group_problem_free_text: gp };
+}
+async function migrateGroupProblemLabels(){
+  const pending = [];
+  faultTickets.forEach(r=>{
+    const raw = String(r.group_problem_free_text || "").trim();
+    if(!raw) return;
+    const canon = canonicalGroupProblemLabel(raw);
+    if(canon && canon !== raw) pending.push({ r, group_problem_free_text: canon });
+  });
+  if(!pending.length) return 0;
+  pending.forEach(({ r, group_problem_free_text })=>{ r.group_problem_free_text = group_problem_free_text; });
+  let migrated = 0;
+  const CHUNK = 25;
+  for(let i = 0; i < pending.length; i += CHUNK){
+    const chunk = pending.slice(i, i + CHUNK);
+    const results = await Promise.all(chunk.map(({ r, group_problem_free_text })=>{
+      const patch = { group_problem_free_text, updated_at: new Date().toISOString() };
+      return fetch(FAULT_REST + `?work_order_id=eq.${encodeURIComponent(r.work_order_id)}`, {
+        method:"PATCH", headers:HEADERS, body: JSON.stringify(patch)
+      }).then(res=>res.ok).catch(()=>false);
+    }));
+    migrated += results.filter(Boolean).length;
+  }
+  if(migrated) toast(`รวม Group Problem ที่ซ้ำ ${migrated} รายการ`);
+  return migrated;
 }
 async function migrateLegacyFaultSkills(){
   const pending = [];
@@ -3477,7 +3554,7 @@ function faultLtrOptionsHtml(selected){
   return html;
 }
 function faultGpOptionsHtml(selected){
-  const sel = (selected||"").trim();
+  const sel = canonicalGroupProblemLabel(selected);
   const opts = getFaultGroupProblemOptions();
   let html = `<option value="" ${!sel?"selected":""}>— เลือก —</option>`;
   opts.forEach(o=>{
@@ -4198,7 +4275,8 @@ function getFaultCauseOverStats(rows){
   const items = [...groups.entries()].map(([key, groupRows])=>({
     key,
     label: faultCoLabel(key),
-    count: groupRows.length
+    count: groupRows.length,
+    sites: getFaultSiteStats(groupRows)
   }));
   items.sort((a, b)=>{
     if(a.key === "__blank__") return 1;
@@ -4217,8 +4295,13 @@ function renderFaultCauseOverCards(rows){
   }
   container.innerHTML = stats.map(s=>{
     const active = faultOverSlaCauseFilter === s.key ? " active" : "";
-    return `<div class="fault-gp-card${active}" data-co-key="${esc(s.key)}" onclick="selectFaultOverSlaCause(this.getAttribute('data-co-key'))">
+    const siteTags = faultGpSiteTagsHtml(s.sites);
+    return `<div class="fault-gp-card fault-gp-card--sites${active}" data-co-key="${esc(s.key)}" onclick="selectFaultOverSlaCause(this.getAttribute('data-co-key'))">
       <div class="fault-gp-card-title">${esc(s.label)}</div>
+      <div class="fault-gp-card-sites">
+        <div class="fault-gp-card-sites-label">Site Code (${s.sites.length} Site · ${s.count} TT)</div>
+        <div class="fault-ctrl-prob-site-tags">${siteTags}</div>
+      </div>
       <div class="fault-gp-card-foot">
         <span class="fault-gp-card-lbl">รายการ</span>
         <span class="fault-gp-card-val" style="color:var(--coral)">${s.count}</span>
@@ -4664,10 +4747,10 @@ async function loadFaultTickets(showToast){
     if(currentTab==="fault") renderFault();
     if(currentTab==="srm") renderSiteRepeatMapping();
     if(showToast) toast(`Fault data loaded (${faultTickets.length} rows)`);
-    migrateLegacyFaultSkills().then(()=>{
+    migrateLegacyFaultSkills().then(()=> migrateGroupProblemLabels()).then(()=>{
       if(currentTab==="fault") renderFault();
       if(currentTab==="srm") renderSiteRepeatMapping();
-    }).catch(e=> console.warn("migrateLegacyFaultSkills:", e));
+    }).catch(e=> console.warn("fault ticket migrate:", e));
   }catch(e){
     console.warn("loadFaultTickets failed:", e);
     faultTickets = faultTickets || [];
@@ -4676,6 +4759,7 @@ async function loadFaultTickets(showToast){
 }
 async function updateFaultField(workOrderId, field, value){
   if(field === "skill") value = normalizeFaultSkill(value) || value;
+  if(field === "group_problem_free_text") value = canonicalGroupProblemLabel(value);
   const row = faultTickets.find(r=>r.work_order_id === workOrderId);
   if(row) row[field] = value;
   await fetch(FAULT_REST + `?work_order_id=eq.${encodeURIComponent(workOrderId)}`, {
