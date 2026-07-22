@@ -44,27 +44,79 @@ body.dark-mode{
 body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
   background-image:linear-gradient(var(--bg-grid) 1px, transparent 1px),linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
   background-size: 28px 28px; min-height:100vh;}
-.topbar{position:sticky; top:0; z-index:50; background:linear-gradient(180deg,var(--topbar-grad1) 0%, var(--topbar-grad2) 100%);
-  border-bottom:1px solid var(--border); padding:14px 22px; display:flex; flex-direction:column; gap:10px;}
-.topbar-row1{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
-.topbar-row2{display:flex; align-items:center; justify-content:flex-end; gap:10px;}
+.app-shell{display:flex; min-height:100vh;}
+.sidebar{
+  width:248px; flex-shrink:0; position:sticky; top:0; align-self:flex-start;
+  height:100vh; overflow-y:auto; overflow-x:hidden; z-index:50;
+  background:linear-gradient(180deg,var(--topbar-grad1) 0%, var(--topbar-grad2) 100%);
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column; padding:16px 14px;
+  transition:width .28s cubic-bezier(.4,0,.2,1), padding .28s cubic-bezier(.4,0,.2,1);
+}
+.sidebar-brand{display:flex; align-items:flex-start; justify-content:space-between; gap:8px;
+  padding:4px 2px 16px; border-bottom:1px solid var(--border-soft); margin-bottom:14px;}
+.sidebar-brand .brand{min-width:0; flex:1;}
+.sidebar-toggle{
+  flex-shrink:0; width:28px; height:28px; border:1px solid var(--border); border-radius:8px;
+  background:var(--panel-2); color:var(--muted); cursor:pointer; font-size:14px; line-height:1;
+  display:flex; align-items:center; justify-content:center; transition:background .15s, color .15s, border-color .15s;
+}
+.sidebar-toggle:hover{background:var(--panel); color:var(--blue); border-color:var(--blue);}
+body.sidebar-collapsed .sidebar{width:72px; padding:14px 8px;}
+body.sidebar-collapsed .brand-text,
+body.sidebar-collapsed .sidebar-label,
+body.sidebar-collapsed .tab-text,
+body.sidebar-collapsed .tab-btn .count,
+body.sidebar-collapsed .sidebar-footer .datebox,
+body.sidebar-collapsed .upload-ts,
+body.sidebar-collapsed .shot-label,
+body.sidebar-collapsed .shot-sub{display:none !important;}
+body.sidebar-collapsed .tab-btn{justify-content:center; padding:10px 8px;}
+body.sidebar-collapsed .tabs-vertical .tab-btn .count{display:none;}
+body.sidebar-collapsed .sidebar-footer .btn-screenshot{justify-content:center; padding:8px;}
+body.sidebar-collapsed .sidebar-footer .btn-screenshot .shot-icon{margin:0;}
+body.sidebar-collapsed #themeToggleBtn{font-size:0; padding:8px; min-width:36px;}
+body.sidebar-collapsed:not(.dark) #themeToggleBtn::before{content:"☾"; font-size:14px;}
+body.sidebar-collapsed.dark #themeToggleBtn::before{content:"☀"; font-size:14px;}
+body.sidebar-collapsed .sidebar-brand{justify-content:center; flex-direction:column; align-items:center; padding-bottom:10px;}
+body.sidebar-collapsed .sidebar-brand .brand{display:none;}
+body.sidebar-collapsed .sidebar-toggle{width:100%;}
+.sidebar-nav{flex:1; display:flex; flex-direction:column; gap:16px; min-height:0;}
+.sidebar-section{display:flex; flex-direction:column; gap:6px;}
+.sidebar-label{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  font-size:11px; color:var(--muted-2); padding:0 8px;}
+.sidebar-footer{margin-top:auto; padding-top:14px; border-top:1px solid var(--border-soft);
+  display:flex; flex-direction:column; gap:10px;}
+.sidebar-footer .datebox{margin:0; flex-direction:column; align-items:stretch; gap:6px;}
+.sidebar-footer .datebox label{font-size:10px;}
+.sidebar-footer .upload-ts{font-size:10px; white-space:normal; word-break:break-word;}
+.sidebar-footer .btn-screenshot{width:100%; justify-content:flex-start;}
+.sidebar-footer .btn{width:100%; justify-content:center;}
+.main-content{flex:1; min-width:0; display:flex; flex-direction:column;}
 .brand{display:flex; align-items:center; gap:10px;}
 .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--teal); box-shadow:0 0 10px var(--teal); animation:pulse 2.2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .brand h1{font-family:'Barlow Condensed'; font-weight:800; letter-spacing:.06em; font-size:23.5px; margin:0; text-transform:uppercase;}
 .brand small{display:block; color:var(--muted); font-size:11.5px; letter-spacing:.08em; margin-top:-2px;}
-.datebox{display:flex; align-items:center; gap:8px; margin-left:auto;}
+.datebox{display:flex; align-items:center; gap:8px;}
 .datebox label{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
 .upload-ts{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--muted); white-space:nowrap;}
 input[type=date]{background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:var(--radius); font-family:'JetBrains Mono'; font-size:14px;}
 .tabs{display:flex; gap:4px; background:var(--panel-2); padding:4px; border-radius:8px; border:1px solid var(--border); position:relative;}
+.tabs-vertical{flex-direction:column; width:100%; gap:2px;}
 .tools-group{display:flex; align-items:center; gap:8px;}
 .tools-label{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.06em; text-transform:uppercase; font-size:13px; color:var(--muted-2);}
 .tab-indicator{position:absolute; top:4px; bottom:4px; left:4px; width:0; border-radius:6px; background:var(--panel);
-  box-shadow:inset 0 0 0 1px var(--border); transition:left .32s cubic-bezier(.4,0,.2,1), width .32s cubic-bezier(.4,0,.2,1); z-index:0;}
+  box-shadow:inset 0 0 0 1px var(--border); transition:left .32s cubic-bezier(.4,0,.2,1), width .32s cubic-bezier(.4,0,.2,1), top .32s cubic-bezier(.4,0,.2,1), height .32s cubic-bezier(.4,0,.2,1); z-index:0;}
+.tabs-vertical .tab-indicator{top:4px; bottom:auto; left:4px; right:4px; width:auto; height:0;}
 .tab-btn{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
   background:transparent; border:none; color:var(--muted); padding:9px 22px; border-radius:6px; cursor:pointer; font-size:19px;
   transition:color .2s, transform .12s; position:relative; z-index:1;}
+.tabs-vertical .tab-btn{width:100%; text-align:left; padding:10px 14px; font-size:15px; display:flex; align-items:center; justify-content:flex-start; gap:8px;}
+.tabs-vertical .tab-btn .tab-ico{
+  flex-shrink:0; width:22px; text-align:center; font-family:'JetBrains Mono'; font-size:12px; font-weight:700; color:var(--muted-2);
+}
+.tabs-vertical .tab-btn .count{margin-left:auto;}
 .tab-btn:active{transform:scale(.94);}
 .tab-btn.active{color:var(--text);}
 .tab-btn.active.pending{color:var(--amber);}
@@ -82,7 +134,21 @@ input[type=date]{background:var(--panel-2); border:1px solid var(--border); colo
 .btn:active{transform:scale(.96);}
 .icon-btn{transition:.15s, transform .12s;}
 .icon-btn:active{transform:scale(.9);}
-.wrap{padding:20px 22px 60px;}
+.wrap{padding:20px 22px 60px; flex:1;}
+@media(max-width:900px){
+  .app-shell{flex-direction:column;}
+  .sidebar{width:100% !important; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--border); padding:16px 14px !important;}
+  body.sidebar-collapsed .sidebar{width:100% !important;}
+  body.sidebar-collapsed .brand-text,
+  body.sidebar-collapsed .sidebar-label,
+  body.sidebar-collapsed .tab-text,
+  body.sidebar-collapsed .sidebar-footer .datebox{display:block !important;}
+  body.sidebar-collapsed .tab-btn .count{display:inline !important;}
+  .sidebar-nav{flex-direction:row; flex-wrap:wrap; gap:12px;}
+  .sidebar-section{flex:1; min-width:200px;}
+  .sidebar-footer{flex-direction:row; flex-wrap:wrap; align-items:center;}
+  .sidebar-footer .btn-screenshot,.sidebar-footer .btn{width:auto; flex:1; min-width:140px;}
+}
 .toolbar{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
 .filterbar{display:flex; align-items:center; gap:14px; margin-bottom:16px; flex-wrap:wrap; background:var(--panel);
   border:1px solid var(--border-soft); border-radius:8px; padding:10px 14px;}
@@ -192,7 +258,13 @@ textarea.cell-ta{resize:vertical; min-height:34px; font-family:'JetBrains Mono';
   padding:10px 16px; border-radius:6px; font-size:14px; z-index:300; opacity:0; transform:translateY(10px); transition:.25s;}
 .toast.show{opacity:1; transform:translateY(0);}
 .subject-cell{max-width:220px; font-size:12px; color:var(--muted); line-height:1.4; white-space:normal; word-break:break-word; overflow-wrap:anywhere; box-sizing:border-box;}
-.dt-cell{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text); white-space:nowrap;}
+.dt-cell{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text); white-space:nowrap; line-height:1.35; vertical-align:middle;}
+.dt-cell .dt-date{display:block; font-size:11px; line-height:1.3; white-space:nowrap;}
+.dt-cell .dt-time{display:block; font-size:11px; color:var(--muted-2); line-height:1.3; white-space:nowrap;}
+table.fault-data-table th.dt-col{width:96px; min-width:96px;}
+table.fault-data-table td.dt-cell{width:96px; min-width:96px; max-width:96px; white-space:normal; overflow:hidden;}
+table.fault-data-table th.dt-col-downtime{width:100px; min-width:100px;}
+table.fault-data-table td.dt-downtime{white-space:nowrap; width:100px; min-width:100px; max-width:100px;}
 
 /* ---- Home summary page ---- */
 .home-title{font-family:'Barlow Condensed'; font-weight:800; font-size:21px; letter-spacing:.04em; margin-bottom:14px; color:var(--text);}
@@ -249,7 +321,7 @@ tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
 .home-feedback{width:100%; min-height:110px; background:transparent; border:1px solid var(--border); color:var(--text);
   font-family:'Inter'; font-size:12.5px; line-height:1.5; padding:8px; border-radius:4px; resize:none; overflow:hidden;}
 .home-feedback:hover{border-color:var(--muted-2);}
-.inoc-from-tt{border-color:var(--blue); background:color-mix(in srgb, var(--blue) 6%, var(--panel));}
+.inoc-from-tt{border-color:var(--blue); background:var(--blue-dim);}
 .home-feedback:focus{outline:none; border-color:var(--blue); background:var(--panel-2);}
 .home-summary{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:20px;}
 .summary-card{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:0; overflow:hidden;}
@@ -305,8 +377,37 @@ table.svcava-table tbody td{padding:8px 10px; border-bottom:1px solid var(--bord
 .sev-ladder-team{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--teal);}
 .sev-ladder-plan{font-size:12.5px; color:var(--text); line-height:1.5; word-break:break-word;}
 .modal-empty{padding:26px 18px; text-align:center; color:var(--muted);}
-body.screenshotting #screenshotHomeBtn{opacity:.5; pointer-events:none;}
-body.screenshotting .topbar{position:static !important;}
+body.screenshotting .btn-screenshot{display:none !important;}
+body.screenshotting .sidebar-footer .btn-screenshot,
+body.screenshotting #themeToggleBtn{display:none !important;}
+body.screenshotting .toast{display:none !important;}
+body.screenshotting .sidebar{position:relative !important;}
+body.screenshotting .modal-overlay,
+body.screenshotting .sev-modal{display:none !important;}
+.btn-screenshot{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 16px 8px 12px; border-radius:10px; cursor:pointer;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg, var(--blue-dim) 0%, var(--panel-2) 100%);
+  color:var(--blue); font-family:'Barlow Condensed'; font-weight:700;
+  font-size:14px; letter-spacing:.06em; text-transform:uppercase;
+  box-shadow:0 1px 0 rgba(28,111,214,.12), inset 0 1px 0 rgba(255,255,255,.06);
+  transition:border-color .15s, box-shadow .15s, transform .12s, background .15s;}
+.btn-screenshot:hover{
+  border-color:var(--blue);
+  background:linear-gradient(180deg, var(--blue-dim) 0%, var(--panel) 100%);
+  box-shadow:0 4px 14px rgba(28,111,214,.18);}
+.btn-screenshot:active{transform:scale(.97);}
+.btn-screenshot .shot-icon{
+  display:flex; align-items:center; justify-content:center;
+  width:28px; height:28px; border-radius:8px;
+  background:var(--blue-dim);
+  border:1px solid var(--border);}
+.btn-screenshot .shot-icon svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round;}
+.btn-screenshot .shot-label{line-height:1;}
+.btn-screenshot .shot-sub{
+  display:block; font-family:'Inter'; font-size:10px; font-weight:500;
+  letter-spacing:0; text-transform:none; color:var(--muted-2); margin-top:1px;}
 
 /* ---- Fault PLKD ---- */
 .tab-btn.active.fault{color:var(--coral);}
@@ -330,40 +431,171 @@ body.screenshotting .topbar{position:static !important;}
 .fault-legend{display:flex; flex-wrap:wrap; gap:12px; margin:8px 0 4px; font-family:'JetBrains Mono'; font-size:11px; color:var(--muted);}
 .fault-legend span{display:flex; align-items:center; gap:5px;}
 .fault-legend i{display:inline-block; width:12px; height:12px; border-radius:2px;}
+.fault-dd{display:flex; align-items:stretch; gap:4px; min-width:0;}
+.fault-dd-select{
+  flex:1; min-width:0; appearance:none; -webkit-appearance:none;
+  background:var(--panel-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235b636b' d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 8px center;
+  border:1px solid var(--border); color:var(--text); padding:6px 26px 6px 10px; border-radius:8px;
+  font-family:'Inter'; font-size:12px; line-height:1.3; cursor:pointer; transition:border-color .15s, box-shadow .15s, background .15s;}
+.fault-dd-select:hover{border-color:var(--muted-2);}
+.fault-dd-select:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim); background:var(--panel);}
+.fault-dd-select.skill-node{color:var(--blue); border-color:var(--blue); background:var(--blue-dim);}
+.fault-dd-select.skill-fiber{color:var(--teal); border-color:var(--teal); background:var(--teal-dim);}
+.fault-dd-select.gp-set{color:var(--violet); border-color:var(--violet); background:var(--violet-dim);}
+.fault-dd-select.ctrl-in{color:var(--teal); border-color:var(--teal); background:var(--teal-dim);}
+.fault-dd-select.ctrl-out{color:var(--coral); border-color:var(--coral); background:var(--coral-dim);}
+.fault-dd-add{
+  flex:0 0 28px; width:28px; height:32px; border:1px dashed var(--border); background:var(--panel);
+  color:var(--muted); border-radius:8px; cursor:pointer; font-size:16px; font-weight:700; line-height:1;
+  display:flex; align-items:center; justify-content:center; transition:.15s;}
+.fault-dd-add:hover{border-color:var(--blue); color:var(--blue); background:var(--blue-dim);}
+.fault-gp-cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:18px; align-items:stretch;}
+.fault-gp-card{
+  display:flex; flex-direction:column; min-height:132px;
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  cursor:pointer; overflow:hidden; transition:transform .12s, box-shadow .15s, border-color .15s;}
+.fault-gp-card:hover{transform:translateY(-2px); box-shadow:0 8px 22px var(--shadow-strong); border-color:var(--blue);}
+.fault-gp-card.active{outline:2px solid var(--violet); outline-offset:2px; border-color:var(--violet); background:var(--violet-dim);}
+.fault-gp-card-title{
+  flex:1; display:flex; align-items:center; justify-content:center; text-align:center;
+  padding:16px 18px; min-height:92px; box-sizing:border-box;
+  font-family:'Inter',sans-serif; font-weight:600; font-size:16px; line-height:1.5;
+  color:var(--text); word-break:break-word; background:var(--panel-2); border-bottom:1px solid var(--border-soft);}
+.fault-gp-card-foot{display:flex; justify-content:space-between; align-items:center; padding:14px 18px 16px; margin-top:auto;}
+.fault-gp-card-lbl{font-family:'Inter',sans-serif; font-size:14px; color:var(--muted); font-weight:500;}
+.fault-gp-card-val{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:30px; line-height:1;}
+.fault-ctrl-panel{margin-top:4px;}
+.fault-ctrl-subtabs{display:flex; gap:8px; margin-bottom:18px;}
+.fault-ctrl-subtab{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.05em; text-transform:uppercase; font-size:15px;
+  padding:9px 24px; border-radius:20px; border:1px solid var(--border); background:var(--panel); color:var(--muted); cursor:pointer; transition:.15s;}
+.fault-ctrl-subtab:hover{border-color:var(--blue); color:var(--text);}
+.fault-ctrl-subtab.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+.fault-ctrl-insight{
+  background:linear-gradient(135deg, var(--blue-dim) 0%, var(--panel) 55%);
+  border:1px solid var(--border); border-left:4px solid var(--blue);
+  border-radius:12px; padding:16px 20px; margin-bottom:18px;}
+.fault-ctrl-insight h3{font-family:'Barlow Condensed'; font-weight:800; font-size:20px; letter-spacing:.04em; text-transform:uppercase; margin:0 0 12px; color:var(--text);}
+.fault-ctrl-insight ul{margin:0; padding-left:20px; display:grid; gap:8px;}
+.fault-ctrl-insight li{font-size:16px; line-height:1.55; color:var(--text);}
+.fault-ctrl-insight li strong{color:var(--blue); font-weight:600;}
+.fault-ctrl-dash{display:block; width:100%;}
+.fault-ctrl-dash-main{display:flex; flex-direction:column; gap:14px; min-width:0;}
+.fault-ctrl-dash-split{display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:16px; align-items:start;}
+@media(max-width:960px){ .fault-ctrl-dash-split{grid-template-columns:1fr;} }
+.fault-ctrl-gp-site-panel{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px 18px 12px; min-width:0;}
+.fault-ctrl-gp-site-panel .fault-ctrl-gp-scroll{max-height:520px; overflow:auto; padding:2px 4px 2px 0;}
+.fault-ctrl-gp-site-block{margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--border-soft);}
+.fault-ctrl-gp-site-block:last-child{margin-bottom:0; padding-bottom:0; border-bottom:none;}
+.fault-ctrl-gp-site-block .gp-block-title{font-weight:600; font-size:14px; line-height:1.45; margin-bottom:8px; color:var(--text); font-family:'Inter',sans-serif;}
+.fault-ctrl-gp-site-block .fault-ctrl-prob-sites-label{margin-bottom:8px;}
+.fault-ctrl-prob-row.selected{background:var(--blue-dim); box-shadow:inset 0 0 0 2px var(--blue);}
+.fault-ctrl-kpi-row{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;}
+@media(max-width:700px){ .fault-ctrl-kpi-row{grid-template-columns:1fr;} }
+.fault-ctrl-kpi{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px 18px;}
+.fault-ctrl-kpi .kpi-lbl{font-family:'Barlow Condensed'; font-weight:700; font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;}
+.fault-ctrl-kpi .kpi-val{font-family:'JetBrains Mono'; font-weight:700; font-size:34px; line-height:1.1; word-break:break-word;}
+.fault-ctrl-kpi .kpi-val.is-text{font-family:'Inter',sans-serif; font-size:17px; font-weight:600; line-height:1.35;}
+.fault-ctrl-kpi .kpi-sub{font-size:14px; color:var(--muted-2); margin-top:6px; line-height:1.4;}
+.fault-ctrl-prob-panel{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px 18px 10px; flex:1;}
+.fault-ctrl-prob-head{font-family:'Barlow Condensed'; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.fault-ctrl-prob-head span{font-size:13px; font-weight:500; text-transform:none; letter-spacing:0; color:var(--muted-2);}
+.fault-ctrl-prob-item{border-bottom:1px solid var(--border-soft);}
+.fault-ctrl-prob-item:last-child{border-bottom:none;}
+.fault-ctrl-prob-row{
+  display:grid; grid-template-columns:minmax(0,1fr) 110px 50px 52px; gap:12px; align-items:center;
+  padding:13px 10px; margin:0 -10px; border-bottom:none;
+  font-size:16px; border-radius:8px; cursor:pointer; transition:background .12s, box-shadow .12s;}
+.fault-ctrl-prob-row:hover{background:var(--row-hover); box-shadow:inset 0 0 0 1px var(--border-soft);}
+.fault-ctrl-prob-row.active{background:var(--blue-dim); box-shadow:inset 0 0 0 2px var(--blue);}
+.fault-ctrl-prob-name{min-width:0; word-break:break-word; line-height:1.45; font-weight:500; font-family:'Inter',sans-serif; display:flex; align-items:flex-start; gap:6px;}
+.fault-ctrl-prob-toggle{
+  flex-shrink:0; width:24px; height:24px; margin-top:1px; border:none; background:transparent;
+  color:var(--muted); cursor:pointer; border-radius:4px; font-size:13px; line-height:1;
+  display:inline-flex; align-items:center; justify-content:center;
+  transition:transform .15s, background .12s, color .12s;
+}
+.fault-ctrl-prob-toggle:hover{background:var(--panel-2); color:var(--blue);}
+.fault-ctrl-prob-item.open .fault-ctrl-prob-toggle{transform:rotate(90deg); color:var(--blue);}
+.fault-ctrl-prob-sites{display:none; padding:2px 10px 14px 40px;}
+.fault-ctrl-prob-item.open .fault-ctrl-prob-sites{display:block;}
+.fault-ctrl-prob-sites-label{font-size:12px; color:var(--muted); margin-bottom:8px; font-family:'Barlow Condensed'; text-transform:uppercase; letter-spacing:.04em; font-weight:600;}
+.fault-ctrl-prob-site-tags{display:flex; flex-wrap:wrap; gap:6px;}
+.fault-ctrl-prob-site-tag{
+  font-family:'JetBrains Mono'; font-size:12px; font-weight:600;
+  background:var(--panel-2); border:1px solid var(--border-soft); border-radius:6px;
+  padding:4px 8px; color:var(--blue);
+}
+.fault-ctrl-prob-site-tag b{color:var(--text); font-weight:700; margin-left:4px;}
+.fault-ctrl-prob-bar{height:12px; background:var(--panel-2); border-radius:6px; overflow:hidden;}
+.fault-ctrl-prob-bar i{display:block; height:100%; border-radius:6px; min-width:2px;}
+.fault-ctrl-prob-count{font-family:'JetBrains Mono'; font-weight:700; text-align:right; font-size:16px;}
+.fault-ctrl-prob-pct{font-family:'JetBrains Mono'; font-size:14px; color:var(--muted); text-align:right;}
+.fault-site-summary{margin-bottom:16px;}
+.fault-site-summary-head{font-family:'Barlow Condensed'; font-weight:700; font-size:16px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
+.fault-site-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:10px;}
+.fault-site-chip{
+  background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:10px 12px;
+  text-align:center; transition:transform .12s, border-color .12s;}
+.fault-site-chip:hover{transform:translateY(-1px); border-color:var(--blue);}
+.fault-site-chip .site-code{font-family:'JetBrains Mono'; font-weight:700; font-size:15px; color:var(--blue); letter-spacing:.02em;}
+.fault-site-chip .site-count{font-size:11px; color:var(--muted); margin-top:4px; font-family:'JetBrains Mono';}
+.fault-site-chip .site-count b{color:var(--text); font-size:13px;}
+.fault-dash-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; margin-bottom:18px; max-width:960px;}
+.fault-dash-grid .summary-card{cursor:default;}
+.fault-dash-charts{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;}
+@media(max-width:900px){ .fault-dash-charts{grid-template-columns:1fr;} .fault-dash-grid{grid-template-columns:1fr;} }
+.fault-dash-matrix{width:100%; border-collapse:collapse; font-size:12.5px;}
+.fault-dash-matrix th,.fault-dash-matrix td{padding:8px 10px; border:1px solid var(--border-soft); text-align:center;}
+.fault-dash-matrix th{background:var(--panel-2); font-family:'Barlow Condensed'; font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:.04em;}
+.fault-dash-matrix td.num{font-family:'JetBrains Mono'; font-weight:700;}
+.fault-detail-filters{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px;
+  background:var(--panel); border:1px solid var(--border-soft); border-radius:8px; padding:10px 14px;}
 table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono'; font-size:9.5px; text-transform:none; letter-spacing:0; color:var(--muted-2); font-weight:400;}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-row1">
+<div class="app-shell">
+<aside class="sidebar" id="appSidebar">
+  <div class="sidebar-brand">
     <div class="brand">
       <div class="dot"></div>
-      <div><h1>PLKD Board</h1><small>INOC · 6-Team Work Order Tracker</small></div>
+      <div class="brand-text"><h1>PLKD Board</h1><small>INOC · 6-Team Work Order Tracker</small></div>
     </div>
-    <div class="tabs" id="tabsMain">
-      <div class="tab-indicator" id="tabIndicatorMain"></div>
-      <button class="tab-btn home active" id="tabHomeBtn" onclick="switchTab('home')">Home</button>
-      <button class="tab-btn svcava" id="tabSvcAvaBtn" onclick="switchTab('svcava')">Service Availability</button>
-      <button class="tab-btn fault" id="tabFaultBtn" onclick="switchTab('fault')">Fault PLKD</button>
-    </div>
-    <div class="tools-group">
-      <span class="tools-label">Tools :</span>
-      <div class="tabs" id="tabsTools">
-        <div class="tab-indicator" id="tabIndicatorTools"></div>
-        <button class="tab-btn pending" id="tabPendingBtn" onclick="switchTab('pending')">Pending <span class="count" id="countPending">0</span></button>
-        <button class="tab-btn closed" id="tabClosedBtn" onclick="switchTab('closed')">Closed <span class="count" id="countClosed">0</span></button>
-        <button class="tab-btn manual" id="tabManualBtn" onclick="switchTab('manual')">Manual Closed By INOC <span class="count" id="countManual">0</span></button>
+    <button type="button" class="sidebar-toggle" id="sidebarToggleBtn" onclick="toggleSidebar()" title="ย่อเมนู" aria-label="ย่อ/ขยายเมนู">«</button>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Menu</div>
+      <div class="tabs tabs-vertical" id="tabsMain">
+        <div class="tab-indicator" id="tabIndicatorMain"></div>
+        <button class="tab-btn home active" id="tabHomeBtn" onclick="switchTab('home')" title="Home"><span class="tab-ico">H</span><span class="tab-text">Home</span></button>
+        <button class="tab-btn svcava" id="tabSvcAvaBtn" onclick="switchTab('svcava')" title="Service Availability"><span class="tab-ico">SA</span><span class="tab-text">Service Availability</span></button>
+        <button class="tab-btn fault" id="tabFaultBtn" onclick="switchTab('fault')" title="Fault PLKD"><span class="tab-ico">F</span><span class="tab-text">Fault PLKD</span></button>
       </div>
     </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Tools</div>
+      <div class="tabs tabs-vertical" id="tabsTools">
+        <div class="tab-indicator" id="tabIndicatorTools"></div>
+        <button class="tab-btn pending" id="tabPendingBtn" onclick="switchTab('pending')" title="Pending"><span class="tab-ico">P</span><span class="tab-text">Pending</span> <span class="count" id="countPending">0</span></button>
+        <button class="tab-btn closed" id="tabClosedBtn" onclick="switchTab('closed')" title="Closed"><span class="tab-ico">C</span><span class="tab-text">Closed</span> <span class="count" id="countClosed">0</span></button>
+        <button class="tab-btn manual" id="tabManualBtn" onclick="switchTab('manual')" title="Manual Closed By INOC"><span class="tab-ico">M</span><span class="tab-text">Manual Closed By INOC</span> <span class="count" id="countManual">0</span></button>
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
     <div class="datebox"><label>Date</label><input type="date" id="boardDate" onchange="loadAll()"><span class="upload-ts" id="uploadTs"></span></div>
-  </div>
-  <div class="topbar-row2">
-    <button class="btn ghost sm" id="screenshotHomeBtn" onclick="screenshotHome()" title="Copy a screenshot of the whole page to clipboard">📷 Screenshot</button>
+    <button type="button" class="btn-screenshot" id="screenshotBtn" onclick="captureScreenshot()" title="แคปหน้าจอที่เห็น — คัดลอกไป Clipboard วางได้เลย">
+      <span class="shot-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 8h3l2-2h6l2 2h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z"/><circle cx="12" cy="14" r="4"/></svg>
+      </span>
+      <span class="shot-label">Screenshot<span class="shot-sub">หน้าจอที่เห็น · วางได้เลย</span></span>
+    </button>
     <button class="btn ghost sm" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle day/night mode">☾ Night</button>
   </div>
-</div>
-
+</aside>
+<main class="main-content">
 <div class="wrap">
   <div id="homeView" class="tab-view">
     <div class="home-title" id="homeTitle"></div>
@@ -465,7 +697,6 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn" id="faultSubLtrSlaBtn" onclick="switchFaultSubTab('ltr-sla')">Long time Repair</button>
       <button class="tab-btn" id="faultSubLtrBtn" onclick="switchFaultSubTab('ltr')">Long time Repair</button>
       <button class="tab-btn" id="faultSubControlBtn" onclick="switchFaultSubTab('control')">In Control / Out Control</button>
-      <button class="tab-btn" id="faultSubGroupProblemBtn" onclick="switchFaultSubTab('group-problem')">Group Problem</button>
     </div>
     <div id="faultSubOverview">
       <div class="fault-chart-card">
@@ -514,20 +745,37 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
           <div class="summary-body"><div class="summary-line"><span class="lbl">รายการ</span><span class="val" style="color:var(--coral)" id="faultOutControlCount">0</span></div></div>
         </div>
       </div>
-      <div class="fault-table-block" id="faultControlDetailBlock" style="display:none;">
-        <div class="fault-section-title" id="faultControlDetailTitle">Detail</div>
-        <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultControlDetailTable"><thead></thead><tbody></tbody></table></div>
-      </div>
-    </div>
-    <div id="faultSubGroupProblem" style="display:none;">
-      <div class="filterbar" id="faultGroupProblemBar"></div>
-      <div class="fault-group-chips" id="faultGroupProblemChips"></div>
-      <div class="fault-table-block">
-        <div class="fault-section-title" id="faultGroupProblemTitle">รายการ <span class="badge" id="faultGroupProblemCount">0</span></div>
-        <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultGroupProblemTable"><thead></thead><tbody></tbody></table></div>
+      <div id="faultControlPanel" class="fault-ctrl-panel" style="display:none;">
+        <div class="fault-section-title" id="faultControlPanelTitle">In Control</div>
+        <div class="fault-ctrl-subtabs">
+          <button type="button" class="fault-ctrl-subtab active" id="faultCtrlSubDashBtn" onclick="switchFaultControlSubView('dashboard')">Dashboard</button>
+          <button type="button" class="fault-ctrl-subtab" id="faultCtrlSubDetailBtn" onclick="switchFaultControlSubView('detail')">Detail</button>
+        </div>
+        <div id="faultControlDashboard">
+          <div id="faultCtrlDashSummary" class="fault-ctrl-insight"></div>
+          <div class="fault-ctrl-dash">
+            <div class="fault-ctrl-dash-main">
+              <div class="fault-ctrl-kpi-row" id="faultCtrlDashKpi"></div>
+              <div id="faultCtrlDashList"></div>
+            </div>
+          </div>
+        </div>
+        <div id="faultControlDetailView" style="display:none;">
+          <div id="faultGpCardsWrap">
+            <div class="fault-section-title" id="faultGpCardsTitle">Group Problem</div>
+            <div class="fault-gp-cards" id="faultGpCards"></div>
+          </div>
+          <div class="fault-table-block" id="faultControlDetailBlock" style="display:none;">
+            <div class="fault-section-title" id="faultControlDetailTitle">Detail</div>
+            <div id="faultControlSiteSummary" class="fault-site-summary"></div>
+            <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultControlDetailTable"><thead></thead><tbody></tbody></table></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+</div>
+</main>
 </div>
 
 <div class="time-pop" id="timePop">
@@ -586,13 +834,28 @@ let faultTickets = [];
 let faultSubTab = "overview";
 let faultRegionFilter = "";
 let faultControlDetail = null;
-let faultGroupProblemFilter = "";
+let faultControlGroupProblem = null;
+let faultControlDashGpFilter = null;
+let faultControlSubView = "dashboard";
+const FAULT_GP_PRESETS = [
+  "ปัญหา battery เสื่อม",
+  "ปัญหา alarm mapping ไม่มี mainpower fail",
+  "ปัญหา workload ทีมติดงานเข้าช้า",
+  "ปัญหา Planwork",
+  "ปัญหา มี Alarm Mainpower Not Ticket",
+  "ปัญหา ปิดงานผิด",
+  "ปัญหา ผลกระทบจากใบงานอื่น",
+  "ปัญหา งานส่งต่อ",
+  "ปัญหา รอเบิกอุปกรณ์",
+  "ปัญหา Site Assess",
+  "ปัญหา อื่นๆ",
+  "ไม่พบปัญหา"
+];
 const FAULT_SUB_TAB_MAP = {
   overview: { btn: "faultSubOverviewBtn", view: "faultSubOverview" },
   "ltr-sla": { btn: "faultSubLtrSlaBtn", view: "faultSubLtrSla" },
   ltr: { btn: "faultSubLtrBtn", view: "faultSubLtr" },
-  control: { btn: "faultSubControlBtn", view: "faultSubControl" },
-  "group-problem": { btn: "faultSubGroupProblemBtn", view: "faultSubGroupProblem" }
+  control: { btn: "faultSubControlBtn", view: "faultSubControl" }
 };
 let faultOverviewChartInst = null;
 let faultLtrSlaChartInst = null;
@@ -633,6 +896,21 @@ function toggleTheme(){
   applyTheme(isDark ? "day" : "dark");
 }
 applyTheme(localStorage.getItem("noc-theme") || "day");
+function applySidebarCollapsed(collapsed){
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+  const btn = document.getElementById("sidebarToggleBtn");
+  if(btn){
+    btn.textContent = collapsed ? "»" : "«";
+    btn.title = collapsed ? "ขยายเมนู" : "ย่อเมนู";
+  }
+  setTimeout(moveTabIndicator, 300);
+}
+function toggleSidebar(){
+  const next = !document.body.classList.contains("sidebar-collapsed");
+  applySidebarCollapsed(next);
+  try{ localStorage.setItem("plkdSidebarCollapsed", next ? "1" : "0"); }catch(e){}
+}
+applySidebarCollapsed(localStorage.getItem("plkdSidebarCollapsed") === "1");
 
 async function fetchAllFromRest(url){
   const rows = [];
@@ -657,13 +935,16 @@ function sanitizePlkdSiteCodes(raw){
 }
 async function fetchSiteCodes(){
   let codes = null;
-  try{
-    const res = await fetch("plkd168.json");
-    if(res.ok){
-      const clean = sanitizePlkdSiteCodes(await res.json());
-      if(clean.length) codes = clean;
-    }
-  }catch{}
+  const canFetchLocal = location.protocol === "http:" || location.protocol === "https:";
+  if(canFetchLocal){
+    try{
+      const res = await fetch("plkd168.json");
+      if(res.ok){
+        const clean = sanitizePlkdSiteCodes(await res.json());
+        if(clean.length) codes = clean;
+      }
+    }catch{}
+  }
   if(!codes || !codes.length){
     try{
       const stored = localStorage.getItem("plkdSiteCodes");
@@ -674,8 +955,16 @@ async function fetchSiteCodes(){
     }catch{}
   }
   if(!codes || !codes.length){
-    const data = await fetchAllFromRest(REST + "/site_codes?select=site_code&order=site_code.asc");
-    codes = sanitizePlkdSiteCodes(data.map(d=>d.site_code));
+    try{
+      const data = await fetchAllFromRest(REST + "/site_codes?select=site_code&order=site_code.asc");
+      codes = sanitizePlkdSiteCodes(data.map(d=>d.site_code));
+      if(codes.length){
+        try{ localStorage.setItem("plkdSiteCodes", JSON.stringify(codes)); }catch{}
+      }
+    }catch(e){
+      console.warn("fetchSiteCodes from Supabase failed:", e);
+      codes = codes || [];
+    }
   }
   applyPlkdSiteSet(codes);
 }
@@ -696,47 +985,81 @@ function plkdMatchType(r){
 }
 function isPlkdMatch(r){ return !!plkdMatchType(r); }
 async function fetchTeamMap(){
-  const res = await fetch(REST + "/team_mapping?select=*&order=sort_order.asc", {headers:HEADERS});
-  TEAM_MAP = await res.json();
+  try{
+    const res = await fetch(REST + "/team_mapping?select=*&order=sort_order.asc", {headers:HEADERS});
+    if(!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    TEAM_MAP = Array.isArray(data) ? data : [];
+  }catch(e){
+    console.warn("fetchTeamMap failed:", e);
+    if(!Array.isArray(TEAM_MAP)) TEAM_MAP = [];
+  }
 }
 async function fetchTickets(group){
-  const res = await fetch(REST + `/tickets?status_group=eq.${group}&order=created_at.asc`, {headers:HEADERS});
-  return await res.json();
+  try{
+    const res = await fetch(REST + `/tickets?status_group=eq.${group}&order=created_at.asc`, {headers:HEADERS});
+    if(!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  }catch(e){
+    console.warn(`fetchTickets(${group}) failed:`, e);
+    return [];
+  }
 }
 async function fetchAttendance(dateVal){
-  const res = await fetch(REST + `/team_attendance?ticket_date=eq.${dateVal}`, {headers:HEADERS});
-  const rows = await res.json();
-  ATTENDANCE = {};
-  rows.forEach(r=> ATTENDANCE[r.team_key] = r);
+  try{
+    const res = await fetch(REST + `/team_attendance?ticket_date=eq.${dateVal}`, {headers:HEADERS});
+    if(!res.ok) throw new Error(await res.text());
+    const rows = await res.json();
+    ATTENDANCE = {};
+    (Array.isArray(rows) ? rows : []).forEach(r=> ATTENDANCE[r.team_key] = r);
+  }catch(e){
+    console.warn("fetchAttendance failed:", e);
+    ATTENDANCE = {};
+  }
 }
 async function fetchHomeNote(dateVal){
-  const res = await fetch(REST + `/home_notes?ticket_date=eq.${dateVal}`, {headers:HEADERS});
-  const rows = await res.json();
-  HOME_NOTE = rows[0] || { service_ava: "" };
+  try{
+    const res = await fetch(REST + `/home_notes?ticket_date=eq.${dateVal}`, {headers:HEADERS});
+    if(!res.ok) throw new Error(await res.text());
+    const rows = await res.json();
+    HOME_NOTE = (Array.isArray(rows) && rows[0]) ? rows[0] : { service_ava: "" };
+  }catch(e){
+    console.warn("fetchHomeNote failed:", e);
+    HOME_NOTE = { service_ava: "" };
+  }
 }
 async function loadAll(){
   toast("Loading…");
-  tickets.pending = await fetchTickets("pending");
-  tickets.closed = await fetchTickets("closed");
-  tickets.svcava = await fetchTickets("svcava");
-  rebuildInocLogByTt();
-  await loadFaultTickets(false);
-  const dateVal = document.getElementById("boardDate").value;
-  await fetchAttendance(dateVal);
-  await fetchHomeNote(dateVal);
-  renderAll();
-  toast("Loaded");
+  try{
+    const dateVal = document.getElementById("boardDate").value;
+    [tickets.pending, tickets.closed, tickets.svcava] = await Promise.all([
+      fetchTickets("pending"), fetchTickets("closed"), fetchTickets("svcava")
+    ]);
+    rebuildInocLogByTt();
+    await Promise.all([fetchAttendance(dateVal), fetchHomeNote(dateVal)]);
+    renderAll();
+    toast("Loaded");
+  }catch(e){
+    console.error("loadAll failed:", e);
+    toast("โหลดข้อมูลไม่สำเร็จ");
+  }
+  loadFaultTickets(false).catch(e=> console.warn("Fault load failed:", e));
 }
 function renderAll(){
-  renderFilterbar("pending"); renderFilterbar("closed"); renderFilterbar("manual");
-  renderTeams("pending"); renderTeams("closed"); renderTeams("manual");
-  renderHome();
-  if(currentTab==="svcava") renderSvcAva();
-  if(currentTab==="fault") renderFault();
-  document.getElementById("countPending").textContent = groupSourceRows("pending").filter(r=>passFilter(r,"pending")).length;
-  document.getElementById("countClosed").textContent = groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length;
-  document.getElementById("countManual").textContent = tickets.closed.filter(isManualClosed).length;
-  renderUploadTs();
+  try{
+    renderFilterbar("pending"); renderFilterbar("closed"); renderFilterbar("manual");
+    renderTeams("pending"); renderTeams("closed"); renderTeams("manual");
+    renderHome();
+    if(currentTab==="svcava") renderSvcAva();
+    if(currentTab==="fault") renderFault();
+    document.getElementById("countPending").textContent = groupSourceRows("pending").filter(r=>passFilter(r,"pending")).length;
+    document.getElementById("countClosed").textContent = groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length;
+    document.getElementById("countManual").textContent = tickets.closed.filter(isManualClosed).length;
+    renderUploadTs();
+  }catch(e){
+    console.error("renderAll failed:", e);
+  }
 }
 function switchTab(tab){
   currentTab = tab;
@@ -764,17 +1087,27 @@ function switchTab(tab){
   moveTabIndicator();
 }
 function moveTabIndicator(){
-  const activeBtn = document.querySelector(".tab-btn.active");
+  const mainActive = document.querySelector("#tabsMain .tab-btn.active");
+  const toolsActive = document.querySelector("#tabsTools .tab-btn.active");
   const indMain = document.getElementById("tabIndicatorMain");
   const indTools = document.getElementById("tabIndicatorTools");
-  if(!activeBtn) return;
-  const inTools = document.getElementById("tabsTools").contains(activeBtn);
-  if(inTools){
-    if(indTools){ indTools.style.width = activeBtn.offsetWidth + "px"; indTools.style.left = activeBtn.offsetLeft + "px"; }
-    if(indMain) indMain.style.width = "0px";
-  } else {
-    if(indMain){ indMain.style.width = activeBtn.offsetWidth + "px"; indMain.style.left = activeBtn.offsetLeft + "px"; }
-    if(indTools) indTools.style.width = "0px";
+  if(mainActive && indMain){
+    indMain.style.top = mainActive.offsetTop + "px";
+    indMain.style.height = mainActive.offsetHeight + "px";
+    indMain.style.left = "4px";
+    indMain.style.right = "4px";
+    indMain.style.width = "auto";
+  }else if(indMain){
+    indMain.style.height = "0px";
+  }
+  if(toolsActive && indTools){
+    indTools.style.top = toolsActive.offsetTop + "px";
+    indTools.style.height = toolsActive.offsetHeight + "px";
+    indTools.style.left = "4px";
+    indTools.style.right = "4px";
+    indTools.style.width = "auto";
+  }else if(indTools){
+    indTools.style.height = "0px";
   }
 }
 window.addEventListener("resize", ()=>{ moveTabIndicator(); moveFaultSubTabIndicator(); });
@@ -1278,121 +1611,125 @@ function closeSevModal(){
   document.getElementById("sevDetailModal").classList.remove("open");
 }
 
-async function screenshotHome(){
-  const btn = document.getElementById("screenshotHomeBtn");
-  const target = document.body;
-  if(!target || typeof html2canvas === "undefined"){
-    toast("Screenshot library not loaded");
+async function captureScreenshot(){
+  const btn = document.getElementById("screenshotBtn");
+  if(typeof html2canvas === "undefined"){
+    toast("โหลด library แคปภาพไม่สำเร็จ");
     return;
   }
-  // Kick off the clipboard write IMMEDIATELY and synchronously, before any `await` — browsers
-  // tie the clipboard permission to the click's transient user-activation, which can expire
-  // during the several hundred ms it takes html2canvas to render. Passing a not-yet-resolved
-  // Blob promise into ClipboardItem lets us start the write right on the click (so it's treated
-  // as directly gesture-triggered and doesn't re-prompt every time) while the actual image data
-  // gets filled in once capture finishes.
+
   let resolveBlob, rejectBlob;
   const blobPromise = new Promise((res, rej)=>{ resolveBlob = res; rejectBlob = rej; });
-  let clipboardWritePromise = null;
-  const clipboardSupported = navigator.clipboard && window.ClipboardItem;
-  if(clipboardSupported){
-    clipboardWritePromise = navigator.clipboard.write([ new ClipboardItem({ "image/png": blobPromise }) ]);
+  const canClipboard = navigator.clipboard && window.ClipboardItem;
+  let clipWrite = null;
+  if(canClipboard){
+    clipWrite = navigator.clipboard.write([new ClipboardItem({"image/png": blobPromise})]);
   }
 
   document.body.classList.add("screenshotting");
-  const origLabel = btn.textContent;
-  btn.textContent = "⏳ Capturing…";
-  const savedScrollX = window.scrollX, savedScrollY = window.scrollY;
-  window.scrollTo(0, 0);
-  // Wait for web fonts to finish loading — if html2canvas rasterizes before a custom font
-  // (JetBrains Mono / Barlow Condensed) is ready, it silently falls back to a thinner system
-  // font, which is what makes captures look pale/blurry compared to the live page.
-  if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch(e){} }
-
-  // Rather than fighting html2canvas's clone/onclone machinery to reproduce scrolled-off
-  // content, actually expand every horizontally-scrollable table container (and any sticky
-  // columns) on the REAL live page first, let it reflow to full width, capture that, then put
-  // everything back exactly as it was. This guarantees every column shows — what you see during
-  // the brief expansion is exactly what gets captured.
-  const restoreFns = [];
-  document.querySelectorAll(".locked-col").forEach(el=>{
-    restoreFns.push([el, "position", el.style.position]);
-    el.style.position = "static";
-  });
-  document.querySelectorAll(".table-scroll, .home-table-scroll").forEach(el=>{
-    restoreFns.push([el, "overflow", el.style.overflow]);
-    restoreFns.push([el, "maxHeight", el.style.maxHeight]);
-    restoreFns.push([el, "width", el.style.width]);
-    el.style.overflow = "visible";
-    el.style.maxHeight = "none";
-    const t = el.querySelector("table");
-    if(t) el.style.width = t.scrollWidth + "px";
-  });
-  restoreFns.push([document.body, "overflow", document.body.style.overflow]);
-  restoreFns.push([document.documentElement, "overflow", document.documentElement.style.overflow]);
-  document.body.style.overflow = "visible";
-  document.documentElement.style.overflow = "visible";
-
-  // Let the browser actually reflow the now-expanded layout before measuring/capturing.
-  await new Promise(r=>setTimeout(r, 150));
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = `<span class="shot-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg></span><span class="shot-label">Capturing…</span>`;
 
   try{
-    const bg = getComputedStyle(document.body).getPropertyValue("--bg").trim() || "#e9ecf1";
-    // Now that every table container is expanded on the real page, the document's own
-    // scrollWidth/scrollHeight already reflect the true full-content size — no guessing needed.
-    const fullWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
-    const fullHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
-    const baseOpts = {
+    if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch(e){} }
+    prepareScreenshotCharts();
+
+    const bg = getScreenshotBgColor();
+    const scale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+    const sx = window.scrollX || window.pageXOffset || 0;
+    const sy = window.scrollY || window.pageYOffset || 0;
+    const vw = document.documentElement.clientWidth;
+    const vh = document.documentElement.clientHeight;
+
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
+    const canvas = await html2canvas(document.body, {
       backgroundColor: bg,
       useCORS: true,
-      scale: Math.max(2, window.devicePixelRatio || 2), // fixed high-DPI scale so text stays crisp regardless of monitor DPI
-      windowWidth: fullWidth,
-      windowHeight: fullHeight,
-      width: fullWidth,
-      height: fullHeight,
-      x: 0,
-      y: 0,
-      scrollX: 0,
-      scrollY: 0
-    };
-    // foreignObjectRendering lets the browser itself paint the real DOM into the canvas (true
-    // font weight, color, anti-aliasing) instead of html2canvas manually re-drawing every element
-    // — that manual re-draw is what produced the pale/thin-looking text and colors. Try it first
-    // since it's far more faithful to the live page; fall back to the manual renderer if the
-    // browser doesn't support it well (e.g. some Firefox versions) or it throws.
-    let canvas;
-    try{
-      canvas = await html2canvas(target, {...baseOpts, foreignObjectRendering: true});
-    }catch(foErr){
-      console.warn("foreignObjectRendering capture failed, falling back:", foErr);
-      canvas = await html2canvas(target, {...baseOpts, foreignObjectRendering: false});
-    }
-    const blob = await new Promise(res=> canvas.toBlob(res, "image/png"));
-    if(!blob) throw new Error("toBlob failed");
-    if(clipboardSupported){
+      allowTaint: true,
+      logging: false,
+      foreignObjectRendering: false,
+      scale,
+      width: vw,
+      height: vh,
+      windowWidth: vw,
+      windowHeight: vh,
+      x: sx,
+      y: sy,
+      scrollX: -sx,
+      scrollY: -sy,
+      onclone: patchHtml2CanvasClone
+    });
+
+    const blob = await new Promise((res, rej)=> canvas.toBlob(b=> b ? res(b) : rej(new Error("toBlob failed")), "image/png"));
+
+    if(canClipboard){
       resolveBlob(blob);
-      await clipboardWritePromise;
-      toast("คัดลอกภาพเต็มหน้าแล้ว — ไปวาง (Ctrl/Cmd+V) ใน LINE หรือที่ไหนก็ได้เลย");
+      await clipWrite;
+      toast("คัดลอกภาพแล้ว — กด Ctrl+V เพื่อวาง");
     } else {
-      // Fallback for browsers without Clipboard image support
       const dateVal = (document.getElementById("boardDate")||{}).value || new Date().toISOString().slice(0,10);
       const link = document.createElement("a");
-      link.download = `PLKD-Board-${dateVal}.png`;
+      link.download = `PLKD-Screenshot-${currentTab}-${dateVal}.png`;
       link.href = URL.createObjectURL(blob);
       link.click();
-      toast("Clipboard not supported on this browser — saved file instead");
+      setTimeout(()=> URL.revokeObjectURL(link.href), 2000);
+      toast("Browser ไม่รองรับ Clipboard — บันทึกไฟล์แทน");
     }
-  } catch(err){
+  }catch(err){
     if(rejectBlob) rejectBlob(err);
     console.error(err);
-    toast("Screenshot failed");
-  } finally {
-    // Put every temporarily-expanded element back exactly as it was.
-    restoreFns.forEach(([el, prop, val])=>{ el.style[prop] = val; });
+    toast("แคปภาพไม่สำเร็จ");
+  }finally{
     document.body.classList.remove("screenshotting");
-    btn.textContent = origLabel;
-    window.scrollTo(savedScrollX, savedScrollY);
+    btn.innerHTML = origHtml;
   }
+}
+function prepareScreenshotCharts(){
+  [faultOverviewChartInst, faultLtrSlaChartInst].forEach(inst=>{
+    if(!inst) return;
+    try{ inst.update("none"); }catch(e){}
+  });
+}
+function getScreenshotBgColor(){
+  const cs = getComputedStyle(document.body);
+  const painted = cs.backgroundColor;
+  if(painted && painted !== "rgba(0, 0, 0, 0)" && painted !== "transparent") return painted;
+  return "#e9ecf1";
+}
+function patchHtml2CanvasClone(clonedDoc){
+  clonedDoc.querySelectorAll("style").forEach(el=>{
+    if(el.textContent && el.textContent.includes("color-mix")) el.remove();
+  });
+  syncCaptureComputedStyles(document.body, clonedDoc.body);
+  clonedDoc.querySelectorAll("canvas").forEach(cloneCanvas=>{
+    const live = cloneCanvas.id ? document.getElementById(cloneCanvas.id) : null;
+    if(!live || !live.width || !live.height) return;
+    cloneCanvas.width = live.width;
+    cloneCanvas.height = live.height;
+    const ctx = cloneCanvas.getContext("2d");
+    if(ctx) ctx.drawImage(live, 0, 0);
+  });
+  clonedDoc.querySelector(".sidebar-footer .btn-screenshot")?.remove();
+  clonedDoc.querySelector("#themeToggleBtn")?.remove();
+  clonedDoc.querySelector(".toast")?.classList.remove("show");
+  clonedDoc.querySelectorAll(".modal-overlay, .sev-modal, .time-pop").forEach(el=>{ el.style.display = "none"; });
+  const sidebar = clonedDoc.querySelector(".sidebar");
+  if(sidebar) sidebar.style.position = "relative";
+}
+function syncCaptureComputedStyles(liveEl, cloneEl){
+  if(!liveEl || !cloneEl || liveEl.nodeType !== 1 || cloneEl.nodeType !== 1) return;
+  const cs = getComputedStyle(liveEl);
+  const st = cloneEl.style;
+  st.backgroundColor = cs.backgroundColor;
+  st.color = cs.color;
+  st.borderColor = cs.borderColor;
+  st.outlineColor = cs.outlineColor;
+  const bgImg = cs.backgroundImage;
+  if(bgImg && bgImg !== "none" && !/color-mix|color\(/.test(bgImg)) st.backgroundImage = bgImg;
+  if(cs.boxShadow && cs.boxShadow !== "none" && !/color-mix|color\(/.test(cs.boxShadow)) st.boxShadow = cs.boxShadow;
+  const n = Math.min(liveEl.children.length, cloneEl.children.length);
+  for(let i = 0; i < n; i++) syncCaptureComputedStyles(liveEl.children[i], cloneEl.children[i]);
 }
 
 function wireDragDrop(tbody){
@@ -2061,8 +2398,9 @@ function getFilteredFaultTickets(){
 }
 function fmtFaultDT(v){
   if(!v) return '<span class="muted-dash">—</span>';
-  const s = String(v);
-  if(s.length >= 16) return esc(s.slice(0,16));
+  const s = String(v).trim();
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+  if(m) return `<span class="dt-date">${esc(m[1])}</span><span class="dt-time">${esc(m[2])}</span>`;
   return esc(s);
 }
 function fmtFaultRawDT(v){
@@ -2077,34 +2415,204 @@ const FAULT_EXPORT_COLS = [
   {h:"Ticket ID", get:r=>{ const tt=r.source_ticket_id||r.sdm_tt||""; return r.work_order_id ? `${tt}\n${r.work_order_id}` : tt; }},
   {h:"Subject", get:r=>extractFaultSubjectDetail(r)},
   {h:"SEVERITY", get:r=>r.severity||""},
-  {h:"WO Open", get:r=>r.wo_creator||""},
   {h:"Ticket Open", get:r=>fmtFaultRawDT(r.created_time)},
   {h:"Depart", get:r=>fmtFaultRawDT(r.departed_time)},
   {h:"Arrive", get:r=>fmtFaultRawDT(r.arrived_time)},
   {h:"Close", get:r=>fmtFaultRawDT(r.closed_time)},
   {h:"Downtime", get:r=>{ const c=r._fault||classifyFaultTicket(r); return c.downtimeMinutes!=null?fmtHMText(c.downtimeMinutes):""; }},
   {h:"Close Description", get:r=>r.close_description||""},
-  {h:"Group Problem", get:r=>r.group_problem_free_text||""},
   {h:"INOC log", get:r=>getFaultInocLogDisplay(r).text},
-  {h:"In or Out Control", get:r=>r.control_status||""}
+  {h:"In or Out Control", get:r=>r.control_status||""},
+  {h:"Group Problem", get:r=>resolveFaultSkillAndGp(r).group_problem_free_text}
 ];
 function fmtFaultDowntime(mins){
   if(mins === null || mins === undefined) return '<span class="muted-dash">—</span>';
   return esc(fmtHMText(mins));
 }
+function getFaultGroupProblemCustom(){
+  try{ return JSON.parse(localStorage.getItem("faultGpCustom")||"[]"); }catch(e){ return []; }
+}
+function saveFaultGroupProblemCustom(list){
+  try{ localStorage.setItem("faultGpCustom", JSON.stringify(list)); }catch(e){}
+}
+function getFaultGroupProblemOptions(){
+  const merged = [...FAULT_GP_PRESETS];
+  getFaultGroupProblemCustom().forEach(v=>{ if(v && !merged.includes(v)) merged.push(v); });
+  faultTickets.forEach(r=>{
+    const gp = resolveFaultSkillAndGp(r).group_problem_free_text;
+    if(gp && !merged.includes(gp)) merged.push(gp);
+  });
+  return merged;
+}
+function normalizeFaultSkill(val){
+  const s = String(val||"").trim();
+  if(!s) return "";
+  const u = s.toUpperCase();
+  if(u === "NODE" || u === "N" || /^NODE\b/.test(u)) return "Node";
+  if(/^FIBER|^FIBRE/i.test(s) || u === "FIBER" || u === "FIBRE") return "Fiber";
+  if(u === "OFC" || u === "O" || /^OFC\b/.test(u)) return "Fiber";
+  return s;
+}
+function isFaultGroupProblemPreset(val){
+  const s = String(val||"").trim();
+  if(!s) return false;
+  if(FAULT_GP_PRESETS.includes(s)) return true;
+  if(getFaultGroupProblemCustom().includes(s)) return true;
+  if(s.startsWith("ปัญหา") || s === "ไม่พบปัญหา") return true;
+  return false;
+}
+/** ค่าเดิมที่กรอกใน Group Problem แต่จริงๆ เป็น Skill (Node, Fiber ฯลฯ) */
+function isLegacySkillInGroupProblem(val){
+  const s = String(val||"").trim();
+  if(!s) return false;
+  if(isFaultGroupProblemPreset(s)) return false;
+  const u = s.toUpperCase();
+  if(u === "NODE" || u === "FIBER" || u === "FIBRE" || u === "OFC" || u === "N" || u === "O") return true;
+  if(/^FIBER|^FIBRE/i.test(s)) return true;
+  const norm = normalizeFaultSkill(s);
+  if(norm === "Node" || norm === "Fiber") return true;
+  return false;
+}
+function resolveFaultSkillAndGp(r){
+  let skill = String(r?.skill || "").trim();
+  let gp = String(r?.group_problem_free_text || "").trim();
+  if(gp && isLegacySkillInGroupProblem(gp)){
+    if(!skill) skill = normalizeFaultSkill(gp) || gp;
+    gp = "";
+  }
+  return { skill, group_problem_free_text: gp };
+}
+async function migrateLegacyFaultSkills(){
+  const pending = [];
+  faultTickets.forEach(r=>{
+    const gp = (r.group_problem_free_text || "").trim();
+    const skill = (r.skill || "").trim();
+    let newSkill = skill;
+    let newGp = gp;
+    if(gp && isLegacySkillInGroupProblem(gp)){
+      if(!newSkill) newSkill = normalizeFaultSkill(gp) || gp;
+      newGp = "";
+    }
+    const normed = normalizeFaultSkill(newSkill);
+    if(normed) newSkill = normed;
+    if(newSkill !== skill || newGp !== gp){
+      pending.push({ r, skill: newSkill, group_problem_free_text: newGp });
+    }
+  });
+  if(!pending.length) return 0;
+  pending.forEach(({ r, skill, group_problem_free_text })=>{
+    r.skill = skill;
+    r.group_problem_free_text = group_problem_free_text;
+  });
+  let migrated = 0;
+  const CHUNK = 25;
+  for(let i = 0; i < pending.length; i += CHUNK){
+    const chunk = pending.slice(i, i + CHUNK);
+    const results = await Promise.all(chunk.map(({ r, skill, group_problem_free_text })=>{
+      const patch = { skill, group_problem_free_text, updated_at: new Date().toISOString() };
+      return fetch(FAULT_REST + `?work_order_id=eq.${encodeURIComponent(r.work_order_id)}`, {
+        method:"PATCH", headers:HEADERS, body: JSON.stringify(patch)
+      }).then(res=>res.ok).catch(()=>false);
+    }));
+    migrated += results.filter(Boolean).length;
+  }
+  if(migrated) toast(`อัปเดต Skill (Node/Fiber) ${migrated} รายการ`);
+  return migrated;
+}
+function faultSkillClass(val){
+  const n = normalizeFaultSkill(val);
+  if(n === "Node") return "skill-node";
+  if(n === "Fiber") return "skill-fiber";
+  return "";
+}
+function faultGpClass(val){ return (val||"").trim() ? "gp-set" : ""; }
+function faultCtrlClass(val){
+  const k = normalizeFaultControl(val);
+  if(k === "in") return "ctrl-in";
+  if(k === "out") return "ctrl-out";
+  return "";
+}
+function faultGpLabel(key){
+  if(!key || key === "__blank__") return "(ไม่ระบุ)";
+  return key;
+}
+function faultGpOptionsHtml(selected){
+  const sel = (selected||"").trim();
+  const opts = getFaultGroupProblemOptions();
+  let html = `<option value="" ${!sel?"selected":""}>— เลือก —</option>`;
+  opts.forEach(o=>{
+    html += `<option value="${esc(o)}" ${sel===o?"selected":""}>${esc(o)}</option>`;
+  });
+  if(sel && !opts.includes(sel)){
+    html += `<option value="${esc(sel)}" selected>${esc(sel)}</option>`;
+  }
+  return html;
+}
+function faultSkillDropdownHtml(woId, value){
+  const raw = String(value||"").trim();
+  const n = normalizeFaultSkill(raw);
+  const wo = esc(woId);
+  const isNode = n === "Node";
+  const isFiber = n === "Fiber";
+  const legacyExtra = raw && !isNode && !isFiber;
+  return `<div class="fault-dd"><select class="fault-dd-select ${faultSkillClass(n || raw)}" data-wo-id="${wo}"
+    onchange="updateFaultFieldFromEl(this,'skill')">
+    <option value="" ${!raw?"selected":""}>—</option>
+    <option value="Node" ${isNode?"selected":""}>Node</option>
+    <option value="Fiber" ${isFiber?"selected":""}>Fiber</option>
+    ${legacyExtra ? `<option value="${esc(raw)}" selected>${esc(raw)}</option>` : ""}
+  </select></div>`;
+}
+function faultGroupProblemDropdownHtml(woId, value){
+  const wo = esc(woId);
+  const sel = (value||"").trim();
+  return `<div class="fault-dd"><select class="fault-dd-select ${faultGpClass(sel)}" data-wo-id="${wo}"
+    onchange="updateFaultFieldFromEl(this,'group_problem_free_text')">${faultGpOptionsHtml(sel)}</select>
+    <button type="button" class="fault-dd-add" title="เพิ่มหัวข้อปัญหา" onclick="promptAddFaultGroupProblem('${wo}')">+</button></div>`;
+}
+function faultControlDropdownHtml(woId, value){
+  const wo = esc(woId);
+  const raw = (value||"").trim();
+  const k = normalizeFaultControl(raw);
+  const inSel = k==="in" || /^in control/i.test(raw);
+  const outSel = k==="out" || /^out control/i.test(raw);
+  return `<div class="fault-dd"><select class="fault-dd-select ${faultCtrlClass(raw)}" data-wo-id="${wo}"
+    onchange="updateFaultFieldFromEl(this,'control_status')">
+    <option value="" ${!inSel && !outSel?"selected":""}>—</option>
+    <option value="In Control" ${inSel?"selected":""}>In Control</option>
+    <option value="Out Control" ${outSel?"selected":""}>Out Control</option>
+  </select></div>`;
+}
+function updateFaultFieldFromEl(el, field){
+  if(!el || !el.dataset.woId) return;
+  updateFaultField(el.dataset.woId, field, el.value);
+  if(!el.classList || !el.classList.contains("fault-dd-select")) return;
+  el.className = "fault-dd-select " + (field==="skill" ? faultSkillClass(el.value) : field==="group_problem_free_text" ? faultGpClass(el.value) : faultCtrlClass(el.value));
+}
+async function promptAddFaultGroupProblem(woId){
+  const text = prompt("เพิ่มหัวข้อปัญหาใหม่:");
+  if(!text || !text.trim()) return;
+  const val = text.trim();
+  const custom = getFaultGroupProblemCustom();
+  if(!custom.includes(val) && !FAULT_GP_PRESETS.includes(val)){
+    custom.push(val);
+    saveFaultGroupProblemCustom(custom);
+  }
+  if(woId) await updateFaultField(woId, "group_problem_free_text", val);
+  else renderFault();
+}
 const FAULT_TABLE_HEAD = `<tr>
   <th style="width:90px">Site</th>
-  <th style="width:130px">Ticket ID</th>
+  <th style="width:120px">Ticket ID</th>
   <th style="width:200px">Subject</th>
   <th style="width:100px">SEVERITY</th>
-  <th style="width:110px">WO Open</th>
-  <th style="width:110px">Ticket Open</th>
-  <th style="width:110px">Depart</th>
-  <th style="width:110px">Arrive</th>
-  <th style="width:110px">Close</th>
-  <th style="width:100px">Downtime<br><span class="th-sub">Created → Closed</span></th>
+  <th class="dt-col">Ticket Open</th>
+  <th class="dt-col">Depart</th>
+  <th class="dt-col">Arrive</th>
+  <th class="dt-col">Close</th>
+  <th class="dt-col dt-col-downtime">Downtime<br><span class="th-sub">Created → Closed</span></th>
   <th style="width:180px">Close Description</th>
-  <th style="width:180px">Group Problem</th>
+  <th style="width:200px">Group Problem</th>
   <th style="width:160px">INOC log</th>
   <th style="width:140px">In or Out Control</th>
 </tr>`;
@@ -2113,21 +2621,21 @@ function faultTableRowHtml(r){
   const woId = r.work_order_id || "";
   const site = extractFaultPlkdSite(r);
   const inoc = getFaultInocLogDisplay(r);
+  const { group_problem_free_text: gp } = resolveFaultSkillAndGp(r);
   return `<tr>
     <td class="site-plkd-cell">${esc(site)}</td>
     <td class="tt-line">${esc(r.source_ticket_id||r.sdm_tt||'-')}<span class="ext">${esc(r.work_order_id||'')}</span></td>
     <td class="subject-cell">${esc(extractFaultSubjectDetail(r))}</td>
     <td><span class="sev-badge">${esc(r.severity||'-')}</span></td>
-    <td>${esc(r.wo_creator || "—")}</td>
     <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
     <td class="dt-cell">${fmtFaultDT(r.departed_time)}</td>
     <td class="dt-cell">${fmtFaultDT(r.arrived_time)}</td>
     <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
-    <td class="dt-cell">${fmtFaultDowntime(c.downtimeMinutes)}</td>
+    <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
     <td class="subject-cell">${esc(r.close_description||'')}</td>
-    <td><textarea class="cell-ta free-ta" placeholder="กรอก Group Problem…" onchange="updateFaultField('${esc(woId)}','group_problem_free_text', this.value)">${esc(r.group_problem_free_text||'')}</textarea></td>
-    <td><textarea class="home-feedback free-ta${inoc.linked ? " inoc-from-tt" : ""}" placeholder="${inoc.linked ? "จาก TT เดียวกัน (Pending/Closed/SvcAva)" : "INOC log…"}" title="${inoc.linked ? "ดึงจาก INOC Log ของ ticket TT เดียวกันในระบบ" : ""}" onchange="updateFaultField('${esc(woId)}','inoc_log', this.value)">${esc(inoc.text)}</textarea></td>
-    <td><textarea class="cell-ta free-ta" placeholder="In / Out…" onchange="updateFaultField('${esc(woId)}','control_status', this.value)">${esc(r.control_status||'')}</textarea></td>
+    <td>${faultGroupProblemDropdownHtml(woId, gp)}</td>
+    <td><textarea class="home-feedback free-ta${inoc.linked ? " inoc-from-tt" : ""}" placeholder="${inoc.linked ? "จาก TT เดียวกัน (Pending/Closed/SvcAva)" : "INOC log…"}" title="${inoc.linked ? "ดึงจาก INOC Log ของ ticket TT เดียวกันในระบบ" : ""}" data-wo-id="${esc(woId)}" onchange="updateFaultFieldFromEl(this,'inoc_log')">${esc(inoc.text)}</textarea></td>
+    <td>${faultControlDropdownHtml(woId, r.control_status)}</td>
   </tr>`;
 }
 function renderFaultTable(tableEl, rows, storageKey){
@@ -2136,7 +2644,7 @@ function renderFaultTable(tableEl, rows, storageKey){
   const tbody = tableEl.querySelector("tbody");
   thead.innerHTML = FAULT_TABLE_HEAD;
   if(rows.length===0){
-    tbody.innerHTML = `<tr><td colspan="14" class="empty-hint">No tickets in this group.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="13" class="empty-hint">No tickets in this group.</td></tr>`;
   } else {
     tbody.innerHTML = rows.map(faultTableRowHtml).join("");
   }
@@ -2251,19 +2759,25 @@ function drawFaultOverviewLineLabels(chart, ctx, dataset, meta){
       const text = String(Math.round(val));
       const y = yTop - 12;
       const box = drawFaultLinePointLabelAt(ctx, pt.x, y, text, dataset.borderColor || "#7c4fd6", FAULT_LABEL_FONT_LINE);
-      placed.push(box);
+      placed.push({...box, kind:"total"});
       return;
     }
 
     if(isSa || isSaAvg){
-      if(!faultShouldShowDenseLabel(i, n, slotW)) return;
-      const text = `${Number(val).toFixed(2)}%`;
-      const y = pt.y + (isSaAvg ? 20 : -14);
+      if(!faultShouldShowDenseLabel(i, n, slotW) && i !== 0 && i !== n - 1) return;
+      const rawPct = dataset.faultPctRaw ? dataset.faultPctRaw[i] : val;
+      const text = `${Number(rawPct).toFixed(2)}%`;
+      const chartTop = chart.chartArea?.top ?? 0;
+      const chartBottom = chart.chartArea?.bottom ?? 0;
+      let y = pt.y + (isSaAvg ? 18 : -14);
+      if(isSa && y < chartTop + 12) y = chartTop + 12;
+      if(isSaAvg && y > chartBottom - 8) y = pt.y - 14;
       ctx.font = FAULT_LABEL_FONT_PCT;
       const box = faultLabelBox(ctx, pt.x, y, text);
-      if(placed.some(b=> faultLabelOverlaps(box, b))) return;
+      const sameKind = placed.filter(b=> b.kind === (isSa ? "sa" : "sa-avg"));
+      if(sameKind.some(b=> faultLabelOverlaps(box, b))) return;
       drawFaultLinePointLabelAt(ctx, pt.x, y, text, dataset.borderColor || "#7c4fd6", FAULT_LABEL_FONT_PCT);
-      placed.push(box);
+      placed.push({...box, kind: isSa ? "sa" : "sa-avg"});
     }
   });
 }
@@ -2283,6 +2797,43 @@ function faultCountAxisStep(max){
   if(max <= 30) return 5;
   if(max <= 100) return 10;
   return 20;
+}
+/** map ค่า % ไปโซนบนเหนือกราฟแท่ง — แกน % max 100%, min ยืดตามข้อมูล */
+function faultOverviewPctBand(countMax, pctAxis){
+  const gap = Math.max(1.0, countMax * 0.12);
+  const band = Math.max(2.5, countMax * 0.34);
+  const topPad = Math.max(1.4, countMax * 0.14);
+  const bandBottom = countMax + gap;
+  const bandTop = bandBottom + band;
+  const axisMax = bandTop + topPad;
+  return {
+    gap, band, bandBottom, bandTop, axisMax, countMax, topPad,
+    mapPct(pct){
+      if(pct == null || isNaN(Number(pct))) return null;
+      const span = pctAxis.max - pctAxis.min;
+      if(span <= 0) return bandBottom + band / 2;
+      const t = (Number(pct) - pctAxis.min) / span;
+      return bandBottom + t * band;
+    }
+  };
+}
+/** ช่วงแกน % — max คงที่ 100%, min ยืดตามข้อมูล */
+function faultPercentAxisRange(values){
+  const nums = values.filter(v=> v != null && !isNaN(Number(v))).map(Number);
+  if(!nums.length) return { min: 0, max: 100, step: 20 };
+  const lo = Math.min(...nums);
+  const span = Math.max(Math.max(...nums) - lo, 0.5);
+  const padBottom = Math.max(2, span * 0.35);
+  let min = Math.floor((lo - padBottom) * 2) / 2;
+  if(min < 0) min = 0;
+  if(min >= lo) min = Math.max(0, Math.floor((lo - 3) * 2) / 2);
+  const max = 100;
+  const range = max - min;
+  let step = 1;
+  if(range > 25) step = 10;
+  else if(range > 15) step = 5;
+  else if(range > 8) step = 2;
+  return { min, max, step };
 }
 function drawFaultOverviewBarLabel(ctx, bar, count){
   if(!count) return;
@@ -2319,6 +2870,36 @@ function drawFaultLtrSegmentLabel(ctx, bar, count){
 function drawFaultLinePointLabel(ctx, pt, text, color, offsetY){
   drawFaultLinePointLabelAt(ctx, pt.x, pt.y + offsetY, text, color, FAULT_LABEL_FONT_LINE);
 }
+const faultOverviewPctAxisPlugin = {
+  id:"faultOverviewPctAxis",
+  afterDraw(chart){
+    if(chart.canvas?.id !== "faultOverviewChart") return;
+    const band = chart._faultPctBand;
+    const pctAxis = chart._faultPctAxis;
+    const yScale = chart.scales.yPctLine;
+    if(!band || !pctAxis || !yScale) return;
+    const ctx = chart.ctx;
+    const ca = chart.chartArea;
+    const yBarTop = yScale.getPixelForValue(band.countMax);
+    const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+    ctx.save();
+    ctx.fillStyle = textColor;
+    ctx.font = "11px JetBrains Mono, monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    for(let v = pctAxis.min; v <= 100.001; v += pctAxis.step){
+      const y = yScale.getPixelForValue(band.mapPct(Math.round(v * 10) / 10));
+      if(y < ca.top - 2 || y > yBarTop + 2) continue;
+      ctx.textAlign = "right";
+      ctx.fillText(`${v}%`, ca.right - 4, y);
+    }
+    ctx.font = "bold 12px Inter, sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "top";
+    ctx.fillText("% Service Availability", ca.right - 4, ca.top + 2);
+    ctx.restore();
+  }
+};
 const faultBarLabelPlugin = {
   id: "faultBarLabels",
   afterDraw(chart){
@@ -2386,6 +2967,10 @@ function renderFaultOverviewChart(rows){
   const svcAvaCumulativeLast = svcAvaCumulative.length ? svcAvaCumulative[svcAvaCumulative.length - 1] : 0;
   const countMax = faultCountAxisMax(totals);
   const countStep = faultCountAxisStep(countMax);
+  const pctAxis = faultPercentAxisRange([...svcAva, ...svcAvaCumulative]);
+  const pctBand = faultOverviewPctBand(countMax, pctAxis);
+  const svcAvaPlot = svcAva.map(v=> pctBand.mapPct(v));
+  const svcAvaCumPlot = svcAvaCumulative.map(v=> pctBand.mapPct(v));
   document.getElementById("faultOverviewLegend").innerHTML = `
     <span><i style="background:#2f9e44"></i>Within SLA</span>
     <span><i style="background:#d94a35"></i>Over SLA</span>
@@ -2395,11 +2980,9 @@ function renderFaultOverviewChart(rows){
   const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
   const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
   /*
-   * Fault trend PLKD — dual-axis mapping (do not swap):
-   *   yCount  (LEFT)  → Within SLA bar, Over SLA bar, Total Ticket line  — unit: ticket count
-   *   yPercent (RIGHT) → Service Availability + Avg. (สะสม) lines       — unit: 0–100 %
-   *   yPercent max=105 (not 100) so 100% points sit below the chart border; ticks still label 0–100%.
-   * Bars stack on yCount; Total Ticket must use yCount (NOT yPercent) so it aligns with bar tops.
+   * Fault trend PLKD:
+   *   yCount (LEFT)  → bars + Total Ticket (ล่าง 0…countMax)
+   *   yPctLine       → SA + Avg. แยกอยู่เหนือกราฟแท่ง (map % → โซนบน, max 100%)
    */
   faultOverviewChartInst = new Chart(canvas, {
     type: "bar",
@@ -2410,36 +2993,54 @@ function renderFaultOverviewChart(rows){
         {label:"Over SLA", data:overCounts, backgroundColor:"#d94a35", stack:"tickets", yAxisID:"yCount", order:2},
         {label:"Total Ticket", data:totals, type:"line", borderColor:"#7c4fd6", backgroundColor:"transparent",
           tension:.3, pointRadius:5, yAxisID:"yCount", order:1},
-        {label:"Service Availability", data:svcAva, type:"line", borderColor:"#1c6fd6", backgroundColor:"transparent",
+        {label:"Service Availability", data:svcAvaPlot, faultPctRaw:svcAva, type:"line", borderColor:"#1c6fd6", backgroundColor:"transparent",
           tension:.3, pointRadius:5, pointBackgroundColor:"#1c6fd6", pointBorderColor:"#ffffff", pointBorderWidth:2,
-          borderWidth:2, yAxisID:"yPercent", order:0, borderDash:[4,3], clip:false},
-        {label:"Service Availability Avg.", data:svcAvaCumulative, type:"line", borderColor:"#0d9488", backgroundColor:"transparent",
-          tension:.3, pointRadius:5, pointBackgroundColor:"#0d9488", pointBorderColor:"#ffffff", pointBorderWidth:2,
-          borderWidth:2, yAxisID:"yPercent", order:0, borderDash:[10,5], clip:false}
+          borderWidth:2, yAxisID:"yPctLine", order:0, borderDash:[4,3], clip:false},
+        {label:"Service Availability Avg.", data:svcAvaCumPlot, faultPctRaw:svcAvaCumulative, type:"line", borderColor:"#0d9488", backgroundColor:"transparent",
+          tension:.3, pointRadius:5, pointBackgroundColor:"#ffffff", pointBorderColor:"#0d9488", pointBorderWidth:2,
+          borderWidth:2.5, yAxisID:"yPctLine", order:0, borderDash:[12,5], clip:false}
       ]
     },
     options: {
       responsive:true, maintainAspectRatio:false,
-      layout:{padding:{top:18, bottom:8}},
-      plugins:{legend:{display:false}},
+      layout:{padding:{top:44, bottom:8, right:8}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label(ctx){
+              const ds = ctx.dataset;
+              if(ds.faultPctRaw){
+                const raw = ds.faultPctRaw[ctx.dataIndex];
+                return ` ${ds.label}: ${Number(raw).toFixed(2)}%`;
+              }
+              return ` ${ds.label}: ${ctx.formattedValue}`;
+            }
+          }
+        }
+      },
       scales:{
         x:{stacked:true, ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor}},
         yCount:{
-          stacked:true, position:"left", beginAtZero:true, min:0, max:countMax,
+          stacked:true, position:"left", beginAtZero:true, min:0, max:pctBand.axisMax,
           title:{display:true, text:"จำนวน Ticket", color:textColor, font:{size:13, weight:"bold"}},
-          ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}}, grid:{color:gridColor}
+          ticks:{
+            color:textColor, stepSize:countStep, precision:0, font:{size:11},
+            callback:v=>(v <= countMax ? v : "")
+          },
+          grid:{color:gridColor}
         },
-        yPercent:{
-          position:"right", beginAtZero:true, min:-5, max:105,
-          title:{display:true, text:"% Service Availability", color:textColor, font:{size:12, weight:"bold"}},
-          ticks:{color:textColor, stepSize:20,
-            callback:v=>(v >= 0 && v <= 100 ? v+"%" : ""),
-            font:{size:11}}, grid:{drawOnChartArea:false}
-        }
+        yPctLine:{
+          position:"right", beginAtZero:true, min:0, max:pctBand.axisMax, stacked:false, display:false,
+          grid:{display:false}
+        },
+        yPercent:{display:false}
       }
     },
-    plugins:[faultBarLabelPlugin]
+    plugins:[faultOverviewPctAxisPlugin, faultBarLabelPlugin]
   });
+  faultOverviewChartInst._faultPctBand = pctBand;
+  faultOverviewChartInst._faultPctAxis = pctAxis;
 }
 function renderFaultLtrSlaChart(rows){
   const canvas = document.getElementById("faultLtrSlaChart");
@@ -2521,16 +3122,18 @@ function renderFaultRegionBar(){
 }
 function onFaultRegionChange(val){ faultRegionFilter = val; renderFault(); }
 function getFaultGroupProblemStats(rows){
-  const counts = new Map();
+  const groups = new Map();
   rows.forEach(r=>{
-    const v = (r.group_problem_free_text || "").trim();
+    const v = resolveFaultSkillAndGp(r).group_problem_free_text;
     const key = v || "__blank__";
-    counts.set(key, (counts.get(key) || 0) + 1);
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
   });
-  const items = [...counts.entries()].map(([key, count])=>({
+  const items = [...groups.entries()].map(([key, groupRows])=>({
     key,
-    label: key === "__blank__" ? "(ไม่ระบุ)" : key,
-    count
+    label: faultGpLabel(key),
+    count: groupRows.length,
+    sites: getFaultSiteStats(groupRows)
   }));
   items.sort((a, b)=>{
     if(a.key === "__blank__") return 1;
@@ -2539,58 +3142,248 @@ function getFaultGroupProblemStats(rows){
   });
   return items;
 }
-function filterFaultByGroupProblem(rows){
-  if(!faultGroupProblemFilter) return rows;
-  if(faultGroupProblemFilter === "__blank__"){
-    return rows.filter(r=>!(r.group_problem_free_text || "").trim());
+function toggleFaultDashGpSites(btn, ev){
+  ev.stopPropagation();
+  ev.preventDefault();
+  const item = btn.closest(".fault-ctrl-prob-item");
+  if(!item) return;
+  item.classList.toggle("open");
+  btn.setAttribute("aria-expanded", item.classList.contains("open") ? "true" : "false");
+}
+function selectFaultDashGroupProblem(key){
+  faultControlDashGpFilter = faultControlDashGpFilter === key ? null : key;
+  renderFaultControlPanel(getFilteredFaultTickets());
+}
+function faultGpSiteTagsHtml(sites){
+  if(!sites.length) return `<span class="muted-dash">ไม่พบ Site PLKD</span>`;
+  return sites.map(st=>`<span class="fault-ctrl-prob-site-tag" title="${st.count} TT">${esc(st.site)}<b>${st.count}</b></span>`).join("");
+}
+function buildFaultGpSitePanelHtml(stats, filterKey){
+  const items = filterKey ? stats.filter(s=> s.key === filterKey) : stats;
+  if(!items.length) return `<div class="empty-hint">ไม่พบ Site ใน Problem นี้</div>`;
+  return items.map(s=>`
+    <div class="fault-ctrl-gp-site-block">
+      ${filterKey ? "" : `<div class="gp-block-title">${esc(s.label)}</div>`}
+      <div class="fault-ctrl-prob-sites-label">Site ที่เกี่ยวข้อง (${s.sites.length} Site · ${s.count} TT)</div>
+      <div class="fault-ctrl-prob-site-tags">${faultGpSiteTagsHtml(s.sites)}</div>
+    </div>`).join("");
+}
+function filterFaultControlGroupProblem(rows, controlKind, gpKey){
+  return rows.filter(r=>{
+    if(normalizeFaultControl(r.control_status) !== controlKind) return false;
+    const gp = resolveFaultSkillAndGp(r).group_problem_free_text;
+    if(gpKey === "__blank__") return !gp;
+    if(gpKey) return gp === gpKey;
+    return true;
+  });
+}
+function renderFaultControlGroupProblemCards(rows, kind){
+  const wrap = document.getElementById("faultGpCardsWrap");
+  const container = document.getElementById("faultGpCards");
+  if(!wrap || !container) return;
+  const filtered = rows.filter(r=>normalizeFaultControl(r.control_status) === kind);
+  const stats = getFaultGroupProblemStats(filtered);
+  const title = kind === "in" ? "In Control" : "Out Control";
+  document.getElementById("faultGpCardsTitle").textContent = `Group Problem — ${title}`;
+  if(stats.length === 0){
+    container.innerHTML = `<div class="empty-hint" style="grid-column:1/-1">ไม่มีรายการใน ${title}</div>`;
+    return;
   }
-  return rows.filter(r=>(r.group_problem_free_text || "").trim() === faultGroupProblemFilter);
-}
-function onFaultGroupProblemChange(val){
-  faultGroupProblemFilter = val;
-  renderFaultGroupProblemTab(getFilteredFaultTickets());
-}
-function selectFaultGroupProblem(key){
-  faultGroupProblemFilter = key;
-  renderFaultGroupProblemTab(getFilteredFaultTickets());
-}
-function renderFaultGroupProblemTab(rows){
-  const stats = getFaultGroupProblemStats(rows);
-  const filtered = filterFaultByGroupProblem(rows);
-  const bar = document.getElementById("faultGroupProblemBar");
-  const chips = document.getElementById("faultGroupProblemChips");
-  if(bar){
-    const opts = [
-      `<option value="" ${faultGroupProblemFilter===""?"selected":""}>— ทั้งหมด (${rows.length}) —</option>`,
-      ...stats.map(s=>`<option value="${esc(s.key)}" ${faultGroupProblemFilter===s.key?"selected":""}>${esc(s.label)} (${s.count})</option>`)
-    ];
-    bar.innerHTML = `<div class="fgroup"><label class="flabel">Group Problem</label>
-      <select class="sev-select" onchange="onFaultGroupProblemChange(this.value)">${opts.join("")}</select>
-    </div>
-    <div class="fgroup"><label class="flabel">INOC กรอก</label>
-      <span class="status-msg">กรอกได้ในคอลัมน์ Group Problem ของตาราง · ${stats.filter(s=>s.key!=="__blank__").length} กลุ่ม</span>
+  container.innerHTML = stats.map(s=>{
+    const active = faultControlGroupProblem === s.key ? " active" : "";
+    const color = kind === "in" ? "var(--teal)" : "var(--coral)";
+    return `<div class="fault-gp-card${active}" data-gp-key="${esc(s.key)}" onclick="selectFaultControlGroupProblem(this.getAttribute('data-gp-key'))">
+      <div class="fault-gp-card-title">${esc(s.label)}</div>
+      <div class="fault-gp-card-foot">
+        <span class="fault-gp-card-lbl">รายการ</span>
+        <span class="fault-gp-card-val" style="color:${color}">${s.count}</span>
+      </div>
     </div>`;
+  }).join("");
+}
+function getFaultSiteStats(rows){
+  const counts = new Map();
+  rows.forEach(r=>{
+    const site = extractFaultPlkdSite(r);
+    if(!site || site === "-") return;
+    counts.set(site, (counts.get(site) || 0) + 1);
+  });
+  return [...counts.entries()]
+    .map(([site, count])=>({ site, count }))
+    .sort((a, b)=> b.count - a.count || a.site.localeCompare(b.site));
+}
+function getFaultSkillStats(rows){
+  const counts = { Node: 0, Fiber: 0, other: 0 };
+  rows.forEach(r=>{
+    const skill = normalizeFaultSkill(resolveFaultSkillAndGp(r).skill);
+    if(skill === "Node") counts.Node++;
+    else if(skill === "Fiber") counts.Fiber++;
+    else if(skill) counts.other++;
+  });
+  return counts;
+}
+function buildFaultControlInsight(ctrlRows, stats, kind){
+  const total = ctrlRows.length;
+  const label = kind === "in" ? "In Control" : "Out Control";
+  if(!total){
+    return `<h3>สรุป ${label}</h3><ul><li>ไม่มีรายการในช่วงวันที่ที่เลือก</li></ul>`;
   }
-  if(chips){
-    const allActive = faultGroupProblemFilter === "" ? " active" : "";
-    chips.innerHTML = `<button type="button" class="fault-group-chip${allActive}" onclick="selectFaultGroupProblem('')">ทั้งหมด<span class="chip-count">${rows.length}</span></button>` +
-      stats.map(s=>{
-        const active = faultGroupProblemFilter === s.key ? " active" : "";
-        return `<button type="button" class="fault-group-chip${active}" data-gp-key="${esc(s.key)}" onclick="selectFaultGroupProblem(this.getAttribute('data-gp-key'))" title="${esc(s.label)}">${esc(s.label)}<span class="chip-count">${s.count}</span></button>`;
-      }).join("");
+  const sorted = [...stats].sort((a, b)=> b.count - a.count);
+  const top = sorted[0];
+  const topPct = Math.round((top.count / total) * 100);
+  const sites = getFaultSiteStats(ctrlRows);
+  const skills = getFaultSkillStats(ctrlRows);
+  const skillParts = [];
+  if(skills.Node) skillParts.push(`Node ${skills.Node}`);
+  if(skills.Fiber) skillParts.push(`Fiber ${skills.Fiber}`);
+  const lines = [
+    `รวม <strong>${total}</strong> ticket ใน ${label} · แบ่งเป็น <strong>${stats.length}</strong> ประเภทปัญหา · กระทบ <strong>${sites.length}</strong> Site`,
+    top ? `ปัญหาที่พบมากที่สุด: <strong>${esc(top.label)}</strong> — ${top.count} รายการ (${topPct}%)` : "",
+    skillParts.length ? `Skill: ${skillParts.join(" · ")}` : ""
+  ].filter(Boolean);
+  return `<h3>สรุป ${label} — สิ่งที่ต้องรู้</h3>
+    <ul>${lines.map(l=>`<li>${l}</li>`).join("")}</ul>`;
+}
+function renderFaultControlSiteSummary(rows){
+  const el = document.getElementById("faultControlSiteSummary");
+  if(!el) return;
+  const sites = getFaultSiteStats(rows);
+  if(!sites.length){
+    el.innerHTML = `<div class="empty-hint">ไม่พบ Site PLKD ในรายการนี้</div>`;
+    return;
   }
-  const titleEl = document.getElementById("faultGroupProblemTitle");
-  if(titleEl){
-    const label = !faultGroupProblemFilter ? "ทั้งหมด" :
-      faultGroupProblemFilter === "__blank__" ? "(ไม่ระบุ)" : faultGroupProblemFilter;
-    titleEl.innerHTML = `${esc(label)} <span class="badge" id="faultGroupProblemCount">${filtered.length}</span>`;
+  el.innerHTML = `<div class="fault-site-summary-head">Site ที่เกี่ยวข้อง (${sites.length} Site · ${rows.length} Ticket)</div>
+    <div class="fault-site-grid">${sites.map(s=>`
+      <div class="fault-site-chip" title="${s.count} ticket">
+        <div class="site-code">${esc(s.site)}</div>
+        <div class="site-count"><b>${s.count}</b> ticket</div>
+      </div>`).join("")}</div>`;
+}
+function selectFaultControlGroupProblem(key){
+  faultControlGroupProblem = key;
+  faultControlSubView = "detail";
+  const rows = getFilteredFaultTickets();
+  renderFaultControlPanel(rows);
+  const detailRows = filterFaultControlGroupProblem(rows, faultControlDetail, key);
+  const ctrlLabel = faultControlDetail === "in" ? "In Control" : "Out Control";
+  document.getElementById("faultControlDetailTitle").textContent = `${ctrlLabel} · ${faultGpLabel(key)} (${detailRows.length})`;
+  document.getElementById("faultControlDetailBlock").style.display = "block";
+  renderFaultControlSiteSummary(detailRows);
+  renderFaultTable(document.getElementById("faultControlDetailTable"), detailRows, "fault-control-detail");
+}
+function switchFaultControlSubView(view){
+  faultControlSubView = view;
+  if(view === "dashboard"){
+    faultControlGroupProblem = null;
+    faultControlDashGpFilter = null;
+  }
+  renderFaultControlPanel(getFilteredFaultTickets());
+}
+function renderFaultControlPanel(rows){
+  const kind = faultControlDetail;
+  if(!kind) return;
+  const ctrlRows = rows.filter(r=>normalizeFaultControl(r.control_status) === kind);
+  const label = kind === "in" ? "In Control" : "Out Control";
+  const color = kind === "in" ? "var(--teal)" : "var(--coral)";
+  document.getElementById("faultControlPanelTitle").innerHTML = `${label} <span class="badge" style="background:${color}22;color:${color}">${ctrlRows.length}</span>`;
+  document.getElementById("faultCtrlSubDashBtn").classList.toggle("active", faultControlSubView === "dashboard");
+  document.getElementById("faultCtrlSubDetailBtn").classList.toggle("active", faultControlSubView === "detail");
+  document.getElementById("faultControlDashboard").style.display = faultControlSubView === "dashboard" ? "block" : "none";
+  document.getElementById("faultControlDetailView").style.display = faultControlSubView === "detail" ? "block" : "none";
+  if(faultControlSubView === "dashboard"){
+    renderFaultControlDashboard(ctrlRows, kind);
   } else {
-    document.getElementById("faultGroupProblemCount").textContent = filtered.length;
+    renderFaultControlGroupProblemCards(rows, kind);
+    if(faultControlGroupProblem){
+      const detailRows = filterFaultControlGroupProblem(rows, kind, faultControlGroupProblem);
+      document.getElementById("faultControlDetailBlock").style.display = "block";
+      const ctrlLabel = kind === "in" ? "In Control" : "Out Control";
+      document.getElementById("faultControlDetailTitle").textContent = `${ctrlLabel} · ${faultGpLabel(faultControlGroupProblem)} (${detailRows.length})`;
+      renderFaultControlSiteSummary(detailRows);
+      renderFaultTable(document.getElementById("faultControlDetailTable"), detailRows, "fault-control-detail");
+    } else {
+      document.getElementById("faultControlDetailBlock").style.display = "none";
+    }
   }
-  renderFaultTable(document.getElementById("faultGroupProblemTable"), filtered, "fault-group-problem");
+}
+function renderFaultControlDashboard(ctrlRows, kind){
+  const stats = getFaultGroupProblemStats(ctrlRows);
+  const total = ctrlRows.length;
+  const color = kind === "in" ? "var(--teal)" : "var(--coral)";
+  const sorted = [...stats].sort((a, b)=> b.count - a.count);
+  const top = sorted[0];
+  const sites = getFaultSiteStats(ctrlRows);
+
+  document.getElementById("faultCtrlDashSummary").innerHTML = buildFaultControlInsight(ctrlRows, stats, kind);
+
+  document.getElementById("faultCtrlDashKpi").innerHTML = `
+    <div class="fault-ctrl-kpi">
+      <div class="kpi-lbl">Total Ticket</div>
+      <div class="kpi-val" style="color:${color}">${total}</div>
+      <div class="kpi-sub">${kind === "in" ? "In Control" : "Out Control"}</div>
+    </div>
+    <div class="fault-ctrl-kpi">
+      <div class="kpi-lbl">ปัญหาหลัก</div>
+      <div class="kpi-val is-text" style="color:var(--blue)">${top ? esc(top.label) : "—"}</div>
+      <div class="kpi-sub">${top ? `${top.count} รายการ (${Math.round((top.count / total) * 100)}%)` : "—"}</div>
+    </div>
+    <div class="fault-ctrl-kpi">
+      <div class="kpi-lbl">Site ที่กระทบ</div>
+      <div class="kpi-val" style="color:var(--violet)">${sites.length}</div>
+      <div class="kpi-sub">${stats.length} ประเภทปัญหา</div>
+    </div>`;
+
+  const listEl = document.getElementById("faultCtrlDashList");
+  if(total === 0){
+    listEl.innerHTML = `<div class="fault-ctrl-prob-panel"><div class="empty-hint">ไม่มีข้อมูล</div></div>`;
+    return;
+  }
+  const probList = sorted.map(s=>{
+    const pct = Math.round((s.count / total) * 100);
+    const selected = faultControlDashGpFilter === s.key ? " selected" : "";
+    const siteTags = faultGpSiteTagsHtml(s.sites);
+    return `<div class="fault-ctrl-prob-item">
+      <div class="fault-ctrl-prob-row${selected}" role="button" tabindex="0"
+        data-gp-key="${esc(s.key)}"
+        onclick="selectFaultDashGroupProblem(this.getAttribute('data-gp-key'))"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectFaultDashGroupProblem(this.getAttribute('data-gp-key'))}">
+        <span class="fault-ctrl-prob-name">
+          <button type="button" class="fault-ctrl-prob-toggle" aria-expanded="false" title="ดู Site (${s.sites.length})" onclick="toggleFaultDashGpSites(this, event)">▸</button>
+          <span>${esc(s.label)}</span>
+        </span>
+        <span class="fault-ctrl-prob-bar"><i style="width:${pct}%;background:${color}"></i></span>
+        <span class="fault-ctrl-prob-count">${s.count}</span>
+        <span class="fault-ctrl-prob-pct">${pct}%</span>
+      </div>
+      <div class="fault-ctrl-prob-sites">
+        <div class="fault-ctrl-prob-sites-label">Site ที่เกี่ยวข้อง (${s.sites.length} Site · ${s.count} TT)</div>
+        <div class="fault-ctrl-prob-site-tags">${siteTags}</div>
+      </div>
+    </div>`;
+  }).join("");
+  const sitePanelHtml = buildFaultGpSitePanelHtml(sorted, faultControlDashGpFilter);
+  const tableTitle = faultControlDashGpFilter
+    ? `Site ที่กระทบ · ${faultGpLabel(faultControlDashGpFilter)}`
+    : "Site ที่กระทบ · ทุก Problem";
+  listEl.innerHTML = `<div class="fault-ctrl-dash-split">
+    <div class="fault-ctrl-prob-panel">
+      <div class="fault-ctrl-prob-head">Group Problem <span>กดแถวกรอง Site · ▸ ดู Site</span></div>
+      ${probList}
+    </div>
+    <div class="fault-ctrl-gp-site-panel">
+      <div class="fault-ctrl-prob-head">${tableTitle}</div>
+      <div class="fault-ctrl-gp-scroll">${sitePanelHtml}</div>
+    </div>
+  </div>`;
 }
 function switchFaultSubTab(tab){
   faultSubTab = tab;
+  if(tab !== "control"){
+    faultControlDetail = null;
+    faultControlGroupProblem = null;
+    faultControlSubView = "dashboard";
+    document.getElementById("faultControlPanel").style.display = "none";
+  }
   Object.entries(FAULT_SUB_TAB_MAP).forEach(([id, {btn, view}])=>{
     document.getElementById(btn)?.classList.toggle("active", tab === id);
     const el = document.getElementById(view);
@@ -2608,13 +3401,14 @@ function moveFaultSubTabIndicator(){
 }
 function showFaultControlDetail(kind){
   faultControlDetail = kind;
+  faultControlGroupProblem = null;
+  faultControlDashGpFilter = null;
+  faultControlSubView = "dashboard";
   document.getElementById("faultInControlCard").classList.toggle("active", kind==="in");
   document.getElementById("faultOutControlCard").classList.toggle("active", kind==="out");
-  const rows = getFilteredFaultTickets().filter(r=>normalizeFaultControl(r.control_status) === kind);
-  const title = kind==="in" ? "In Control" : "Out Control";
-  document.getElementById("faultControlDetailTitle").textContent = `${title} (${rows.length})`;
-  document.getElementById("faultControlDetailBlock").style.display = "block";
-  renderFaultTable(document.getElementById("faultControlDetailTable"), rows, "fault-control-detail");
+  document.getElementById("faultControlPanel").style.display = "block";
+  document.getElementById("faultControlDetailBlock").style.display = "none";
+  renderFaultControlPanel(getFilteredFaultTickets());
 }
 function renderFault(){
   renderFaultRegionBar();
@@ -2651,18 +3445,37 @@ function renderFault(){
     const outCount = rows.filter(r=>normalizeFaultControl(r.control_status)==="out").length;
     document.getElementById("faultInControlCount").textContent = inCount;
     document.getElementById("faultOutControlCount").textContent = outCount;
-    if(faultControlDetail) showFaultControlDetail(faultControlDetail);
-  } else if(faultSubTab === "group-problem"){
-    renderFaultGroupProblemTab(rows);
+    if(faultControlDetail){
+      document.getElementById("faultControlPanel").style.display = "block";
+      renderFaultControlPanel(rows);
+      if(faultControlGroupProblem && faultControlSubView === "detail"){
+        const detailRows = filterFaultControlGroupProblem(rows, faultControlDetail, faultControlGroupProblem);
+        document.getElementById("faultControlDetailBlock").style.display = "block";
+        renderFaultControlSiteSummary(detailRows);
+        renderFaultTable(document.getElementById("faultControlDetailTable"), detailRows, "fault-control-detail");
+      }
+    } else {
+      document.getElementById("faultControlPanel").style.display = "none";
+    }
   }
   moveFaultSubTabIndicator();
 }
 async function loadFaultTickets(showToast){
-  faultTickets = await fetchAllFromRest(FAULT_REST + "?select=*&order=created_time.asc");
-  if(showToast) toast(`Fault data loaded (${faultTickets.length} rows)`);
-  if(currentTab==="fault") renderFault();
+  try{
+    faultTickets = await fetchAllFromRest(FAULT_REST + "?select=*&order=created_time.asc");
+    if(currentTab==="fault") renderFault();
+    if(showToast) toast(`Fault data loaded (${faultTickets.length} rows)`);
+    migrateLegacyFaultSkills().then(()=>{
+      if(currentTab==="fault") renderFault();
+    }).catch(e=> console.warn("migrateLegacyFaultSkills:", e));
+  }catch(e){
+    console.warn("loadFaultTickets failed:", e);
+    faultTickets = faultTickets || [];
+    if(showToast) toast("Fault load failed");
+  }
 }
 async function updateFaultField(workOrderId, field, value){
+  if(field === "skill") value = normalizeFaultSkill(value) || value;
   const row = faultTickets.find(r=>r.work_order_id === workOrderId);
   if(row) row[field] = value;
   await fetch(FAULT_REST + `?work_order_id=eq.${encodeURIComponent(workOrderId)}`, {
@@ -2670,7 +3483,7 @@ async function updateFaultField(workOrderId, field, value){
     body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})
   });
   toast("Saved");
-  if(currentTab==="fault" && (faultSubTab==="control" || faultSubTab==="group-problem")) renderFault();
+  if(currentTab==="fault" && faultSubTab==="control") renderFault();
 }
 function parseFaultWoDate(str){
   if(!str) return null;
@@ -2684,13 +3497,91 @@ function parseFaultWoDate(str){
   }
   return s;
 }
-function mapFaultImportRow(r){
+function isFaultWorkOrderId(val){
+  const s = String(val||"").trim().toUpperCase();
+  return s.startsWith("CM") || s.startsWith("WO");
+}
+function isFaultSourceTicketId(val){
+  const s = String(val||"").trim().toUpperCase();
+  return s.startsWith("TT") || s.startsWith("SDM");
+}
+/** TT… = Source Ticket ID, CM… = Work Order ID — รองรับคอลัมน์แยกหรือรวมใน Ticket ID */
+function parseFaultTicketIds(get){
+  let work_order_id = get("Work Order ID");
+  let source_ticket_id = get("Source Ticket ID") || get("SDM TT");
+  const combined = get("Ticket ID");
+  if(combined){
+    combined.split(/[\r\n]+/).forEach(line=>{
+      const s = line.trim();
+      if(!s) return;
+      if(isFaultWorkOrderId(s)) work_order_id = work_order_id || s;
+      else if(isFaultSourceTicketId(s)) source_ticket_id = source_ticket_id || s;
+    });
+  }
+  const ticketCol = get("Ticket ID");
+  if(!work_order_id && isFaultWorkOrderId(ticketCol)) work_order_id = ticketCol;
+  if(!source_ticket_id && isFaultSourceTicketId(ticketCol)) source_ticket_id = ticketCol;
+  return { work_order_id: work_order_id || null, source_ticket_id: source_ticket_id || null };
+}
+function isFaultPlkdExportRow(r){
+  const keys = Object.keys(r||{});
+  return keys.includes("Site") && (keys.includes("Ticket ID") || keys.includes("Ticket Open") || keys.includes("Subject"));
+}
+function mapFaultControlImport(val){
+  const s = String(val||"").trim();
+  if(!s) return "";
+  const k = normalizeFaultControl(s);
+  if(k === "in") return "In Control";
+  if(k === "out") return "Out Control";
+  return s;
+}
+function applyFaultGroupProblemImport(payload, groupProblem, skillFromCol){
+  const gp = String(groupProblem||"").trim();
+  if(!gp) return;
+  if(isLegacySkillInGroupProblem(gp) && !skillFromCol){
+    payload.skill = normalizeFaultSkill(gp) || gp;
+  } else if(!isLegacySkillInGroupProblem(gp)){
+    payload.group_problem_free_text = gp;
+  }
+}
+function stripEmptyFaultInocFields(payload){
+  ["control_status","inoc_log","group_problem_free_text","skill"].forEach(k=>{
+    if(payload[k] === undefined || payload[k] === null || payload[k] === "") delete payload[k];
+  });
+}
+function mapFaultExportImportRow(r){
   const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
-  const woId = get("Work Order ID");
+  const ids = parseFaultTicketIds(get);
+  if(!ids.work_order_id) return null;
+  const skillRaw = get("Skill");
+  const payload = {
+    work_order_id: ids.work_order_id,
+    source_ticket_id: ids.source_ticket_id,
+    site_id: get("Site").toUpperCase(),
+    subject: get("Subject"),
+    severity: get("SEVERITY") || get("Severity"),
+    created_time: parseFaultWoDate(get("Ticket Open") || get("Created Time")),
+    departed_time: parseFaultWoDate(get("Depart")),
+    arrived_time: parseFaultWoDate(get("Arrive")),
+    closed_time: parseFaultWoDate(get("Close")),
+    close_description: get("Close Description"),
+    skill: normalizeFaultSkill(skillRaw) || skillRaw,
+    inoc_log: get("INOC log"),
+    control_status: mapFaultControlImport(get("In or Out Control"))
+  };
+  applyFaultGroupProblemImport(payload, get("Group Problem") || get("Group Problem Free Text"), skillRaw);
+  stripEmptyFaultInocFields(payload);
+  return payload;
+}
+function mapFaultImportRow(r){
+  if(isFaultPlkdExportRow(r)) return mapFaultExportImportRow(r);
+  const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
+  const ids = parseFaultTicketIds(get);
+  const woId = ids.work_order_id || get("Work Order ID");
   if(!woId) return null;
   const payload = {
     work_order_id: woId,
-    source_ticket_id: get("Source Ticket ID"),
+    source_ticket_id: ids.source_ticket_id || get("Source Ticket ID"),
     sdm_tt: get("SDM TT"),
     external_ticket_id: get("External Ticket ID"),
     region: get("Region"),
@@ -2726,9 +3617,12 @@ function mapFaultImportRow(r){
   };
   const woCreator = get("WO Creator") || get("Wo Creator");
   if(woCreator) payload.wo_creator = woCreator;
-  const groupProblem = get("Group Problem Free Text") || get("Group Problem");
-  if(groupProblem) payload.group_problem_free_text = groupProblem;
+  applyFaultGroupProblemImport(payload, get("Group Problem Free Text") || get("Group Problem"), get("Skill"));
   return payload;
+}
+function getFaultUploadSheet(wb){
+  const name = wb.SheetNames.find(n=>/^Fault PLKD$/i.test(String(n).trim()));
+  return wb.Sheets[name || wb.SheetNames[0]];
 }
 function handleFaultUpload(evt){
   const file = evt.target.files[0];
@@ -2740,13 +3634,22 @@ function handleFaultUpload(evt){
       rows = parseCSV(e.target.result);
     } else {
       const wb = XLSX.read(e.target.result, {type:"binary"});
-      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const sheet = getFaultUploadSheet(wb);
       rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
     }
     await bulkInsertFaultTickets(rows);
     evt.target.value = "";
   };
   if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
+}
+function groupFaultImportPayloads(payloads){
+  const groups = new Map();
+  payloads.forEach(p=>{
+    const sig = Object.keys(p).sort().join("\0");
+    if(!groups.has(sig)) groups.set(sig, []);
+    groups.get(sig).push(p);
+  });
+  return [...groups.values()];
 }
 async function bulkInsertFaultTickets(rows){
   const statusEl = document.getElementById("statusMsgFault");
@@ -2756,11 +3659,12 @@ async function bulkInsertFaultTickets(rows){
     statusEl.textContent = "No valid rows (missing Work Order ID).";
     return;
   }
-  const CHUNK = 80;
+  const CHUNK = 40;
   let synced = 0;
-  for(let i = 0; i < payloads.length; i += CHUNK){
-    const chunk = payloads.slice(i, i + CHUNK);
-    const res = await fetch(FAULT_REST + "?on_conflict=work_order_id", {
+  for(const group of groupFaultImportPayloads(payloads)){
+    for(let i = 0; i < group.length; i += CHUNK){
+      const chunk = group.slice(i, i + CHUNK);
+      const res = await fetch(FAULT_REST + "?on_conflict=work_order_id", {
       method:"POST",
       headers:{...HEADERS, "Prefer":"resolution=merge-duplicates,return=representation"},
       body: JSON.stringify(chunk)
@@ -2771,8 +3675,9 @@ async function bulkInsertFaultTickets(rows){
       statusEl.textContent = `Import failed at row ${i+1}: ${errText}`.slice(0, 300);
       return;
     }
-    synced += chunk.length;
-    statusEl.textContent = `Processing… ${synced}/${payloads.length}`;
+      synced += chunk.length;
+      statusEl.textContent = `Processing… ${synced}/${payloads.length}`;
+    }
   }
   statusEl.textContent = `Synced ${synced} Fault PLKD row(s) ✓`;
   await loadFaultTickets(false);
@@ -2799,13 +3704,18 @@ function toast(msg){
   clearTimeout(toastTimer); toastTimer = setTimeout(()=>el.classList.remove("show"), 1800);
 }
 (async function init(){
-  await fetchSiteCodes();
-  await fetchTeamMap();
-  await loadAll();
-  moveTabIndicator();
-  moveFaultSubTabIndicator();
-  setTimeout(moveTabIndicator, 300); // re-sync after web fonts finish loading
-  setTimeout(moveFaultSubTabIndicator, 300);
+  try{
+    await fetchSiteCodes();
+    await fetchTeamMap();
+    await loadAll();
+    moveTabIndicator();
+    moveFaultSubTabIndicator();
+    setTimeout(moveTabIndicator, 300);
+    setTimeout(moveFaultSubTabIndicator, 300);
+  }catch(e){
+    console.error("init failed:", e);
+    toast("เริ่มต้นแอปไม่สำเร็จ");
+  }
 })();
 </script>
 <div class="modal-overlay" id="sevDetailModal" onclick="if(event.target===this) closeSevModal()">
