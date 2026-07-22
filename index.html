@@ -383,7 +383,40 @@ body.screenshotting #themeToggleBtn{display:none !important;}
 body.screenshotting .toast{display:none !important;}
 body.screenshotting .sidebar{position:relative !important;}
 body.screenshotting .modal-overlay,
-body.screenshotting .sev-modal{display:none !important;}
+body.screenshotting .sev-modal,
+body.screenshotting #srmDetailModal,
+body.screenshotting #gpManageModal{display:none !important;}
+.gp-manage-box{width:min(720px,94vw);}
+.gp-manage-toolbar{display:flex; gap:8px; padding:12px 18px; border-bottom:1px solid var(--border-soft); align-items:center;}
+.gp-manage-toolbar input{
+  flex:1; min-width:0; padding:8px 12px; border:1px solid var(--border); border-radius:8px;
+  background:var(--panel-2); color:var(--text); font-family:'Inter'; font-size:13px;
+}
+.gp-manage-toolbar input:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim);}
+.gp-manage-list{padding:6px 0;}
+.gp-manage-row{
+  display:grid; grid-template-columns:56px 1fr auto auto; gap:8px; align-items:center;
+  padding:8px 18px; border-bottom:1px solid var(--border-soft);
+}
+.gp-manage-row:last-child{border-bottom:none;}
+.gp-manage-row.inactive{opacity:.55;}
+.gp-manage-sort{display:flex; gap:4px;}
+.gp-manage-sort button{
+  width:24px; height:24px; border:1px solid var(--border); border-radius:6px; background:var(--panel-2);
+  color:var(--muted); cursor:pointer; font-size:12px; line-height:1;
+}
+.gp-manage-sort button:hover{border-color:var(--blue); color:var(--blue);}
+.gp-manage-label{
+  width:100%; padding:6px 10px; border:1px solid var(--border); border-radius:8px;
+  background:var(--panel-2); color:var(--text); font-family:'Inter'; font-size:13px;
+}
+.gp-manage-label:focus{outline:none; border-color:var(--violet); box-shadow:0 0 0 3px var(--violet-dim, rgba(124,58,237,.15));}
+.gp-manage-active{
+  display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); white-space:nowrap; cursor:pointer;
+}
+.gp-manage-active input{cursor:pointer;}
+.gp-manage-actions{display:flex; gap:6px;}
+.gp-manage-hint{padding:10px 18px 14px; font-size:12px; color:var(--muted); line-height:1.5;}
 .btn-screenshot{
   display:inline-flex; align-items:center; gap:8px;
   padding:8px 16px 8px 12px; border-radius:10px; cursor:pointer;
@@ -411,6 +444,63 @@ body.screenshotting .sev-modal{display:none !important;}
 
 /* ---- Fault PLKD ---- */
 .tab-btn.active.fault{color:var(--coral);}
+.tab-btn.active.srm{color:var(--violet);}
+
+/* ---- Site Repeat Mapping ---- */
+.srm-head{margin-bottom:18px;}
+.srm-head h2{font-family:'Barlow Condensed'; font-weight:800; font-size:22px; letter-spacing:.04em; text-transform:uppercase; margin:0 0 6px;}
+.srm-head p{margin:0; color:var(--muted); font-size:13px;}
+.srm-block{margin-bottom:28px;}
+.srm-block-title{font-family:'Barlow Condensed'; font-weight:700; font-size:16px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin:0 0 10px;}
+.srm-scroll{overflow-x:auto; border:1px solid var(--border); border-radius:10px; background:var(--panel);}
+.srm-heat-wrap{padding:10px 12px 12px;}
+.srm-heat-grid{display:grid; gap:3px; min-width:max-content; align-items:stretch;}
+.srm-heat-corner,.srm-heat-col,.srm-heat-row,.srm-heat-cell{font-family:'JetBrains Mono'; font-size:11px;}
+.srm-heat-corner{
+  position:sticky; left:0; top:0; z-index:4; background:var(--panel-2); border-radius:6px;
+  min-width:88px; min-height:72px; display:flex; align-items:flex-end; padding:6px 8px; font-weight:700; color:var(--muted);
+}
+.srm-heat-col{
+  position:sticky; top:0; z-index:3; background:var(--panel-2); border-radius:6px;
+  writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; min-height:72px; padding:6px 4px;
+  font-family:'Barlow Condensed'; font-weight:700; font-size:10px; letter-spacing:.03em; color:var(--muted);
+}
+.srm-heat-row{
+  position:sticky; left:0; z-index:2; background:var(--panel-2); border-radius:6px;
+  display:flex; align-items:center; padding:0 8px; min-height:28px; font-weight:700; color:var(--teal);
+}
+.srm-heat-cell{
+  min-width:52px; min-height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+  padding:2px 4px; color:var(--text); transition:transform .12s; background:var(--panel-2); font-weight:700;
+}
+.srm-heat-cell.srm-heat-empty{color:var(--muted-2); font-weight:500;}
+.srm-heat-cell.srm-heat-clickable{cursor:pointer;}
+.srm-heat-cell:not(.srm-heat-empty):hover{transform:scale(1.06); z-index:1; box-shadow:0 2px 8px var(--shadow-strong);}
+.srm-heat-total{
+  display:flex; align-items:center; justify-content:center; font-weight:700; border-radius:6px;
+  background:var(--panel-2); min-height:28px; padding:2px 6px; font-family:'JetBrains Mono'; font-size:11px;
+}
+.srm-heat-total.grand{background:var(--violet-dim, rgba(124,58,237,.15)); color:var(--violet);}
+.srm-heat-daytotal{
+  position:sticky; top:0; z-index:3; display:flex; align-items:center; justify-content:center;
+  font-weight:700; border-radius:6px; background:var(--panel-2); min-height:28px; padding:2px 4px;
+  font-family:'JetBrains Mono'; font-size:11px;
+}
+.srm-heat-daytotal.count{color:var(--blue);}
+.srm-heat-daytotal.dt{color:var(--coral);}
+.srm-heat-legend{display:flex; align-items:center; gap:8px; margin-top:10px; font-size:11px; color:var(--muted);}
+.srm-heat-legend-bar{width:120px; height:8px; border-radius:4px;}
+.srm-heat-legend-bar.count{background:linear-gradient(90deg, var(--panel-2), rgba(47,128,237,.85));}
+.srm-heat-legend-bar.dt{background:linear-gradient(90deg, var(--panel-2), rgba(217,74,53,.75));}
+.srm-detail-box{width:min(760px,94vw);}
+.srm-detail-card{padding:12px 18px; border-bottom:1px solid var(--border-soft);}
+.srm-detail-card:last-child{border-bottom:none;}
+.srm-detail-head{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:6px;}
+.srm-detail-tt{font-family:'JetBrains Mono'; font-weight:700; color:var(--blue); font-size:14px;}
+.srm-detail-wo{font-family:'JetBrains Mono'; font-size:12px; color:var(--muted);}
+.srm-detail-subj{font-size:13px; line-height:1.5; color:var(--text); margin-bottom:8px; word-break:break-word;}
+.srm-detail-meta{display:flex; flex-wrap:wrap; gap:8px 16px; font-size:11.5px; color:var(--muted); font-family:'JetBrains Mono';}
+.srm-detail-meta span{white-space:nowrap;}
 .fault-section-title{font-family:'Barlow Condensed'; font-weight:800; font-size:17px; letter-spacing:.04em; text-transform:uppercase;
   margin:18px 0 10px; color:var(--text); display:flex; align-items:center; gap:10px;}
 .fault-section-title .badge{font-family:'JetBrains Mono'; font-size:12px; font-weight:700; padding:2px 9px; border-radius:10px; background:var(--coral-dim); color:var(--coral);}
@@ -572,6 +662,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <button class="tab-btn home active" id="tabHomeBtn" onclick="switchTab('home')" title="Home"><span class="tab-ico">H</span><span class="tab-text">Home</span></button>
         <button class="tab-btn svcava" id="tabSvcAvaBtn" onclick="switchTab('svcava')" title="Service Availability"><span class="tab-ico">SA</span><span class="tab-text">Service Availability</span></button>
         <button class="tab-btn fault" id="tabFaultBtn" onclick="switchTab('fault')" title="Fault PLKD"><span class="tab-ico">F</span><span class="tab-text">Fault PLKD</span></button>
+        <button class="tab-btn srm" id="tabSrmBtn" onclick="switchTab('srm')" title="Site Repeat Mapping"><span class="tab-ico">SR</span><span class="tab-text">Site Repeat Mapping</span></button>
       </div>
     </div>
     <div class="sidebar-section">
@@ -682,11 +773,26 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <tbody id="svcavaTbody"></tbody>
     </table>
   </div>
+  <div id="srmView" class="tab-view" style="display:none;">
+    <div class="srm-head">
+      <h2>Site Repeat Mapping</h2>
+      <p id="srmSubtitle">168 PLKD Sites · Severity SA (SA1–SA6) · ไม่รวม Broadband · นับจากวันที่ Closed (00:00–23:59)</p>
+    </div>
+    <div class="srm-block">
+      <div class="srm-block-title">Count TT ต่อวัน</div>
+      <div class="srm-scroll" id="srmCountWrap"></div>
+    </div>
+    <div class="srm-block">
+      <div class="srm-block-title">Downtime (H:m) · รวม Grand Total ต่อวัน</div>
+      <div class="srm-scroll" id="srmDtWrap"></div>
+    </div>
+  </div>
   <div id="faultView" class="tab-view" style="display:none;">
     <div class="toolbar">
       <button class="btn primary" onclick="document.getElementById('fileInputFault').click()">⭱ Upload Work Order (Fault PLKD)</button>
       <input type="file" id="fileInputFault" accept=".csv,.xlsx,.xls" onchange="handleFaultUpload(event)" style="display:none;">
       <button class="btn ghost sm" onclick="loadFaultTickets(true)">↻ Refresh</button>
+      <button class="btn ghost sm" onclick="openGpManageModal()" title="จัดการหัวข้อ Group Problem">⚙ Group Problem</button>
       <button class="btn green sm" onclick="exportFaultExcel()">⭳ Export Excel</button>
       <span class="status-msg" id="statusMsgFault"></span>
     </div>
@@ -851,6 +957,8 @@ const FAULT_GP_PRESETS = [
   "ปัญหา อื่นๆ",
   "ไม่พบปัญหา"
 ];
+const GP_REST = REST + "/group_problems";
+let GROUP_PROBLEMS = [];
 const FAULT_SUB_TAB_MAP = {
   overview: { btn: "faultSubOverviewBtn", view: "faultSubOverview" },
   "ltr-sla": { btn: "faultSubLtrSlaBtn", view: "faultSubLtrSla" },
@@ -860,6 +968,7 @@ const FAULT_SUB_TAB_MAP = {
 let faultOverviewChartInst = null;
 let faultLtrSlaChartInst = null;
 let INOC_LOG_BY_TT = new Map();
+let srmCellTickets = {};
 
 document.getElementById("boardDate").valueAsDate = new Date();
 
@@ -1053,6 +1162,7 @@ function renderAll(){
     renderHome();
     if(currentTab==="svcava") renderSvcAva();
     if(currentTab==="fault") renderFault();
+    if(currentTab==="srm") renderSiteRepeatMapping();
     document.getElementById("countPending").textContent = groupSourceRows("pending").filter(r=>passFilter(r,"pending")).length;
     document.getElementById("countClosed").textContent = groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length;
     document.getElementById("countManual").textContent = tickets.closed.filter(isManualClosed).length;
@@ -1069,18 +1179,21 @@ function switchTab(tab){
   document.getElementById("tabManualBtn").classList.toggle("active", tab==="manual");
   document.getElementById("tabSvcAvaBtn").classList.toggle("active", tab==="svcava");
   document.getElementById("tabFaultBtn").classList.toggle("active", tab==="fault");
+  document.getElementById("tabSrmBtn").classList.toggle("active", tab==="srm");
   const homeEl = document.getElementById("homeView"), pendingEl = document.getElementById("pendingView"),
     closedEl = document.getElementById("closedView"), manualEl = document.getElementById("manualView"),
-    svcavaEl = document.getElementById("svcavaView"), faultEl = document.getElementById("faultView");
+    svcavaEl = document.getElementById("svcavaView"), srmEl = document.getElementById("srmView"), faultEl = document.getElementById("faultView");
   homeEl.style.display = tab==="home" ? "block":"none";
   pendingEl.style.display = tab==="pending" ? "block":"none";
   closedEl.style.display = tab==="closed" ? "block":"none";
   manualEl.style.display = tab==="manual" ? "block":"none";
   svcavaEl.style.display = tab==="svcava" ? "block":"none";
+  srmEl.style.display = tab==="srm" ? "block":"none";
   faultEl.style.display = tab==="fault" ? "block":"none";
   if(tab==="svcava") renderSvcAva();
   if(tab==="fault") renderFault();
-  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="closed" ? closedEl : tab==="manual" ? manualEl : tab==="fault" ? faultEl : svcavaEl;
+  if(tab==="srm") renderSiteRepeatMapping();
+  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="closed" ? closedEl : tab==="manual" ? manualEl : tab==="srm" ? srmEl : tab==="fault" ? faultEl : svcavaEl;
   shownEl.classList.remove("anim-in");
   void shownEl.offsetWidth; // restart animation
   shownEl.classList.add("anim-in");
@@ -1343,6 +1456,184 @@ function fmtHM(totalMinutes){
   const h = Math.floor(m/60);
   const mm = m%60;
   return `${h}:${String(mm).padStart(2,"0")}`;
+}
+function fmtSrmDayLabel(iso){
+  const [y, mo, d] = iso.split("-");
+  return `${parseInt(d,10)}/${parseInt(mo,10)}/${y}`;
+}
+function getSrmMonthContext(){
+  const boardDate = document.getElementById("boardDate").value;
+  const [y, m] = boardDate.split("-").map(Number);
+  const days = [];
+  const lastDay = new Date(y, m, 0).getDate();
+  for(let d = 1; d <= lastDay; d++){
+    days.push(`${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`);
+  }
+  return { year: y, month: m, days, monthLabel: `${m}/${y}` };
+}
+function buildSiteRepeatData(){
+  const { days } = getSrmMonthContext();
+  const sites = [...SITE_SET].sort((a,b)=>a.localeCompare(b));
+  const count = {}, downtime = {}, cellTickets = {};
+  sites.forEach(s=>{
+    count[s] = Object.fromEntries(days.map(d=>[d,0]));
+    downtime[s] = Object.fromEntries(days.map(d=>[d,0]));
+    cellTickets[s] = Object.fromEntries(days.map(d=>[d,[]]));
+  });
+  const dayCount = Object.fromEntries(days.map(d=>[d,0]));
+  const dayDt = Object.fromEntries(days.map(d=>[d,0]));
+  let grandCount = 0, grandDt = 0, maxCellDt = 0, maxCellCount = 0;
+
+  faultTickets.forEach(r=>{
+    if(!isFaultSaSeverity(r)) return;
+    if(isFaultBroadbandTicket(r)) return;
+    if(!r?.closed_time) return;
+    const day = String(r.closed_time).slice(0,10);
+    if(!days.includes(day)) return;
+    const site = extractFaultPlkdSite(r);
+    if(!site || !SITE_SET.has(site)) return;
+    count[site][day]++;
+    dayCount[day]++;
+    grandCount++;
+    cellTickets[site][day].push(r);
+    if(count[site][day] > maxCellCount) maxCellCount = count[site][day];
+    const mins = calcFaultDowntimeMinutes(r);
+    if(mins !== null){
+      downtime[site][day] += mins;
+      dayDt[day] += mins;
+      grandDt += mins;
+      if(downtime[site][day] > maxCellDt) maxCellDt = downtime[site][day];
+    }
+  });
+
+  const siteRowCount = {}, siteRowDt = {};
+  sites.forEach(s=>{
+    siteRowCount[s] = days.reduce((a,d)=>a + count[s][d], 0);
+    siteRowDt[s] = days.reduce((a,d)=>a + downtime[s][d], 0);
+  });
+
+  return { sites, days, count, downtime, cellTickets, dayCount, dayDt, siteRowCount, siteRowDt, grandCount, grandDt, maxCellDt, maxCellCount };
+}
+function srmHeatAlpha(val, maxVal){
+  if(!val || !maxVal) return 0;
+  return Math.min(1, Math.max(0.22, val / maxVal));
+}
+function buildSrmHeatGrid(opts){
+  const { sites, days, getVal, fmtVal, maxVal, rgba, dayTotals, rowTotals, grandTotal, dayTotalClass, legendBarClass, legendLabel } = opts;
+  const gridStyle = `grid-template-columns:88px repeat(${days.length}, minmax(52px, 1fr)) 72px;`;
+  let html = `<div class="srm-heat-wrap"><div class="srm-heat-grid" style="${gridStyle}">`;
+  html += `<div class="srm-heat-corner">Site</div>`;
+  days.forEach(d=>{ html += `<div class="srm-heat-col" title="${esc(d)}">${esc(fmtSrmDayLabel(d))}</div>`; });
+  html += `<div class="srm-heat-daytotal ${dayTotalClass}">Total</div>`;
+
+  sites.forEach(site=>{
+    html += `<div class="srm-heat-row">${esc(site)}</div>`;
+    days.forEach(d=>{
+      const val = getVal(site, d);
+      const alpha = srmHeatAlpha(val, maxVal);
+      const bg = val ? `background:${rgba.replace("{a}", alpha.toFixed(3))}` : "";
+      const cellCls = val ? "srm-heat-cell srm-heat-clickable" : "srm-heat-cell srm-heat-empty";
+      const dataAttrs = val ? ` data-site="${esc(site)}" data-day="${esc(d)}"` : "";
+      html += `<div class="${cellCls}"${dataAttrs} style="${bg}" title="${esc(site)} · ${esc(fmtSrmDayLabel(d))}${val ? " · " + esc(fmtVal(val)) + " · คลิกดูรายละเอียด" : ""}">${val ? esc(fmtVal(val)) : ""}</div>`;
+    });
+    const rowT = rowTotals[site];
+    html += `<div class="srm-heat-total">${rowT ? esc(fmtVal(rowT)) : ""}</div>`;
+  });
+
+  html += `<div class="srm-heat-row srm-total-row">Grand Total</div>`;
+  days.forEach(d=>{
+    const v = dayTotals[d];
+    html += `<div class="srm-heat-daytotal ${dayTotalClass}">${v ? esc(fmtVal(v)) : ""}</div>`;
+  });
+  html += `<div class="srm-heat-total grand">${grandTotal ? esc(fmtVal(grandTotal)) : ""}</div>`;
+  html += `</div><div class="srm-heat-legend"><span>น้อย</span><div class="srm-heat-legend-bar ${legendBarClass}"></div><span>มาก (${legendLabel})</span></div></div>`;
+  return html;
+}
+function renderSiteRepeatMapping(){
+  const sub = document.getElementById("srmSubtitle");
+  const countWrap = document.getElementById("srmCountWrap");
+  const dtWrap = document.getElementById("srmDtWrap");
+  if(!countWrap || !dtWrap) return;
+  const ctx = getSrmMonthContext();
+  if(sub) sub.textContent = `${SITE_SET.size} PLKD Sites · Severity SA (SA1–SA6) · ไม่รวม Broadband · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}`;
+
+  if(!SITE_SET.size){
+    const empty = `<div class="empty-hint" style="padding:24px;">ยังไม่มีรายชื่อ 168 Site — รอโหลด site codes</div>`;
+    countWrap.innerHTML = empty;
+    dtWrap.innerHTML = empty;
+    return;
+  }
+
+  const data = buildSiteRepeatData();
+  srmCellTickets = data.cellTickets;
+  const { sites, days, count, downtime, dayCount, dayDt, siteRowCount, siteRowDt, grandCount, grandDt, maxCellDt, maxCellCount } = data;
+
+  countWrap.innerHTML = buildSrmHeatGrid({
+    sites, days,
+    getVal: (site, d)=> count[site][d],
+    fmtVal: v=> String(v),
+    maxVal: maxCellCount,
+    rgba: "rgba(47,128,237,{a})",
+    dayTotals: dayCount,
+    rowTotals: siteRowCount,
+    grandTotal: grandCount,
+    dayTotalClass: "count",
+    legendBarClass: "count",
+    legendLabel: "TT"
+  });
+
+  dtWrap.innerHTML = buildSrmHeatGrid({
+    sites, days,
+    getVal: (site, d)=> downtime[site][d],
+    fmtVal: v=> fmtHM(v),
+    maxVal: maxCellDt,
+    rgba: "rgba(217,74,53,{a})",
+    dayTotals: dayDt,
+    rowTotals: siteRowDt,
+    grandTotal: grandDt,
+    dayTotalClass: "dt",
+    legendBarClass: "dt",
+    legendLabel: "H:m"
+  });
+}
+function openSrmDetail(site, day){
+  const rows = ((srmCellTickets[site] && srmCellTickets[site][day]) || [])
+    .slice()
+    .sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
+  document.getElementById("srmDetailTitle").textContent = `${site} · ${fmtSrmDayLabel(day)} · ${rows.length} ticket(s)`;
+  const body = document.getElementById("srmDetailBody");
+  if(!rows.length){
+    body.innerHTML = `<div class="modal-empty">ไม่มี ticket</div>`;
+  }else{
+    body.innerHTML = rows.map(r=>{
+      const c = classifyFaultTicket(r);
+      const tt = r.source_ticket_id || r.sdm_tt || "-";
+      const wo = r.work_order_id || "";
+      return `<div class="srm-detail-card">
+        <div class="srm-detail-head">
+          <span class="srm-detail-tt">${esc(tt)}</span>
+          ${wo && wo !== tt ? `<span class="srm-detail-wo">${esc(wo)}</span>` : ""}
+          <span class="sev-badge">${esc(r.severity||"-")}</span>
+        </div>
+        <div class="srm-detail-subj">${esc(extractFaultSubjectDetail(r) || r.subject || "-")}</div>
+        <div class="srm-detail-meta">
+          <span>Created: ${esc(fmtFaultRawDT(r.created_time)||"-")}</span>
+          <span>Closed: ${esc(fmtFaultRawDT(r.closed_time)||"-")}</span>
+          <span>Downtime: ${c.downtimeMinutes!=null ? esc(fmtHMText(c.downtimeMinutes)) : "-"}</span>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  document.getElementById("srmDetailModal").classList.add("open");
+}
+function closeSrmDetail(){
+  document.getElementById("srmDetailModal").classList.remove("open");
+}
+function onSrmViewClick(e){
+  const cell = e.target.closest(".srm-heat-clickable");
+  if(!cell) return;
+  const site = cell.dataset.site, day = cell.dataset.day;
+  if(site && day) openSrmDetail(site, day);
 }
 function fmtHMText(totalMinutes){
   const m = Math.max(0, Math.round(totalMinutes));
@@ -2429,20 +2720,175 @@ function fmtFaultDowntime(mins){
   if(mins === null || mins === undefined) return '<span class="muted-dash">—</span>';
   return esc(fmtHMText(mins));
 }
+function sortGroupProblems(list){
+  return list.slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.label).localeCompare(String(b.label)));
+}
+function fallbackGroupProblemRows(){
+  return FAULT_GP_PRESETS.map((label,i)=>({ id:null, label, sort_order:i+1, is_active:true }));
+}
+async function fetchGroupProblems(){
+  try{
+    GROUP_PROBLEMS = sortGroupProblems(await fetchAllFromRest(GP_REST + "?select=*&order=sort_order.asc,label.asc"));
+  }catch(e){
+    console.warn("fetchGroupProblems failed:", e);
+    GROUP_PROBLEMS = fallbackGroupProblemRows();
+  }
+  await migrateLocalGpCustomToDb();
+}
+async function migrateLocalGpCustomToDb(){
+  let custom = [];
+  try{ custom = JSON.parse(localStorage.getItem("faultGpCustom")||"[]"); }catch(e){}
+  if(!Array.isArray(custom) || !custom.length) return;
+  if(!GROUP_PROBLEMS.length || GROUP_PROBLEMS[0]?.id == null) return;
+  for(const label of custom){
+    const t = String(label||"").trim();
+    if(!t || GROUP_PROBLEMS.some(g=>g.label===t)) continue;
+    try{ await createGroupProblemRow(t); }catch(e){ console.warn("migrate GP:", t, e); }
+  }
+  try{ localStorage.removeItem("faultGpCustom"); }catch(e){}
+}
+function getActiveGroupProblemLabels(){
+  const active = GROUP_PROBLEMS.filter(g=>g.is_active !== false).map(g=>g.label);
+  if(active.length) return active;
+  return [...FAULT_GP_PRESETS];
+}
 function getFaultGroupProblemCustom(){
-  try{ return JSON.parse(localStorage.getItem("faultGpCustom")||"[]"); }catch(e){ return []; }
+  return GROUP_PROBLEMS.filter(g=>g.id != null && !FAULT_GP_PRESETS.includes(g.label)).map(g=>g.label);
 }
 function saveFaultGroupProblemCustom(list){
-  try{ localStorage.setItem("faultGpCustom", JSON.stringify(list)); }catch(e){}
+  console.warn("saveFaultGroupProblemCustom is deprecated — use Group Problem modal / DB");
 }
 function getFaultGroupProblemOptions(){
-  const merged = [...FAULT_GP_PRESETS];
-  getFaultGroupProblemCustom().forEach(v=>{ if(v && !merged.includes(v)) merged.push(v); });
+  const merged = [...getActiveGroupProblemLabels()];
   faultTickets.forEach(r=>{
     const gp = resolveFaultSkillAndGp(r).group_problem_free_text;
     if(gp && !merged.includes(gp)) merged.push(gp);
   });
   return merged;
+}
+function isKnownGroupProblemLabel(val){
+  const s = String(val||"").trim();
+  if(!s) return false;
+  if(GROUP_PROBLEMS.some(g=>g.label===s)) return true;
+  if(FAULT_GP_PRESETS.includes(s)) return true;
+  return false;
+}
+async function createGroupProblemRow(label){
+  const text = String(label||"").trim();
+  if(!text) throw new Error("empty label");
+  if(GROUP_PROBLEMS.some(g=>g.label===text)) return GROUP_PROBLEMS.find(g=>g.label===text);
+  const maxSort = GROUP_PROBLEMS.reduce((m,g)=>Math.max(m, g.sort_order||0), 0);
+  const res = await fetch(GP_REST, {
+    method:"POST",
+    headers:{...HEADERS, Prefer:"return=representation"},
+    body:JSON.stringify({ label:text, sort_order:maxSort+1, is_active:true, updated_at:new Date().toISOString() })
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  GROUP_PROBLEMS = sortGroupProblems([...GROUP_PROBLEMS.filter(g=>g.id!==row.id), row]);
+  return row;
+}
+async function patchGroupProblemRow(id, patch){
+  const res = await fetch(GP_REST + `?id=eq.${id}`, {
+    method:"PATCH",
+    headers:{...HEADERS, Prefer:"return=representation"},
+    body:JSON.stringify({ ...patch, updated_at:new Date().toISOString() })
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  GROUP_PROBLEMS = sortGroupProblems(GROUP_PROBLEMS.map(g=>g.id===row.id ? row : g));
+  return row;
+}
+async function addGroupProblemFromInput(){
+  const input = document.getElementById("gpNewLabelInput");
+  const text = (input?.value||"").trim();
+  if(!text){ toast("กรอกหัวข้อก่อน"); return; }
+  try{
+    await createGroupProblemRow(text);
+    if(input) input.value = "";
+    renderGpManageList();
+    if(currentTab==="fault") renderFault();
+    toast("เพิ่ม Group Problem แล้ว");
+  }catch(e){
+    console.error(e);
+    toast("เพิ่มไม่สำเร็จ — รัน SQL สร้างตาราง group_problems");
+  }
+}
+async function saveGpManageRow(id){
+  const rowEl = document.querySelector(`.gp-manage-row[data-id="${id}"]`);
+  if(!rowEl) return;
+  const label = rowEl.querySelector(".gp-manage-label")?.value?.trim();
+  const isActive = rowEl.querySelector(".gp-manage-active input")?.checked !== false;
+  const prev = GROUP_PROBLEMS.find(g=>g.id===id);
+  if(!prev) return;
+  if(!label){ toast("ชื่อหัวข้อว่างไม่ได้"); return; }
+  if(label === prev.label && isActive === (prev.is_active !== false)) return;
+  try{
+    await patchGroupProblemRow(id, { label, is_active:isActive });
+    renderGpManageList();
+    if(currentTab==="fault") renderFault();
+    toast("บันทึกแล้ว");
+  }catch(e){
+    console.error(e);
+    toast("บันทึกไม่สำเร็จ (ชื่อซ้ำ?)");
+  }
+}
+async function toggleGpManageActive(id, checked){
+  try{
+    await patchGroupProblemRow(id, { is_active: !!checked });
+    renderGpManageList();
+    if(currentTab==="fault") renderFault();
+  }catch(e){
+    console.error(e);
+    toast("อัปเดตสถานะไม่สำเร็จ");
+  }
+}
+async function moveGroupProblemRow(id, dir){
+  const list = sortGroupProblems(GROUP_PROBLEMS.filter(g=>g.id != null));
+  const idx = list.findIndex(g=>g.id===id);
+  const swapIdx = dir==="up" ? idx-1 : idx+1;
+  if(idx < 0 || swapIdx < 0 || swapIdx >= list.length) return;
+  const a = list[idx], b = list[swapIdx];
+  try{
+    await Promise.all([
+      patchGroupProblemRow(a.id, { sort_order:b.sort_order }),
+      patchGroupProblemRow(b.id, { sort_order:a.sort_order })
+    ]);
+    renderGpManageList();
+    if(currentTab==="fault") renderFault();
+  }catch(e){
+    console.error(e);
+    toast("เรียงลำดับไม่สำเร็จ");
+  }
+}
+function renderGpManageList(){
+  const body = document.getElementById("gpManageBody");
+  if(!body) return;
+  const list = sortGroupProblems(GROUP_PROBLEMS.filter(g=>g.id != null));
+  if(!list.length){
+    body.innerHTML = `<div class="modal-empty">ยังไม่มีรายการ — รัน <code>supabase/group_problems.sql</code> ใน Supabase SQL Editor แล้ว Refresh</div>`;
+    return;
+  }
+  body.innerHTML = list.map((g,i)=>`
+    <div class="gp-manage-row${g.is_active===false?" inactive":""}" data-id="${g.id}">
+      <div class="gp-manage-sort">
+        <button type="button" title="เลื่อนขึ้น" onclick="moveGroupProblemRow(${g.id},'up')" ${i===0?"disabled":""}>▲</button>
+        <button type="button" title="เลื่อนลง" onclick="moveGroupProblemRow(${g.id},'down')" ${i===list.length-1?"disabled":""}>▼</button>
+      </div>
+      <input class="gp-manage-label" value="${esc(g.label)}" onkeydown="if(event.key==='Enter') saveGpManageRow(${g.id})">
+      <label class="gp-manage-active"><input type="checkbox" ${g.is_active!==false?"checked":""} onchange="toggleGpManageActive(${g.id}, this.checked)"> ใช้งาน</label>
+      <div class="gp-manage-actions"><button class="btn sm" onclick="saveGpManageRow(${g.id})">บันทึก</button></div>
+    </div>`).join("");
+}
+function openGpManageModal(){
+  renderGpManageList();
+  document.getElementById("gpManageModal")?.classList.add("open");
+  document.getElementById("gpNewLabelInput")?.focus();
+}
+function closeGpManageModal(){
+  document.getElementById("gpManageModal")?.classList.remove("open");
 }
 function normalizeFaultSkill(val){
   const s = String(val||"").trim();
@@ -2456,8 +2902,7 @@ function normalizeFaultSkill(val){
 function isFaultGroupProblemPreset(val){
   const s = String(val||"").trim();
   if(!s) return false;
-  if(FAULT_GP_PRESETS.includes(s)) return true;
-  if(getFaultGroupProblemCustom().includes(s)) return true;
+  if(isKnownGroupProblemLabel(s)) return true;
   if(s.startsWith("ปัญหา") || s === "ไม่พบปัญหา") return true;
   return false;
 }
@@ -2593,13 +3038,14 @@ async function promptAddFaultGroupProblem(woId){
   const text = prompt("เพิ่มหัวข้อปัญหาใหม่:");
   if(!text || !text.trim()) return;
   const val = text.trim();
-  const custom = getFaultGroupProblemCustom();
-  if(!custom.includes(val) && !FAULT_GP_PRESETS.includes(val)){
-    custom.push(val);
-    saveFaultGroupProblemCustom(custom);
+  try{
+    if(!isKnownGroupProblemLabel(val)) await createGroupProblemRow(val);
+    if(woId) await updateFaultField(woId, "group_problem_free_text", val);
+    else renderFault();
+  }catch(e){
+    console.error(e);
+    toast("เพิ่มไม่สำเร็จ — ใช้ ⚙ Group Problem หรือรัน SQL");
   }
-  if(woId) await updateFaultField(woId, "group_problem_free_text", val);
-  else renderFault();
 }
 const FAULT_TABLE_HEAD = `<tr>
   <th style="width:90px">Site</th>
@@ -3464,9 +3910,11 @@ async function loadFaultTickets(showToast){
   try{
     faultTickets = await fetchAllFromRest(FAULT_REST + "?select=*&order=created_time.asc");
     if(currentTab==="fault") renderFault();
+    if(currentTab==="srm") renderSiteRepeatMapping();
     if(showToast) toast(`Fault data loaded (${faultTickets.length} rows)`);
     migrateLegacyFaultSkills().then(()=>{
       if(currentTab==="fault") renderFault();
+      if(currentTab==="srm") renderSiteRepeatMapping();
     }).catch(e=> console.warn("migrateLegacyFaultSkills:", e));
   }catch(e){
     console.warn("loadFaultTickets failed:", e);
@@ -3707,11 +4155,13 @@ function toast(msg){
   try{
     await fetchSiteCodes();
     await fetchTeamMap();
+    await fetchGroupProblems();
     await loadAll();
     moveTabIndicator();
     moveFaultSubTabIndicator();
     setTimeout(moveTabIndicator, 300);
     setTimeout(moveFaultSubTabIndicator, 300);
+    document.getElementById("srmView")?.addEventListener("click", onSrmViewClick);
   }catch(e){
     console.error("init failed:", e);
     toast("เริ่มต้นแอปไม่สำเร็จ");
@@ -3725,6 +4175,29 @@ function toast(msg){
       <button class="modal-close" onclick="closeSevModal()">✕</button>
     </div>
     <div class="modal-body" id="sevDetailBody"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="srmDetailModal" onclick="if(event.target===this) closeSrmDetail()">
+  <div class="modal-box srm-detail-box">
+    <div class="modal-head">
+      <h3 id="srmDetailTitle">Ticket Detail</h3>
+      <button class="modal-close" onclick="closeSrmDetail()">✕</button>
+    </div>
+    <div class="modal-body" id="srmDetailBody"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="gpManageModal" onclick="if(event.target===this) closeGpManageModal()">
+  <div class="modal-box gp-manage-box">
+    <div class="modal-head">
+      <h3>จัดการ Group Problem</h3>
+      <button class="modal-close" onclick="closeGpManageModal()">✕</button>
+    </div>
+    <div class="gp-manage-toolbar">
+      <input type="text" id="gpNewLabelInput" placeholder="หัวข้อใหม่…" onkeydown="if(event.key==='Enter') addGroupProblemFromInput()">
+      <button class="btn sm primary" onclick="addGroupProblemFromInput()">+ เพิ่ม</button>
+    </div>
+    <div class="modal-body gp-manage-list" id="gpManageBody"></div>
+    <div class="gp-manage-hint">ปิดใช้ = ไม่แสดงใน dropdown แต่ ticket เก่ายังเก็บค่าเดิม · แก้ชื่อแล้วกด บันทึก</div>
   </div>
 </div>
 
