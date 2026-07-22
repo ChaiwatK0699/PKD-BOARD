@@ -415,7 +415,9 @@ body.screenshotting #gpManageModal{display:none !important;}
   display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); white-space:nowrap; cursor:pointer;
 }
 .gp-manage-active input{cursor:pointer;}
-.gp-manage-actions{display:flex; gap:6px;}
+.gp-manage-actions{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;}
+.gp-manage-del{color:var(--coral); border-color:var(--coral-dim);}
+.gp-manage-del:hover{background:var(--coral-dim); border-color:var(--coral);}
 .gp-manage-hint{padding:10px 18px 14px; font-size:12px; color:var(--muted); line-height:1.5;}
 .btn-screenshot{
   display:inline-flex; align-items:center; gap:8px;
@@ -2863,6 +2865,22 @@ async function moveGroupProblemRow(id, dir){
     toast("เรียงลำดับไม่สำเร็จ");
   }
 }
+async function deleteGroupProblemRow(id){
+  const row = GROUP_PROBLEMS.find(g=>g.id===id);
+  if(!row) return;
+  if(!confirm(`ลบหัวข้อ "${row.label}"?\n\nTicket เก่ายังเก็บค่าเดิมในใบงาน · ลบแล้วหายจาก dropdown`)) return;
+  try{
+    const res = await fetch(GP_REST + `?id=eq.${id}`, { method:"DELETE", headers:HEADERS });
+    if(!res.ok) throw new Error(await res.text());
+    GROUP_PROBLEMS = GROUP_PROBLEMS.filter(g=>g.id!==id);
+    renderGpManageList();
+    if(currentTab==="fault") renderFault();
+    toast("ลบ Group Problem แล้ว");
+  }catch(e){
+    console.error(e);
+    toast("ลบไม่สำเร็จ");
+  }
+}
 function renderGpManageList(){
   const body = document.getElementById("gpManageBody");
   if(!body) return;
@@ -2879,7 +2897,10 @@ function renderGpManageList(){
       </div>
       <input class="gp-manage-label" value="${esc(g.label)}" onkeydown="if(event.key==='Enter') saveGpManageRow(${g.id})">
       <label class="gp-manage-active"><input type="checkbox" ${g.is_active!==false?"checked":""} onchange="toggleGpManageActive(${g.id}, this.checked)"> ใช้งาน</label>
-      <div class="gp-manage-actions"><button class="btn sm" onclick="saveGpManageRow(${g.id})">บันทึก</button></div>
+      <div class="gp-manage-actions">
+        <button type="button" class="btn sm" onclick="saveGpManageRow(${g.id})">บันทึก</button>
+        <button type="button" class="btn sm ghost gp-manage-del" onclick="deleteGroupProblemRow(${g.id})" title="ลบหัวข้อ">ลบ</button>
+      </div>
     </div>`).join("");
 }
 function openGpManageModal(){
@@ -4197,7 +4218,7 @@ function toast(msg){
       <button class="btn sm primary" onclick="addGroupProblemFromInput()">+ เพิ่ม</button>
     </div>
     <div class="modal-body gp-manage-list" id="gpManageBody"></div>
-    <div class="gp-manage-hint">ปิดใช้ = ไม่แสดงใน dropdown แต่ ticket เก่ายังเก็บค่าเดิม · แก้ชื่อแล้วกด บันทึก</div>
+    <div class="gp-manage-hint">ปิดใช้ = ไม่แสดงใน dropdown · ลบ = หายจากรายการ (ticket เก่ายังเก็บค่าเดิม) · แก้ชื่อแล้วกด บันทึก</div>
   </div>
 </div>
 
