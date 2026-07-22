@@ -496,6 +496,11 @@ body.screenshotting #ltrManageModal{display:none !important;}
 .srm-heat-legend-bar{width:120px; height:8px; border-radius:4px;}
 .srm-heat-legend-bar.count{background:linear-gradient(90deg, var(--panel-2), rgba(47,128,237,.85));}
 .srm-heat-legend-bar.dt{background:linear-gradient(90deg, var(--panel-2), rgba(217,74,53,.75));}
+.srm-heat-legend-streaks{display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:8px; font-size:11px; color:var(--muted);}
+.srm-heat-legend-streaks span{display:inline-flex; align-items:center; gap:6px;}
+.srm-heat-legend-swatch{width:14px; height:14px; border-radius:4px; flex-shrink:0;}
+.srm-heat-legend-swatch.streak2{background:rgba(245,158,11,.88);}
+.srm-heat-legend-swatch.streak3{background:rgba(217,74,53,.88);}
 .srm-detail-box{width:min(760px,94vw);}
 .srm-detail-card{padding:12px 18px; border-bottom:1px solid var(--border-soft);}
 .srm-detail-card:last-child{border-bottom:none;}
@@ -512,6 +517,26 @@ body.screenshotting #ltrManageModal{display:none !important;}
 .fault-chart-title{font-family:'Barlow Condensed'; font-weight:700; font-size:15px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
 .fault-chart-wrap{position:relative; height:400px;}
 .fault-table-block{margin-bottom:22px;}
+#faultView table.fault-data-table{font-size:17px;}
+#faultView table.fault-data-table thead th{font-size:15.5px; padding:11px 14px;}
+#faultView table.fault-data-table tbody td{padding:11px 14px; font-size:17px; vertical-align:middle;}
+#faultView table.fault-data-table .site-plkd-cell{font-size:16.5px;}
+#faultView table.fault-data-table .tt-line{font-size:16.5px;}
+#faultView table.fault-data-table .tt-line .ext{font-size:14.5px;}
+#faultView table.fault-data-table .subject-cell{font-size:16px; line-height:1.45;}
+#faultView table.fault-data-table .sev-badge{font-size:14.5px; padding:3px 9px;}
+#faultView table.fault-data-table .dt-cell{font-size:15.5px;}
+#faultView table.fault-data-table .dt-cell .dt-date,
+#faultView table.fault-data-table .dt-cell .dt-time{font-size:14.5px;}
+#faultView table.fault-data-table .home-feedback.free-ta{font-size:16px; line-height:1.5; min-height:96px;}
+#faultView table.fault-data-table .empty-hint{font-size:16px; padding:22px;}
+#faultView .fault-dd-select{font-size:16px; padding:8px 30px 8px 12px;}
+#faultView .fault-dd-add{height:40px; font-size:20px;}
+#faultView table.fault-data-table.fault-ltr-summary-table{font-size:20px;}
+#faultView table.fault-data-table.fault-ltr-summary-table .fault-ltr-reason-name{font-size:20px;}
+#faultView table.fault-data-table.fault-ltr-summary-table td{font-size:22px;}
+#faultView table.fault-data-table.fault-ltr-summary-table th{font-size:19px;}
+#faultView table.fault-data-table.fault-ltr-summary-table .fault-ltr-total{font-size:23px;}
 .fault-control-summary{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:18px; max-width:640px;}
 .fault-control-summary .summary-card{cursor:pointer; transition:transform .12s, box-shadow .15s;}
 .fault-control-summary .summary-card:hover{transform:translateY(-2px); box-shadow:0 8px 24px var(--shadow-strong);}
@@ -807,7 +832,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
   <div id="srmView" class="tab-view" style="display:none;">
     <div class="srm-head">
       <h2>Site Repeat Mapping</h2>
-      <p id="srmSubtitle">168 PLKD Sites · Severity SA (SA1–SA6) · ไม่รวม Broadband · นับจากวันที่ Closed (00:00–23:59)</p>
+      <p id="srmSubtitle">Severity SA (SA1–SA6) · ไม่รวม Broadband · นับจากวันที่ Closed (00:00–23:59)</p>
     </div>
     <div class="srm-block">
       <div class="srm-block-title">Count TT ต่อวัน</div>
@@ -1001,13 +1026,24 @@ function isBroadbandRow(r){
   const closeDesc = r.close_description ?? get("Close Description");
   const rootCause = r.root_cause ?? get("Root Cause");
   const hay = `${subject||""} ${workType||""} ${closeDesc||""} ${rootCause||""}`.toUpperCase();
-  return hay.includes("BROADBAND");
+  return hay.includes("BROADBAND") || /\bBROAD\b/.test(hay) || /NOC-NW-BROAD\b/.test(hay);
 }
 function isCancelled(r){ return isCancelStatus(r?.wo_status); }
 
 let SITE_SET = new Set();
 let PLKD_REGEX = null;
 let TEAM_MAP = []; // [{team_key, match_key, raw_label, contact_name, phone, sort_order}]
+const DEFAULT_TEAM_MAP = [
+  {team_key:"NODE1", match_key:"NOD-001", raw_label:"SY-EA-RYG-NOD-001", contact_name:"Nitipong_NH_RYG", phone:"0615874153", sort_order:1},
+  {team_key:"NODE2", match_key:"MUF-010", raw_label:"SY-EA-RYG-MUF-010", contact_name:"Aet_NH_RYG_WW", phone:"0800715001", sort_order:2},
+  {team_key:"NODE3", match_key:"MUF-011", raw_label:"SY-EA-RYG-MUF-011", contact_name:"Sakorn_OF_RYG_M1_WW", phone:"0969299842", sort_order:3},
+  {team_key:"OFC1", match_key:"OFC-017", raw_label:"SY-EA-RYG-OFC-017", contact_name:"Jirayut_OF_RYG_WW", phone:"0918435580", sort_order:4},
+  {team_key:"OFC2", match_key:"OFC-001", raw_label:"EX-EA-RYG-OFC-001", contact_name:"Veerachai_OF_RYG_WW", phone:"0806372241", sort_order:5},
+  {team_key:"OFC3", match_key:"OFC-005", raw_label:"SY-EA-RYG-OFC-005", contact_name:"Thanakorn_OF_RYG_WW", phone:"0985231948", sort_order:6}
+];
+function getActiveTeamMap(){
+  return (Array.isArray(TEAM_MAP) && TEAM_MAP.length) ? TEAM_MAP : DEFAULT_TEAM_MAP;
+}
 let tickets = { pending: [], closed: [], svcava: [] };
 let filters = { pending:{severities:new Set(), plkdOnly:false, search:""}, closed:{severities:new Set(), plkdOnly:false, search:""}, manual:{severities:new Set(), plkdOnly:false, search:""} };
 let currentTab = "home";
@@ -1253,10 +1289,10 @@ async function fetchTeamMap(){
     const res = await fetch(REST + "/team_mapping?select=*&order=sort_order.asc", {headers:HEADERS});
     if(!res.ok) throw new Error(await res.text());
     const data = await res.json();
-    TEAM_MAP = Array.isArray(data) ? data : [];
+    TEAM_MAP = Array.isArray(data) && data.length ? data : DEFAULT_TEAM_MAP.slice();
   }catch(e){
     console.warn("fetchTeamMap failed:", e);
-    if(!Array.isArray(TEAM_MAP)) TEAM_MAP = [];
+    TEAM_MAP = DEFAULT_TEAM_MAP.slice();
   }
 }
 async function fetchTickets(group){
@@ -1311,10 +1347,10 @@ async function loadAll(){
   loadFaultTickets(false).catch(e=> console.warn("Fault load failed:", e));
 }
 function renderAll(){
+  try{ renderHome(); }catch(e){ console.error("renderHome failed:", e); }
   try{
     renderFilterbar("pending"); renderFilterbar("closed"); renderFilterbar("manual");
     renderTeams("pending"); renderTeams("closed"); renderTeams("manual");
-    renderHome();
     if(currentTab==="svcava") renderSvcAva();
     if(currentTab==="fault") renderFault();
     if(currentTab==="srm") renderSiteRepeatMapping();
@@ -1345,6 +1381,7 @@ function switchTab(tab){
   svcavaEl.style.display = tab==="svcava" ? "block":"none";
   srmEl.style.display = tab==="srm" ? "block":"none";
   faultEl.style.display = tab==="fault" ? "block":"none";
+  if(tab==="home") renderHome();
   if(tab==="svcava") renderSvcAva();
   if(tab==="fault") renderFault();
   if(tab==="srm") renderSiteRepeatMapping();
@@ -1452,7 +1489,7 @@ function renderTeams(group){
        {h:"Sub Root Cause", w:170, field:"sub_root_cause", editable:false},
        {h:"Close Description", w:200, field:"close_description", editable:false},
        {h:"Update Log Status", w:220, field:"evening_summary", editable:true, big:true}];
-  TEAM_MAP.forEach(tm=>{
+  getActiveTeamMap().forEach(tm=>{
     const team = tm.team_key;
     const teamRows = rows.filter(r=>r.team===team);
     const block = document.createElement("div");
@@ -1570,16 +1607,22 @@ function autoPlanText(team){
     return `${i+1}.${site} ${r.tt_number||r.work_order_id||'-'}${sevShort?'/'+sevShort:''}`;
   }).join("\n");
 }
+function homeSevShowsAll(){
+  return homeSevFilter.size === 0 || homeSevFilter.size === HOME_SEV_CODES.length;
+}
 function homeSevPass(r){
   const code = (r.severity||"").split("-")[0] || "";
   const up = code.toUpperCase();
   if(up.startsWith("PSA")) return false; // hide PSA everywhere on Home
   if(up==="NSA5" || up==="NSA6") return false; // hide NSA5/6 everywhere on Home
   if(!HOME_SEV_CODES.includes(code)) return true; // any other unrecognized code still shown
+  if(homeSevShowsAll()) return true; // empty or full filter = show all (matches Pending)
   return homeSevFilter.has(code);
 }
 function toggleHomeSev(code){
-  if(homeSevFilter.has(code)) homeSevFilter.delete(code); else homeSevFilter.add(code);
+  if(homeSevShowsAll()) homeSevFilter = new Set(HOME_SEV_CODES);
+  if(homeSevFilter.has(code)) homeSevFilter.delete(code);
+  else homeSevFilter.add(code);
   renderHome();
 }
 function homeSevAllToggle(){
@@ -1590,11 +1633,14 @@ function homeSevAllToggle(){
 function renderHomeSevFilter(){
   const el = document.getElementById("homeSevFilterBar");
   if(!el) return;
-  const allOn = homeSevFilter.size === HOME_SEV_CODES.length;
+  const allOn = homeSevShowsAll();
   el.innerHTML = `
     <span class="flabel" style="margin-right:4px;">Severity Filter</span>
     <label class="toggle-chip"><input type="checkbox" ${allOn?'checked':''} onchange="homeSevAllToggle()"> All</label>
-    ${HOME_SEV_CODES.map(c=>`<label class="toggle-chip sev-chip ${homeSevFilter.has(c)?'on':''}"><input type="checkbox" ${homeSevFilter.has(c)?'checked':''} onchange="toggleHomeSev('${c}')"> ${c}</label>`).join("")}
+    ${HOME_SEV_CODES.map(c=>{
+      const on = allOn || homeSevFilter.has(c);
+      return `<label class="toggle-chip sev-chip ${on?'on':''}"><input type="checkbox" ${on?'checked':''} onchange="toggleHomeSev('${c}')"> ${c}</label>`;
+    }).join("")}
   `;
 }
 function toggleTeamCollapse(team){
@@ -1662,14 +1708,36 @@ function buildSiteRepeatData(){
     siteRowDt[s] = days.reduce((a,d)=>a + downtime[s][d], 0);
   });
 
-  return { sites, days, count, downtime, cellTickets, dayCount, dayDt, siteRowCount, siteRowDt, grandCount, grandDt, maxCellDt, maxCellCount };
+  const activeSites = sites.filter(s=> siteRowCount[s] > 0);
+  const activeDays = days.filter(d=> dayCount[d] > 0);
+  const streakLen = {};
+  activeSites.forEach(site=>{
+    streakLen[site] = {};
+    days.forEach(d=>{
+      if(!count[site][d]){ streakLen[site][d] = 0; return; }
+      const idx = days.indexOf(d);
+      let start = idx;
+      while(start > 0 && count[site][days[start - 1]] > 0) start--;
+      let end = idx;
+      while(end < days.length - 1 && count[site][days[end + 1]] > 0) end++;
+      streakLen[site][d] = end - start + 1;
+    });
+  });
+
+  return { sites: activeSites, days: activeDays, monthDays: days, count, downtime, cellTickets, dayCount, dayDt, siteRowCount, siteRowDt, grandCount, grandDt, maxCellDt, maxCellCount, streakLen };
+}
+function srmCellBgStyle(val, alpha, rgba, streak){
+  if(streak >= 3) return "background:rgba(217,74,53,.88);color:#fff";
+  if(streak === 2) return "background:rgba(245,158,11,.88);color:#fff";
+  if(!val) return "";
+  return `background:${rgba.replace("{a}", alpha.toFixed(3))}`;
 }
 function srmHeatAlpha(val, maxVal){
   if(!val || !maxVal) return 0;
   return Math.min(1, Math.max(0.22, val / maxVal));
 }
 function buildSrmHeatGrid(opts){
-  const { sites, days, getVal, fmtVal, maxVal, rgba, dayTotals, rowTotals, grandTotal, dayTotalClass, legendBarClass, legendLabel } = opts;
+  const { sites, days, getVal, fmtVal, maxVal, rgba, dayTotals, rowTotals, grandTotal, dayTotalClass, legendBarClass, legendLabel, streakLen } = opts;
   const gridStyle = `grid-template-columns:88px repeat(${days.length}, minmax(52px, 1fr)) 72px;`;
   let html = `<div class="srm-heat-wrap"><div class="srm-heat-grid" style="${gridStyle}">`;
   html += `<div class="srm-heat-corner">Site</div>`;
@@ -1680,11 +1748,13 @@ function buildSrmHeatGrid(opts){
     html += `<div class="srm-heat-row">${esc(site)}</div>`;
     days.forEach(d=>{
       const val = getVal(site, d);
+      const streak = streakLen?.[site]?.[d] || 0;
       const alpha = srmHeatAlpha(val, maxVal);
-      const bg = val ? `background:${rgba.replace("{a}", alpha.toFixed(3))}` : "";
+      const bg = srmCellBgStyle(val, alpha, rgba, streak);
       const cellCls = val ? "srm-heat-cell srm-heat-clickable" : "srm-heat-cell srm-heat-empty";
       const dataAttrs = val ? ` data-site="${esc(site)}" data-day="${esc(d)}"` : "";
-      html += `<div class="${cellCls}"${dataAttrs} style="${bg}" title="${esc(site)} · ${esc(fmtSrmDayLabel(d))}${val ? " · " + esc(fmtVal(val)) + " · คลิกดูรายละเอียด" : ""}">${val ? esc(fmtVal(val)) : ""}</div>`;
+      const streakHint = streak >= 3 ? " · ติดกัน 3+ วัน" : streak === 2 ? " · ติดกัน 2 วัน" : "";
+      html += `<div class="${cellCls}"${dataAttrs} style="${bg}" title="${esc(site)} · ${esc(fmtSrmDayLabel(d))}${val ? " · " + esc(fmtVal(val)) + streakHint + " · คลิกดูรายละเอียด" : ""}">${val ? esc(fmtVal(val)) : ""}</div>`;
     });
     const rowT = rowTotals[site];
     html += `<div class="srm-heat-total">${rowT ? esc(fmtVal(rowT)) : ""}</div>`;
@@ -1696,7 +1766,11 @@ function buildSrmHeatGrid(opts){
     html += `<div class="srm-heat-daytotal ${dayTotalClass}">${v ? esc(fmtVal(v)) : ""}</div>`;
   });
   html += `<div class="srm-heat-total grand">${grandTotal ? esc(fmtVal(grandTotal)) : ""}</div>`;
-  html += `</div><div class="srm-heat-legend"><span>น้อย</span><div class="srm-heat-legend-bar ${legendBarClass}"></div><span>มาก (${legendLabel})</span></div></div>`;
+  html += `</div><div class="srm-heat-legend"><span>น้อย</span><div class="srm-heat-legend-bar ${legendBarClass}"></div><span>มาก (${legendLabel})</span></div>
+  <div class="srm-heat-legend-streaks">
+    <span><i class="srm-heat-legend-swatch streak2"></i>TT ติดกัน 2 วัน</span>
+    <span><i class="srm-heat-legend-swatch streak3"></i>TT ติดกัน 3+ วัน</span>
+  </div></div>`;
   return html;
 }
 function renderSiteRepeatMapping(){
@@ -1705,7 +1779,7 @@ function renderSiteRepeatMapping(){
   const dtWrap = document.getElementById("srmDtWrap");
   if(!countWrap || !dtWrap) return;
   const ctx = getSrmMonthContext();
-  if(sub) sub.textContent = `${SITE_SET.size} PLKD Sites · Severity SA (SA1–SA6) · ไม่รวม Broadband · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}`;
+  if(sub) sub.textContent = `Severity SA (SA1–SA6) · ไม่รวม Broadband · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}`;
 
   if(!SITE_SET.size){
     const empty = `<div class="empty-hint" style="padding:24px;">ยังไม่มีรายชื่อ 168 Site — รอโหลด site codes</div>`;
@@ -1716,10 +1790,20 @@ function renderSiteRepeatMapping(){
 
   const data = buildSiteRepeatData();
   srmCellTickets = data.cellTickets;
-  const { sites, days, count, downtime, dayCount, dayDt, siteRowCount, siteRowDt, grandCount, grandDt, maxCellDt, maxCellCount } = data;
+  const { sites, days, count, downtime, dayCount, dayDt, siteRowCount, siteRowDt, grandCount, grandDt, maxCellDt, maxCellCount, streakLen } = data;
+
+  if(!sites.length || !days.length){
+    const empty = `<div class="empty-hint" style="padding:24px;">ไม่มี TT ในเดือน ${ctx.monthLabel}</div>`;
+    countWrap.innerHTML = empty;
+    dtWrap.innerHTML = empty;
+    if(sub) sub.textContent += ` · 0 Site · 0 วัน`;
+    return;
+  }
+
+  if(sub) sub.textContent += ` · ${sites.length} Site มีงาน · ${days.length} วันมีงาน`;
 
   countWrap.innerHTML = buildSrmHeatGrid({
-    sites, days,
+    sites, days, streakLen,
     getVal: (site, d)=> count[site][d],
     fmtVal: v=> String(v),
     maxVal: maxCellCount,
@@ -1733,7 +1817,7 @@ function renderSiteRepeatMapping(){
   });
 
   dtWrap.innerHTML = buildSrmHeatGrid({
-    sites, days,
+    sites, days, streakLen,
     getVal: (site, d)=> downtime[site][d],
     fmtVal: v=> fmtHM(v),
     maxVal: maxCellDt,
@@ -1870,14 +1954,20 @@ function renderHome(){
   renderHomeSevFilter();
 
   const tbody = document.getElementById("homeTbody");
+  if(!tbody) return;
   tbody.innerHTML = "";
-  TEAM_MAP.forEach(tm=>{
+  const pendingRows = Array.isArray(tickets.pending) ? tickets.pending : [];
+  const closedRows = Array.isArray(tickets.closed) ? tickets.closed : [];
+  const teamMap = getActiveTeamMap();
+
+  teamMap.forEach(tm=>{
     const team = tm.team_key;
+    if(!team) return;
     const att = ATTENDANCE[team] || {};
-    const allPlanRows = tickets.pending.filter(r=>r.team===team && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r))
+    const allPlanRows = pendingRows.filter(r=>r.team===team && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r))
       .sort((a,b)=>(a.plan_order||9999)-(b.plan_order||9999));
     const pendingCount = allPlanRows.length;
-    const closedCount = tickets.closed.filter(r=>r.team===team && r.closed_time && r.closed_time.slice(0,10)===dateVal && isPlkdMatch(r) && !isCancelled(r)).length;
+    const closedCount = closedRows.filter(r=>r.team===team && r.closed_time && String(r.closed_time).slice(0,10)===dateVal && isPlkdMatch(r) && !isCancelled(r)).length;
     const rowClass = team.startsWith("NODE") ? "home-row-node":"home-row-ofc";
     const collapsed = !expandedTeams.has(team);
     const planRows = collapsed ? allPlanRows.slice(0,1) : allPlanRows;
@@ -1928,7 +2018,7 @@ function renderHome(){
       cells += `
         <td><div class="plan-cell" draggable="true"><span class="drag-handle">⠿</span><span class="plan-label">Plan ${i+1}</span></div></td>
         <td class="site-plkd-cell">${esc(site)}${plkdType==='subject'?'*':''}</td>
-        <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}<div class="tt-subject">${esc(r.subject||'')}</div></td>
+        <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}<div class="tt-subject">${esc(r.plan_today || r.subject || '')}</div></td>
         <td><span class="sev-badge">${esc(sevShort)}</span></td>
         <td class="status-cell">${esc(r.wo_status||'-')}<br><span class="status-time">${esc(statusTime||'—')}</span></td>
         <td><textarea class="home-evening free-ta" placeholder="Update log status: สรุปการแก้ไข + เช็ค cause/subcause ก่อนปิดงาน…"
@@ -1948,9 +2038,9 @@ function renderHome(){
   makeColumnsResizable(document.querySelector("table.home-table"), "home");
 
   // summary cards
-  const nodeTeams = TEAM_MAP.filter(t=>t.team_key.startsWith("NODE")).map(t=>t.team_key);
-  const ofcTeams = TEAM_MAP.filter(t=>t.team_key.startsWith("OFC")).map(t=>t.team_key);
-  const totalClosedToday = tickets.closed.filter(r=>r.closed_time && r.closed_time.slice(0,10)===dateVal && isPlkdMatch(r) && !isCancelled(r)).length;
+  const nodeTeams = teamMap.filter(t=>t.team_key.startsWith("NODE")).map(t=>t.team_key);
+  const ofcTeams = teamMap.filter(t=>t.team_key.startsWith("OFC")).map(t=>t.team_key);
+  const totalClosedToday = closedRows.filter(r=>r.closed_time && String(r.closed_time).slice(0,10)===dateVal && isPlkdMatch(r) && !isCancelled(r)).length;
 
   function sevShort(sev){ return sev ? (sev.split("-")[0]||sev) : null; }
   function sevSortKey(code){
@@ -1965,7 +2055,7 @@ function renderHome(){
     return "var(--blue)";
   }
   function severityLines(teamList, groupName){
-    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r));
+    const rows = pendingRows.filter(r=>teamList.includes(r.team) && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r));
     const tally = {};
     rows.forEach(r=>{
       const c = sevShort(r.severity);
@@ -1986,7 +2076,7 @@ function renderHome(){
   }
   window.SEV_GROUP_TEAMS = { node: nodeTeams, ofc: ofcTeams };
   function statusLines(teamList){
-    const rows = tickets.pending.filter(r=>teamList.includes(r.team) && isPlkdMatch(r) && !isCancelled(r));
+    const rows = pendingRows.filter(r=>teamList.includes(r.team) && isPlkdMatch(r) && !isCancelled(r));
     const tally = {};
     rows.forEach(r=>{ if(r.wo_status) tally[r.wo_status] = (tally[r.wo_status]||0)+1; });
     const keys = Object.keys(tally).sort();
@@ -2026,7 +2116,7 @@ function showSevDetail(groupName, sevCode){
     return c === sevCode;
   }).sort((a,b)=>(a.plan_order||9999)-(b.plan_order||9999));
   const teamCodeMap = {};
-  TEAM_MAP.forEach(tm=>{ teamCodeMap[tm.team_key] = tm.raw_label || tm.team_key; });
+  getActiveTeamMap().forEach(tm=>{ teamCodeMap[tm.team_key] = tm.raw_label || tm.team_key; });
   const groupLabel = groupName==='node' ? 'Node Pending' : 'OFC Pending';
   document.getElementById("sevDetailTitle").textContent = `${groupLabel} — ${sevCode} (${rows.length})`;
   const body = document.getElementById("sevDetailBody");
@@ -2276,16 +2366,18 @@ document.addEventListener("click", (e)=>{
 });
 
 async function updateField(id, field, value){
-  const group = tickets.pending.find(r=>r.id===id) ? "pending" : "closed";
-  const row = tickets[group].find(r=>r.id===id);
+  const sid = String(id);
+  const group = tickets.pending.find(r=>String(r.id)===sid) ? "pending" : "closed";
+  const row = tickets[group].find(r=>String(r.id)===sid);
   if(row) row[field] = value;
-  await fetch(REST+`/tickets?id=eq.${id}`, {method:"PATCH", headers:HEADERS, body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})});
+  await fetch(REST+`/tickets?id=eq.${sid}`, {method:"PATCH", headers:HEADERS, body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})});
   if(field === "inoc_feedback"){
     rebuildInocLogByTt();
     if(currentTab === "fault") renderFault();
   }
   renderTeams(group);
   if(group==="closed") renderTeams("manual");
+  renderHome();
 }
 function toggleGroup(id, fromGroup){
   if(fromGroup==="pending"){
@@ -2324,7 +2416,7 @@ async function deleteRow(id){
   await loadAll();
 }
 async function addRowPrompt(group, team){
-  team = team || (TEAM_MAP[0] && TEAM_MAP[0].team_key) || "NODE1";
+  team = team || (getActiveTeamMap()[0] && getActiveTeamMap()[0].team_key) || "NODE1";
   const site = prompt(`Site ID for ${team} (${group}):`, "");
   if(site===null) return;
   const payload = {status_group: group, team, site_code: site.trim().toUpperCase(), ticket_date: document.getElementById("boardDate").value};
@@ -2336,7 +2428,7 @@ async function addRowPrompt(group, team){
 /* ---- match raw "Team" field text to one of our 6 team_key buckets ---- */
 function matchTeam(rawTeam){
   if(!rawTeam) return null;
-  for(const tm of TEAM_MAP){ if(rawTeam.includes(tm.match_key)) return tm.team_key; }
+  for(const tm of getActiveTeamMap()){ if(rawTeam.includes(tm.match_key)) return tm.team_key; }
   return null;
 }
 function deriveStatusGroup(status, fallback){
@@ -2560,7 +2652,7 @@ async function bulkInsertWorkOrders(rows, groupBtn){
     if(isCancelStatus(status)){ cancelSkipped++; return; }
     matched++;
     const woCreator = getImportWoCreator(r);
-    payloads.push({
+    const row = {
       status_group: deriveStatusGroup(status, groupBtn),
       team: teamKey,
       raw_team: rawTeam,
@@ -2598,10 +2690,11 @@ async function bulkInsertWorkOrders(rows, groupBtn){
       close_description: get("Close Description"),
       complete_solution: get("Complete Solution"),
       subject: get("Subject"),
-      wo_creator: woCreator || null,
       plan_today: get("Root Cause") ? `${get("Root Cause")}` : "",
       ticket_date: dateVal
-    });
+    };
+    if(woCreator) row.wo_creator = woCreator;
+    payloads.push(row);
   });
   if(payloads.length===0){
     const cancelMsg = cancelSkipped ? ` (${cancelSkipped} Cancel skipped)` : "";
@@ -5063,18 +5156,19 @@ function toast(msg){
   try{
     await fetchSiteCodes();
     await fetchTeamMap();
-    await fetchGroupProblems();
-    await fetchCauseOvers();
-    await fetchLongTimeReasons();
     await loadAll();
     moveTabIndicator();
     moveFaultSubTabIndicator();
     setTimeout(moveTabIndicator, 300);
     setTimeout(moveFaultSubTabIndicator, 300);
     document.getElementById("srmView")?.addEventListener("click", onSrmViewClick);
+    Promise.all([fetchGroupProblems(), fetchCauseOvers(), fetchLongTimeReasons()]).catch(e=>{
+      console.warn("Fault config load failed:", e);
+    });
   }catch(e){
     console.error("init failed:", e);
     toast("เริ่มต้นแอปไม่สำเร็จ");
+    try{ renderHome(); }catch(re){ console.error("renderHome fallback failed:", re); }
   }
 })();
 </script>
