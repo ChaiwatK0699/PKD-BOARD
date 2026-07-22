@@ -385,7 +385,9 @@ body.screenshotting .sidebar{position:relative !important;}
 body.screenshotting .modal-overlay,
 body.screenshotting .sev-modal,
 body.screenshotting #srmDetailModal,
-body.screenshotting #gpManageModal{display:none !important;}
+body.screenshotting #gpManageModal,
+body.screenshotting #coManageModal,
+body.screenshotting #ltrManageModal{display:none !important;}
 .gp-manage-box{width:min(720px,94vw);}
 .gp-manage-toolbar{display:flex; gap:8px; padding:12px 18px; border-bottom:1px solid var(--border-soft); align-items:center;}
 .gp-manage-toolbar input{
@@ -534,6 +536,8 @@ body.screenshotting #gpManageModal{display:none !important;}
 .fault-dd-select.skill-node{color:var(--blue); border-color:var(--blue); background:var(--blue-dim);}
 .fault-dd-select.skill-fiber{color:var(--teal); border-color:var(--teal); background:var(--teal-dim);}
 .fault-dd-select.gp-set{color:var(--violet); border-color:var(--violet); background:var(--violet-dim);}
+.fault-dd-select.co-set{color:var(--coral); border-color:var(--coral); background:rgba(255,107,107,.12);}
+.fault-dd-select.ltr-set{color:var(--blue); border-color:var(--blue); background:var(--blue-dim);}
 .fault-dd-select.ctrl-in{color:var(--teal); border-color:var(--teal); background:var(--teal-dim);}
 .fault-dd-select.ctrl-out{color:var(--coral); border-color:var(--coral); background:var(--coral-dim);}
 .fault-dd-add{
@@ -562,6 +566,14 @@ body.screenshotting #gpManageModal{display:none !important;}
   padding:9px 24px; border-radius:20px; border:1px solid var(--border); background:var(--panel); color:var(--muted); cursor:pointer; transition:.15s;}
 .fault-ctrl-subtab:hover{border-color:var(--blue); color:var(--text);}
 .fault-ctrl-subtab.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+.fault-overview-toolbar{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:12px;}
+.fault-overview-filters{display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px;}
+.fault-overview-day{display:flex; align-items:center; gap:8px;}
+.fault-overview-day input[type="date"]{
+  padding:7px 10px; border:1px solid var(--border); border-radius:8px;
+  background:var(--panel-2); color:var(--text); font-family:'Inter'; font-size:13px;
+}
+.fault-overview-day input[type="date"]:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-dim);}
 .fault-ctrl-insight{
   background:linear-gradient(135deg, var(--blue-dim) 0%, var(--panel) 55%);
   border:1px solid var(--border); border-left:4px solid var(--blue);
@@ -796,6 +808,8 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <input type="file" id="fileInputFault" accept=".csv,.xlsx,.xls" onchange="handleFaultUpload(event)" style="display:none;">
       <button class="btn ghost sm" onclick="loadFaultTickets(true)">↻ Refresh</button>
       <button class="btn ghost sm" onclick="openGpManageModal()" title="จัดการหัวข้อ Group Problem">⚙ Group Problem</button>
+      <button class="btn ghost sm" onclick="openCoManageModal()" title="จัดการหัวข้อ Cause Over">⚙ Cause Over</button>
+      <button class="btn ghost sm" onclick="openLtrManageModal()" title="จัดการหัวข้อ Long time Reason">⚙ Long time Reason</button>
       <button class="btn green sm" onclick="exportFaultExcel()">⭳ Export Excel</button>
       <span class="status-msg" id="statusMsgFault"></span>
     </div>
@@ -803,6 +817,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div class="tabs" id="tabsFaultSub" style="margin-bottom:16px;">
       <div class="tab-indicator" id="tabIndicatorFaultSub"></div>
       <button class="tab-btn active" id="faultSubOverviewBtn" onclick="switchFaultSubTab('overview')">Overview</button>
+      <button class="tab-btn" id="faultSubOverSlaBtn" onclick="switchFaultSubTab('over-sla')">Over SLA</button>
       <button class="tab-btn" id="faultSubLtrSlaBtn" onclick="switchFaultSubTab('ltr-sla')">Long time Repair</button>
       <button class="tab-btn" id="faultSubLtrBtn" onclick="switchFaultSubTab('ltr')">Long time Repair</button>
       <button class="tab-btn" id="faultSubControlBtn" onclick="switchFaultSubTab('control')">In Control / Out Control</button>
@@ -814,6 +829,28 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <div class="fault-chart-wrap"><canvas id="faultOverviewChart"></canvas></div>
       </div>
       <div class="fault-table-block">
+        <div class="fault-overview-toolbar">
+          <div class="fault-section-title" style="margin:0">All Tickets <span class="badge" id="faultOverviewAllCount">0</span></div>
+          <div class="fault-overview-filters">
+            <div class="fault-overview-day">
+              <label class="flabel" for="faultOverviewDay">วันที่ปิด</label>
+              <input type="date" id="faultOverviewDay" onchange="onFaultOverviewDayChange(this.value)">
+              <button type="button" class="btn sm ghost" onclick="clearFaultOverviewDay()">ทั้งหมด</button>
+            </div>
+            <div class="fault-ctrl-subtabs" style="margin:0">
+              <button type="button" class="fault-ctrl-subtab active" id="faultOverviewFilterAllBtn" onclick="setFaultOverviewFilter(null)">All</button>
+              <button type="button" class="fault-ctrl-subtab" id="faultOverviewFilterLtrBtn" onclick="setFaultOverviewFilter('ltr')">Long time Repair</button>
+              <button type="button" class="fault-ctrl-subtab" id="faultOverviewFilterOverBtn" onclick="setFaultOverviewFilter('over-sla')">Over SLA</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultOverviewAllTable"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+    <div id="faultSubOverSla" style="display:none;">
+      <div class="fault-section-title">Cause Over</div>
+      <div class="fault-gp-cards" id="faultCoCards"></div>
+      <div class="fault-table-block">
         <div class="fault-section-title">OVER SLA <span class="badge" id="faultOverSlaCount">0</span></div>
         <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultOverSlaTable"><thead></thead><tbody></tbody></table></div>
       </div>
@@ -824,6 +861,8 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <div class="fault-legend" id="faultLtrSlaLegend"></div>
         <div class="fault-chart-wrap"><canvas id="faultLtrSlaChart"></canvas></div>
       </div>
+      <div class="fault-section-title">Long time Reason</div>
+      <div class="fault-gp-cards" id="faultLtrCards"></div>
       <div class="fault-table-block">
         <div class="fault-section-title">&gt;12 Hrs. <span class="badge" id="faultGt12Count">0</span></div>
         <div class="table-scroll"><table class="svcava-table fault-data-table" id="faultGt12Table"><thead></thead><tbody></tbody></table></div>
@@ -923,6 +962,27 @@ const MANUAL_CLOSE_STATUS = "Closed (Manual - INOC)"; // set on tickets manually
 function isManualClosed(r){ return (r.wo_status||"").trim() === MANUAL_CLOSE_STATUS; }
 const CANCEL_STATUSES = ["Cancel","Cancelled","Canceled"];
 function isCancelStatus(status){ return CANCEL_STATUSES.includes(String(status||"").trim()); }
+function getImportWoCreator(r){
+  const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
+  return get("WO Creator") || get("Wo Creator");
+}
+function rowHasWoCreatorColumn(r){
+  return !!(r && ("WO Creator" in r || "Wo Creator" in r));
+}
+function isSystemWoCreatorRow(r){
+  if(!rowHasWoCreatorColumn(r)) return true;
+  return getImportWoCreator(r).toLowerCase() === "system";
+}
+function isBroadbandRow(r){
+  if(!r) return false;
+  const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
+  const subject = r.subject ?? get("Subject");
+  const workType = r.work_type ?? get("Work Type");
+  const closeDesc = r.close_description ?? get("Close Description");
+  const rootCause = r.root_cause ?? get("Root Cause");
+  const hay = `${subject||""} ${workType||""} ${closeDesc||""} ${rootCause||""}`.toUpperCase();
+  return hay.includes("BROADBAND");
+}
 function isCancelled(r){ return isCancelStatus(r?.wo_status); }
 
 let SITE_SET = new Set();
@@ -963,8 +1023,17 @@ const FAULT_GP_PRESETS = [
 ];
 const GP_REST = REST + "/group_problems";
 let GROUP_PROBLEMS = [];
+const CO_REST = REST + "/cause_overs";
+let CAUSE_OVERS = [];
+const LTR_REST = REST + "/long_time_reasons";
+let LONG_TIME_REASONS = [];
+let faultOverSlaCauseFilter = null;
+let faultLtrSlaReasonFilter = null;
+let faultOverviewDayFilter = null;
+let faultOverviewStatusFilter = null;
 const FAULT_SUB_TAB_MAP = {
   overview: { btn: "faultSubOverviewBtn", view: "faultSubOverview" },
+  "over-sla": { btn: "faultSubOverSlaBtn", view: "faultSubOverSla" },
   "ltr-sla": { btn: "faultSubLtrSlaBtn", view: "faultSubLtrSla" },
   ltr: { btn: "faultSubLtrBtn", view: "faultSubLtr" },
   control: { btn: "faultSubControlBtn", view: "faultSubControl" }
@@ -2264,16 +2333,22 @@ async function bulkInsertSvcAva(rows){
   const statusEl = document.getElementById("statusMsgSvcAva");
   statusEl.textContent = `Processing ${rows.length} rows…`;
   let cancelSkipped = 0;
+  let woCreatorSkipped = 0;
+  let broadbandSkipped = 0;
   const payloads = [];
   rows.forEach(r=>{
     const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
     if(isCancelStatus(get("Status"))) { cancelSkipped++; return; }
+    if(!isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
+    if(isBroadbandRow(r)){ broadbandSkipped++; return; }
     const p = mapSvcAvaImportRow(r);
     if(p) payloads.push(p);
   });
   if(payloads.length===0){
     const cancelMsg = cancelSkipped ? ` (${cancelSkipped} Cancel skipped)` : "";
-    statusEl.textContent = `No valid rows (Fault format — need Ticket ID / Source Ticket)${cancelMsg}.`;
+    const woMsg = woCreatorSkipped ? ` (${woCreatorSkipped} non-System WO Creator skipped)` : "";
+    const bbMsg = broadbandSkipped ? ` (${broadbandSkipped} Broadband skipped)` : "";
+    statusEl.textContent = `No valid rows (Fault format — need Ticket ID / Source Ticket)${cancelMsg}${woMsg}${bbMsg}.`;
     return;
   }
   let res = await fetch(REST+"/tickets?on_conflict=tt_number", {
@@ -2287,7 +2362,9 @@ async function bulkInsertSvcAva(rows){
   }
   if(res.ok){
     const cancelMsg = cancelSkipped>0 ? ` — ${cancelSkipped} Cancel row(s) ignored` : "";
-    statusEl.textContent = `Synced ${payloads.length} Service Availability ticket(s) ✓${cancelMsg}`;
+    const woMsg = woCreatorSkipped>0 ? ` — ${woCreatorSkipped} non-System WO Creator skipped` : "";
+    const bbMsg = broadbandSkipped>0 ? ` — ${broadbandSkipped} Broadband row(s) skipped` : "";
+    statusEl.textContent = `Synced ${payloads.length} Service Availability ticket(s) ✓${cancelMsg}${woMsg}${bbMsg}`;
     await loadAll();
   } else {
     const errText = await res.text();
@@ -2394,16 +2471,19 @@ async function bulkInsertWorkOrders(rows, groupBtn){
   const statusEl = document.getElementById(groupBtn==="pending"?"statusMsgPending":"statusMsgClosed");
   statusEl.textContent = `Processing ${rows.length} rows…`;
   const dateVal = document.getElementById("boardDate").value;
-  let matched=0, skipped=0, cancelSkipped=0;
+  let matched=0, skipped=0, cancelSkipped=0, woCreatorSkipped=0, broadbandSkipped=0;
   const payloads = [];
   rows.forEach(r=>{
     const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
+    if(!isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
+    if(isBroadbandRow(r)){ broadbandSkipped++; return; }
     const rawTeam = get("Team");
     const teamKey = matchTeam(rawTeam);
     if(!teamKey){ skipped++; return; }
     const status = get("Status");
     if(isCancelStatus(status)){ cancelSkipped++; return; }
     matched++;
+    const woCreator = getImportWoCreator(r);
     payloads.push({
       status_group: deriveStatusGroup(status, groupBtn),
       team: teamKey,
@@ -2442,13 +2522,16 @@ async function bulkInsertWorkOrders(rows, groupBtn){
       close_description: get("Close Description"),
       complete_solution: get("Complete Solution"),
       subject: get("Subject"),
+      wo_creator: woCreator || null,
       plan_today: get("Root Cause") ? `${get("Root Cause")}` : "",
       ticket_date: dateVal
     });
   });
   if(payloads.length===0){
     const cancelMsg = cancelSkipped ? ` (${cancelSkipped} Cancel skipped)` : "";
-    statusEl.textContent = `No rows matched the 6 tracked teams (skipped ${skipped}${cancelMsg}).`;
+    const woMsg = woCreatorSkipped ? ` (${woCreatorSkipped} non-System WO Creator skipped)` : "";
+    const bbMsg = broadbandSkipped ? ` (${broadbandSkipped} Broadband skipped)` : "";
+    statusEl.textContent = `No rows matched the 6 tracked teams (skipped ${skipped}${cancelMsg}${woMsg}${bbMsg}).`;
     return;
   }
   const pendingIdsBefore = new Set(tickets.pending.map(r=>r.work_order_id).filter(Boolean));
@@ -2496,7 +2579,9 @@ async function bulkInsertWorkOrders(rows, groupBtn){
     const movedMsg = movedToClosed>0 ? ` — ${movedToClosed} ticket(s) moved Pending → Closed` : "";
     const reconMsg = reconciledCount>0 ? ` — ${reconciledCount} TT reconciled (incl. manual-closed → closed)` : "";
     const cancelMsg = cancelSkipped>0 ? ` — ${cancelSkipped} Cancel row(s) ignored` : "";
-    statusEl.textContent = `Synced ${matched} matched rows (updated existing / added new, skipped ${skipped} non-team rows)${movedMsg}${reconMsg}${cancelMsg} ✓`;
+    const woMsg = woCreatorSkipped>0 ? ` — ${woCreatorSkipped} non-System WO Creator skipped` : "";
+    const bbMsg = broadbandSkipped>0 ? ` — ${broadbandSkipped} Broadband row(s) skipped` : "";
+    statusEl.textContent = `Synced ${matched} matched rows (updated existing / added new, skipped ${skipped} non-team rows)${movedMsg}${reconMsg}${cancelMsg}${woMsg}${bbMsg} ✓`;
     await loadAll();
   } else {
     statusEl.textContent = "Import failed — see console.";
@@ -2649,8 +2734,7 @@ function isFaultSaSeverity(r){
   return /^SA[1-6]$/.test(fam);
 }
 function isFaultBroadbandTicket(r){
-  const hay = `${r.subject||""} ${r.work_type||""} ${r.close_description||""} ${r.root_cause||""}`.toUpperCase();
-  return hay.includes("BROADBAND");
+  return isBroadbandRow(r);
 }
 function passesFaultPlkdFocus(r){
   if(!isFaultSaSeverity(r)) return false;
@@ -2665,6 +2749,47 @@ function getFilteredFaultTickets(){
     if(faultRegionFilter && (r.region||"") !== faultRegionFilter) return false;
     return faultTicketInRange(r, range);
   }).map(r=>({...r, _fault: classifyFaultTicket(r)}));
+}
+function isFaultOverSlaTicket(r){
+  const c = r._fault || classifyFaultTicket(r);
+  return c.slaStatus === "Over SLA";
+}
+function isFaultLongTimeRepairTicket(r){
+  const c = r._fault || classifyFaultTicket(r);
+  return c.slaStatus === "Within SLA" && !!c.bucket;
+}
+function filterFaultOverviewRows(rows){
+  let out = rows;
+  if(faultOverviewDayFilter){
+    out = out.filter(r=>String(r.closed_time||"").slice(0,10) === faultOverviewDayFilter);
+  }
+  if(faultOverviewStatusFilter === "over-sla"){
+    out = out.filter(isFaultOverSlaTicket);
+  } else if(faultOverviewStatusFilter === "ltr"){
+    out = out.filter(isFaultLongTimeRepairTicket);
+  }
+  return out;
+}
+function onFaultOverviewDayChange(val){
+  faultOverviewDayFilter = val || null;
+  renderFault();
+}
+function clearFaultOverviewDay(){
+  faultOverviewDayFilter = null;
+  const dayEl = document.getElementById("faultOverviewDay");
+  if(dayEl) dayEl.value = "";
+  renderFault();
+}
+function setFaultOverviewFilter(filter){
+  faultOverviewStatusFilter = filter;
+  renderFault();
+}
+function renderFaultOverviewToolbar(){
+  const dayEl = document.getElementById("faultOverviewDay");
+  if(dayEl) dayEl.value = faultOverviewDayFilter || "";
+  document.getElementById("faultOverviewFilterAllBtn")?.classList.toggle("active", !faultOverviewStatusFilter);
+  document.getElementById("faultOverviewFilterLtrBtn")?.classList.toggle("active", faultOverviewStatusFilter === "ltr");
+  document.getElementById("faultOverviewFilterOverBtn")?.classList.toggle("active", faultOverviewStatusFilter === "over-sla");
 }
 function fmtFaultDT(v){
   if(!v) return '<span class="muted-dash">—</span>';
@@ -2693,7 +2818,9 @@ const FAULT_EXPORT_COLS = [
   {h:"Close Description", get:r=>r.close_description||""},
   {h:"INOC log", get:r=>getFaultInocLogDisplay(r).text},
   {h:"In or Out Control", get:r=>r.control_status||""},
-  {h:"Group Problem", get:r=>resolveFaultSkillAndGp(r).group_problem_free_text}
+  {h:"Group Problem", get:r=>resolveFaultSkillAndGp(r).group_problem_free_text},
+  {h:"Cause Over", get:r=>r.cause_over||""},
+  {h:"Long time Reason", get:r=>r.long_time_reason||""}
 ];
 function fmtFaultDowntime(mins){
   if(mins === null || mins === undefined) return '<span class="muted-dash">—</span>';
@@ -2888,6 +3015,326 @@ function openGpManageModal(){
 function closeGpManageModal(){
   document.getElementById("gpManageModal")?.classList.remove("open");
 }
+async function fetchCauseOvers(){
+  try{
+    CAUSE_OVERS = sortGroupProblems(await fetchAllFromRest(CO_REST + "?select=*&order=sort_order.asc,label.asc"));
+  }catch(e){
+    console.warn("fetchCauseOvers failed:", e);
+    CAUSE_OVERS = [];
+  }
+}
+function getActiveCauseOverLabels(){
+  return CAUSE_OVERS.filter(g=>g.is_active !== false).map(g=>g.label);
+}
+function getFaultCauseOverOptions(){
+  const merged = [...getActiveCauseOverLabels()];
+  faultTickets.forEach(r=>{
+    const co = String(r.cause_over||"").trim();
+    if(co && !merged.includes(co)) merged.push(co);
+  });
+  return merged;
+}
+function isKnownCauseOverLabel(val){
+  const s = String(val||"").trim();
+  if(!s) return false;
+  return CAUSE_OVERS.some(g=>g.label===s);
+}
+async function createCauseOverRow(label){
+  const text = String(label||"").trim();
+  if(!text) throw new Error("empty label");
+  if(CAUSE_OVERS.some(g=>g.label===text)) return CAUSE_OVERS.find(g=>g.label===text);
+  const maxSort = CAUSE_OVERS.reduce((m,g)=>Math.max(m, g.sort_order||0), 0);
+  const res = await fetch(CO_REST, {
+    method:"POST",
+    headers:{...HEADERS, Prefer:"return=representation"},
+    body:JSON.stringify({ label:text, sort_order:maxSort+1, is_active:true, updated_at:new Date().toISOString() })
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  CAUSE_OVERS = sortGroupProblems([...CAUSE_OVERS.filter(g=>g.id!==row.id), row]);
+  return row;
+}
+async function patchCauseOverRow(id, patch){
+  const res = await fetch(CO_REST + `?id=eq.${id}`, {
+    method:"PATCH",
+    headers:{...HEADERS, Prefer:"return=representation"},
+    body:JSON.stringify({ ...patch, updated_at:new Date().toISOString() })
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  CAUSE_OVERS = sortGroupProblems(CAUSE_OVERS.map(g=>g.id===row.id ? row : g));
+  return row;
+}
+async function addCauseOverFromInput(){
+  const input = document.getElementById("coNewLabelInput");
+  const text = (input?.value||"").trim();
+  if(!text){ toast("กรอกหัวข้อก่อน"); return; }
+  try{
+    await createCauseOverRow(text);
+    if(input) input.value = "";
+    renderCoManageList();
+    if(currentTab==="fault") renderFault();
+    toast("เพิ่ม Cause Over แล้ว");
+  }catch(e){
+    console.error(e);
+    toast("เพิ่มไม่สำเร็จ — รัน SQL สร้างตาราง cause_overs");
+  }
+}
+async function saveCoManageRow(id){
+  const rowEl = document.querySelector(`.co-manage-row[data-id="${id}"]`);
+  if(!rowEl) return;
+  const label = rowEl.querySelector(".co-manage-label")?.value?.trim();
+  const isActive = rowEl.querySelector(".co-manage-active input")?.checked !== false;
+  const prev = CAUSE_OVERS.find(g=>g.id===id);
+  if(!prev) return;
+  if(!label){ toast("ชื่อหัวข้อว่างไม่ได้"); return; }
+  if(label === prev.label && isActive === (prev.is_active !== false)) return;
+  try{
+    await patchCauseOverRow(id, { label, is_active:isActive });
+    renderCoManageList();
+    if(currentTab==="fault") renderFault();
+    toast("บันทึกแล้ว");
+  }catch(e){
+    console.error(e);
+    toast("บันทึกไม่สำเร็จ (ชื่อซ้ำ?)");
+  }
+}
+async function toggleCoManageActive(id, checked){
+  try{
+    await patchCauseOverRow(id, { is_active: !!checked });
+    renderCoManageList();
+    if(currentTab==="fault") renderFault();
+  }catch(e){
+    console.error(e);
+    toast("อัปเดตสถานะไม่สำเร็จ");
+  }
+}
+async function moveCauseOverRow(id, dir){
+  const list = sortGroupProblems(CAUSE_OVERS.filter(g=>g.id != null));
+  const idx = list.findIndex(g=>g.id===id);
+  const swapIdx = dir==="up" ? idx-1 : idx+1;
+  if(idx < 0 || swapIdx < 0 || swapIdx >= list.length) return;
+  const a = list[idx], b = list[swapIdx];
+  try{
+    await Promise.all([
+      patchCauseOverRow(a.id, { sort_order:b.sort_order }),
+      patchCauseOverRow(b.id, { sort_order:a.sort_order })
+    ]);
+    renderCoManageList();
+    if(currentTab==="fault") renderFault();
+  }catch(e){
+    console.error(e);
+    toast("เรียงลำดับไม่สำเร็จ");
+  }
+}
+async function deleteCauseOverRow(id){
+  const row = CAUSE_OVERS.find(g=>g.id===id);
+  if(!row) return;
+  if(!confirm(`ลบหัวข้อ "${row.label}"?\n\nTicket เก่ายังเก็บค่าเดิมในใบงาน · ลบแล้วหายจาก dropdown`)) return;
+  try{
+    const res = await fetch(CO_REST + `?id=eq.${id}`, { method:"DELETE", headers:HEADERS });
+    if(!res.ok) throw new Error(await res.text());
+    CAUSE_OVERS = CAUSE_OVERS.filter(g=>g.id!==id);
+    renderCoManageList();
+    if(currentTab==="fault") renderFault();
+    toast("ลบ Cause Over แล้ว");
+  }catch(e){
+    console.error(e);
+    toast("ลบไม่สำเร็จ");
+  }
+}
+function renderCoManageList(){
+  const body = document.getElementById("coManageBody");
+  if(!body) return;
+  const list = sortGroupProblems(CAUSE_OVERS.filter(g=>g.id != null));
+  if(!list.length){
+    body.innerHTML = `<div class="modal-empty">ยังไม่มีรายการ — ใช้ + เพิ่มด้านบน หรือรัน <code>supabase/cause_overs.sql</code></div>`;
+    return;
+  }
+  body.innerHTML = list.map((g,i)=>`
+    <div class="gp-manage-row co-manage-row${g.is_active===false?" inactive":""}" data-id="${g.id}">
+      <div class="gp-manage-sort">
+        <button type="button" title="เลื่อนขึ้น" onclick="moveCauseOverRow(${g.id},'up')" ${i===0?"disabled":""}>▲</button>
+        <button type="button" title="เลื่อนลง" onclick="moveCauseOverRow(${g.id},'down')" ${i===list.length-1?"disabled":""}>▼</button>
+      </div>
+      <input class="gp-manage-label co-manage-label" value="${esc(g.label)}" onkeydown="if(event.key==='Enter') saveCoManageRow(${g.id})">
+      <label class="gp-manage-active co-manage-active"><input type="checkbox" ${g.is_active!==false?"checked":""} onchange="toggleCoManageActive(${g.id}, this.checked)"> ใช้งาน</label>
+      <div class="gp-manage-actions">
+        <button type="button" class="btn sm" onclick="saveCoManageRow(${g.id})">บันทึก</button>
+        <button type="button" class="btn sm ghost gp-manage-del" onclick="deleteCauseOverRow(${g.id})" title="ลบหัวข้อ">ลบ</button>
+      </div>
+    </div>`).join("");
+}
+function openCoManageModal(){
+  renderCoManageList();
+  document.getElementById("coManageModal")?.classList.add("open");
+  document.getElementById("coNewLabelInput")?.focus();
+}
+function closeCoManageModal(){
+  document.getElementById("coManageModal")?.classList.remove("open");
+}
+async function fetchLongTimeReasons(){
+  try{
+    LONG_TIME_REASONS = sortGroupProblems(await fetchAllFromRest(LTR_REST + "?select=*&order=sort_order.asc,label.asc"));
+  }catch(e){
+    console.warn("fetchLongTimeReasons failed:", e);
+    LONG_TIME_REASONS = [];
+  }
+}
+function getActiveLongTimeReasonLabels(){
+  return LONG_TIME_REASONS.filter(g=>g.is_active !== false).map(g=>g.label);
+}
+function getFaultLongTimeReasonOptions(){
+  const merged = [...getActiveLongTimeReasonLabels()];
+  faultTickets.forEach(r=>{
+    const v = String(r.long_time_reason||"").trim();
+    if(v && !merged.includes(v)) merged.push(v);
+  });
+  return merged;
+}
+function isKnownLongTimeReasonLabel(val){
+  const s = String(val||"").trim();
+  if(!s) return false;
+  return LONG_TIME_REASONS.some(g=>g.label===s);
+}
+async function createLongTimeReasonRow(label){
+  const text = String(label||"").trim();
+  if(!text) throw new Error("empty label");
+  if(LONG_TIME_REASONS.some(g=>g.label===text)) return LONG_TIME_REASONS.find(g=>g.label===text);
+  const maxSort = LONG_TIME_REASONS.reduce((m,g)=>Math.max(m, g.sort_order||0), 0);
+  const res = await fetch(LTR_REST, {
+    method:"POST",
+    headers:{...HEADERS, Prefer:"return=representation"},
+    body:JSON.stringify({ label:text, sort_order:maxSort+1, is_active:true, updated_at:new Date().toISOString() })
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  LONG_TIME_REASONS = sortGroupProblems([...LONG_TIME_REASONS.filter(g=>g.id!==row.id), row]);
+  return row;
+}
+async function patchLongTimeReasonRow(id, patch){
+  const res = await fetch(LTR_REST + `?id=eq.${id}`, {
+    method:"PATCH",
+    headers:{...HEADERS, Prefer:"return=representation"},
+    body:JSON.stringify({ ...patch, updated_at:new Date().toISOString() })
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  LONG_TIME_REASONS = sortGroupProblems(LONG_TIME_REASONS.map(g=>g.id===row.id ? row : g));
+  return row;
+}
+async function addLongTimeReasonFromInput(){
+  const input = document.getElementById("ltrNewLabelInput");
+  const text = (input?.value||"").trim();
+  if(!text){ toast("กรอกหัวข้อก่อน"); return; }
+  try{
+    await createLongTimeReasonRow(text);
+    if(input) input.value = "";
+    renderLtrManageList();
+    if(currentTab==="fault") renderFault();
+    toast("เพิ่ม Long time Reason แล้ว");
+  }catch(e){
+    console.error(e);
+    toast("เพิ่มไม่สำเร็จ — รัน SQL สร้างตาราง long_time_reasons");
+  }
+}
+async function saveLtrManageRow(id){
+  const rowEl = document.querySelector(`.ltr-manage-row[data-id="${id}"]`);
+  if(!rowEl) return;
+  const label = rowEl.querySelector(".ltr-manage-label")?.value?.trim();
+  const isActive = rowEl.querySelector(".ltr-manage-active input")?.checked !== false;
+  const prev = LONG_TIME_REASONS.find(g=>g.id===id);
+  if(!prev) return;
+  if(!label){ toast("ชื่อหัวข้อว่างไม่ได้"); return; }
+  if(label === prev.label && isActive === (prev.is_active !== false)) return;
+  try{
+    await patchLongTimeReasonRow(id, { label, is_active:isActive });
+    renderLtrManageList();
+    if(currentTab==="fault") renderFault();
+    toast("บันทึกแล้ว");
+  }catch(e){
+    console.error(e);
+    toast("บันทึกไม่สำเร็จ (ชื่อซ้ำ?)");
+  }
+}
+async function toggleLtrManageActive(id, checked){
+  try{
+    await patchLongTimeReasonRow(id, { is_active: !!checked });
+    renderLtrManageList();
+    if(currentTab==="fault") renderFault();
+  }catch(e){
+    console.error(e);
+    toast("อัปเดตสถานะไม่สำเร็จ");
+  }
+}
+async function moveLongTimeReasonRow(id, dir){
+  const list = sortGroupProblems(LONG_TIME_REASONS.filter(g=>g.id != null));
+  const idx = list.findIndex(g=>g.id===id);
+  const swapIdx = dir==="up" ? idx-1 : idx+1;
+  if(idx < 0 || swapIdx < 0 || swapIdx >= list.length) return;
+  const a = list[idx], b = list[swapIdx];
+  try{
+    await Promise.all([
+      patchLongTimeReasonRow(a.id, { sort_order:b.sort_order }),
+      patchLongTimeReasonRow(b.id, { sort_order:a.sort_order })
+    ]);
+    renderLtrManageList();
+    if(currentTab==="fault") renderFault();
+  }catch(e){
+    console.error(e);
+    toast("เรียงลำดับไม่สำเร็จ");
+  }
+}
+async function deleteLongTimeReasonRow(id){
+  const row = LONG_TIME_REASONS.find(g=>g.id===id);
+  if(!row) return;
+  if(!confirm(`ลบหัวข้อ "${row.label}"?\n\nTicket เก่ายังเก็บค่าเดิมในใบงาน · ลบแล้วหายจาก dropdown`)) return;
+  try{
+    const res = await fetch(LTR_REST + `?id=eq.${id}`, { method:"DELETE", headers:HEADERS });
+    if(!res.ok) throw new Error(await res.text());
+    LONG_TIME_REASONS = LONG_TIME_REASONS.filter(g=>g.id!==id);
+    renderLtrManageList();
+    if(currentTab==="fault") renderFault();
+    toast("ลบ Long time Reason แล้ว");
+  }catch(e){
+    console.error(e);
+    toast("ลบไม่สำเร็จ");
+  }
+}
+function renderLtrManageList(){
+  const body = document.getElementById("ltrManageBody");
+  if(!body) return;
+  const list = sortGroupProblems(LONG_TIME_REASONS.filter(g=>g.id != null));
+  if(!list.length){
+    body.innerHTML = `<div class="modal-empty">ยังไม่มีรายการ — ใช้ + เพิ่มด้านบน หรือรัน <code>supabase/long_time_reasons.sql</code></div>`;
+    return;
+  }
+  body.innerHTML = list.map((g,i)=>`
+    <div class="gp-manage-row ltr-manage-row${g.is_active===false?" inactive":""}" data-id="${g.id}">
+      <div class="gp-manage-sort">
+        <button type="button" title="เลื่อนขึ้น" onclick="moveLongTimeReasonRow(${g.id},'up')" ${i===0?"disabled":""}>▲</button>
+        <button type="button" title="เลื่อนลง" onclick="moveLongTimeReasonRow(${g.id},'down')" ${i===list.length-1?"disabled":""}>▼</button>
+      </div>
+      <input class="gp-manage-label ltr-manage-label" value="${esc(g.label)}" onkeydown="if(event.key==='Enter') saveLtrManageRow(${g.id})">
+      <label class="gp-manage-active ltr-manage-active"><input type="checkbox" ${g.is_active!==false?"checked":""} onchange="toggleLtrManageActive(${g.id}, this.checked)"> ใช้งาน</label>
+      <div class="gp-manage-actions">
+        <button type="button" class="btn sm" onclick="saveLtrManageRow(${g.id})">บันทึก</button>
+        <button type="button" class="btn sm ghost gp-manage-del" onclick="deleteLongTimeReasonRow(${g.id})" title="ลบหัวข้อ">ลบ</button>
+      </div>
+    </div>`).join("");
+}
+function openLtrManageModal(){
+  renderLtrManageList();
+  document.getElementById("ltrManageModal")?.classList.add("open");
+  document.getElementById("ltrNewLabelInput")?.focus();
+}
+function closeLtrManageModal(){
+  document.getElementById("ltrManageModal")?.classList.remove("open");
+}
 function normalizeFaultSkill(val){
   const s = String(val||"").trim();
   if(!s) return "";
@@ -2969,6 +3416,8 @@ function faultSkillClass(val){
   return "";
 }
 function faultGpClass(val){ return (val||"").trim() ? "gp-set" : ""; }
+function faultCoClass(val){ return (val||"").trim() ? "co-set" : ""; }
+function faultLtrClass(val){ return (val||"").trim() ? "ltr-set" : ""; }
 function faultCtrlClass(val){
   const k = normalizeFaultControl(val);
   if(k === "in") return "ctrl-in";
@@ -2978,6 +3427,38 @@ function faultCtrlClass(val){
 function faultGpLabel(key){
   if(!key || key === "__blank__") return "(ไม่ระบุ)";
   return key;
+}
+function faultCoLabel(key){
+  if(!key || key === "__blank__") return "(ไม่ระบุ)";
+  return key;
+}
+function faultLtrLabel(key){
+  if(!key || key === "__blank__") return "(ไม่ระบุ)";
+  return key;
+}
+function faultCoOptionsHtml(selected){
+  const sel = (selected||"").trim();
+  const opts = getFaultCauseOverOptions();
+  let html = `<option value="" ${!sel?"selected":""}>— เลือก —</option>`;
+  opts.forEach(o=>{
+    html += `<option value="${esc(o)}" ${sel===o?"selected":""}>${esc(o)}</option>`;
+  });
+  if(sel && !opts.includes(sel)){
+    html += `<option value="${esc(sel)}" selected>${esc(sel)}</option>`;
+  }
+  return html;
+}
+function faultLtrOptionsHtml(selected){
+  const sel = (selected||"").trim();
+  const opts = getFaultLongTimeReasonOptions();
+  let html = `<option value="" ${!sel?"selected":""}>— เลือก —</option>`;
+  opts.forEach(o=>{
+    html += `<option value="${esc(o)}" ${sel===o?"selected":""}>${esc(o)}</option>`;
+  });
+  if(sel && !opts.includes(sel)){
+    html += `<option value="${esc(sel)}" selected>${esc(sel)}</option>`;
+  }
+  return html;
 }
 function faultGpOptionsHtml(selected){
   const sel = (selected||"").trim();
@@ -3013,6 +3494,20 @@ function faultGroupProblemDropdownHtml(woId, value){
     onchange="updateFaultFieldFromEl(this,'group_problem_free_text')">${faultGpOptionsHtml(sel)}</select>
     <button type="button" class="fault-dd-add" title="เพิ่มหัวข้อปัญหา" onclick="promptAddFaultGroupProblem('${wo}')">+</button></div>`;
 }
+function faultCauseOverDropdownHtml(woId, value){
+  const wo = esc(woId);
+  const sel = (value||"").trim();
+  return `<div class="fault-dd"><select class="fault-dd-select ${faultCoClass(sel)}" data-wo-id="${wo}"
+    onchange="updateFaultFieldFromEl(this,'cause_over')">${faultCoOptionsHtml(sel)}</select>
+    <button type="button" class="fault-dd-add" title="เพิ่มหัวข้อ Cause Over" onclick="promptAddFaultCauseOver('${wo}')">+</button></div>`;
+}
+function faultLongTimeReasonDropdownHtml(woId, value){
+  const wo = esc(woId);
+  const sel = (value||"").trim();
+  return `<div class="fault-dd"><select class="fault-dd-select ${faultLtrClass(sel)}" data-wo-id="${wo}"
+    onchange="updateFaultFieldFromEl(this,'long_time_reason')">${faultLtrOptionsHtml(sel)}</select>
+    <button type="button" class="fault-dd-add" title="เพิ่มหัวข้อ Long time Reason" onclick="promptAddFaultLongTimeReason('${wo}')">+</button></div>`;
+}
 function faultControlDropdownHtml(woId, value){
   const wo = esc(woId);
   const raw = (value||"").trim();
@@ -3030,7 +3525,7 @@ function updateFaultFieldFromEl(el, field){
   if(!el || !el.dataset.woId) return;
   updateFaultField(el.dataset.woId, field, el.value);
   if(!el.classList || !el.classList.contains("fault-dd-select")) return;
-  el.className = "fault-dd-select " + (field==="skill" ? faultSkillClass(el.value) : field==="group_problem_free_text" ? faultGpClass(el.value) : faultCtrlClass(el.value));
+  el.className = "fault-dd-select " + (field==="skill" ? faultSkillClass(el.value) : field==="group_problem_free_text" ? faultGpClass(el.value) : field==="cause_over" ? faultCoClass(el.value) : field==="long_time_reason" ? faultLtrClass(el.value) : faultCtrlClass(el.value));
 }
 async function promptAddFaultGroupProblem(woId){
   const text = prompt("เพิ่มหัวข้อปัญหาใหม่:");
@@ -3043,6 +3538,32 @@ async function promptAddFaultGroupProblem(woId){
   }catch(e){
     console.error(e);
     toast("เพิ่มไม่สำเร็จ — ใช้ ⚙ Group Problem หรือรัน SQL");
+  }
+}
+async function promptAddFaultCauseOver(woId){
+  const text = prompt("เพิ่มหัวข้อ Cause Over ใหม่:");
+  if(!text || !text.trim()) return;
+  const val = text.trim();
+  try{
+    if(!isKnownCauseOverLabel(val)) await createCauseOverRow(val);
+    if(woId) await updateFaultField(woId, "cause_over", val);
+    else renderFault();
+  }catch(e){
+    console.error(e);
+    toast("เพิ่มไม่สำเร็จ — ใช้ ⚙ Cause Over หรือรัน SQL");
+  }
+}
+async function promptAddFaultLongTimeReason(woId){
+  const text = prompt("เพิ่มหัวข้อ Long time Reason ใหม่:");
+  if(!text || !text.trim()) return;
+  const val = text.trim();
+  try{
+    if(!isKnownLongTimeReasonLabel(val)) await createLongTimeReasonRow(val);
+    if(woId) await updateFaultField(woId, "long_time_reason", val);
+    else renderFault();
+  }catch(e){
+    console.error(e);
+    toast("เพิ่มไม่สำเร็จ — ใช้ ⚙ Long time Reason หรือรัน SQL");
   }
 }
 const FAULT_TABLE_HEAD = `<tr>
@@ -3060,12 +3581,73 @@ const FAULT_TABLE_HEAD = `<tr>
   <th style="width:160px">INOC log</th>
   <th style="width:140px">In or Out Control</th>
 </tr>`;
-function faultTableRowHtml(r){
+function faultTableHeadHtml(opts){
+  opts = opts || {};
+  if(opts.overviewReasonCols){
+    return `<tr>
+  <th style="width:90px">Site</th>
+  <th style="width:120px">Ticket ID</th>
+  <th style="width:200px">Subject</th>
+  <th style="width:100px">SEVERITY</th>
+  <th class="dt-col">Ticket Open</th>
+  <th class="dt-col">Depart</th>
+  <th class="dt-col">Arrive</th>
+  <th class="dt-col">Close</th>
+  <th class="dt-col dt-col-downtime">Downtime<br><span class="th-sub">Created → Closed</span></th>
+  <th style="width:180px">Close Description</th>
+  <th style="width:200px">Group Problem</th>
+  <th style="width:200px">Cause Over</th>
+  <th style="width:200px">Long time Reason</th>
+  <th style="width:160px">INOC log</th>
+  <th style="width:140px">In or Out Control</th>
+</tr>`;
+  }
+  if(!opts.showCauseOver && !opts.showLongTimeReason) return FAULT_TABLE_HEAD;
+  let extra = "";
+  if(opts.showCauseOver) extra += `<th style="width:200px">Cause Over</th>`;
+  if(opts.showLongTimeReason) extra += `<th style="width:200px">Long time Reason</th>`;
+  return `<tr>
+  <th style="width:90px">Site</th>
+  <th style="width:120px">Ticket ID</th>
+  <th style="width:200px">Subject</th>
+  <th style="width:100px">SEVERITY</th>
+  <th class="dt-col">Ticket Open</th>
+  <th class="dt-col">Depart</th>
+  <th class="dt-col">Arrive</th>
+  <th class="dt-col">Close</th>
+  <th class="dt-col dt-col-downtime">Downtime<br><span class="th-sub">Created → Closed</span></th>
+  <th style="width:180px">Close Description</th>
+  <th style="width:200px">Group Problem</th>
+  ${extra}
+  <th style="width:160px">INOC log</th>
+  <th style="width:140px">In or Out Control</th>
+</tr>`;
+}
+function faultTableColSpan(opts){
+  opts = opts || {};
+  if(opts.overviewReasonCols) return 15;
+  let n = 13;
+  if(opts.showCauseOver) n++;
+  if(opts.showLongTimeReason) n++;
+  return n;
+}
+function faultTableRowHtml(r, opts){
+  opts = opts || {};
   const c = r._fault || classifyFaultTicket(r);
   const woId = r.work_order_id || "";
   const site = extractFaultPlkdSite(r);
   const inoc = getFaultInocLogDisplay(r);
   const { group_problem_free_text: gp } = resolveFaultSkillAndGp(r);
+  let extra = "";
+  if(opts.overviewReasonCols){
+    const isOver = c.slaStatus === "Over SLA";
+    const isLtr = c.slaStatus === "Within SLA" && !!c.bucket;
+    extra += `<td>${isOver ? faultCauseOverDropdownHtml(woId, r.cause_over) : '<span class="muted-dash">—</span>'}</td>`;
+    extra += `<td>${isLtr ? faultLongTimeReasonDropdownHtml(woId, r.long_time_reason) : '<span class="muted-dash">—</span>'}</td>`;
+  } else {
+    if(opts.showCauseOver) extra += `<td>${faultCauseOverDropdownHtml(woId, r.cause_over)}</td>`;
+    if(opts.showLongTimeReason) extra += `<td>${faultLongTimeReasonDropdownHtml(woId, r.long_time_reason)}</td>`;
+  }
   return `<tr>
     <td class="site-plkd-cell">${esc(site)}</td>
     <td class="tt-line">${esc(r.source_ticket_id||r.sdm_tt||'-')}<span class="ext">${esc(r.work_order_id||'')}</span></td>
@@ -3078,19 +3660,22 @@ function faultTableRowHtml(r){
     <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
     <td class="subject-cell">${esc(r.close_description||'')}</td>
     <td>${faultGroupProblemDropdownHtml(woId, gp)}</td>
+    ${extra}
     <td><textarea class="home-feedback free-ta${inoc.linked ? " inoc-from-tt" : ""}" placeholder="${inoc.linked ? "จาก TT เดียวกัน (Pending/Closed/SvcAva)" : "INOC log…"}" title="${inoc.linked ? "ดึงจาก INOC Log ของ ticket TT เดียวกันในระบบ" : ""}" data-wo-id="${esc(woId)}" onchange="updateFaultFieldFromEl(this,'inoc_log')">${esc(inoc.text)}</textarea></td>
     <td>${faultControlDropdownHtml(woId, r.control_status)}</td>
   </tr>`;
 }
-function renderFaultTable(tableEl, rows, storageKey){
+function renderFaultTable(tableEl, rows, storageKey, opts){
   if(!tableEl) return;
+  opts = opts || {};
+  const colSpan = faultTableColSpan(opts);
   const thead = tableEl.querySelector("thead");
   const tbody = tableEl.querySelector("tbody");
-  thead.innerHTML = FAULT_TABLE_HEAD;
+  thead.innerHTML = faultTableHeadHtml(opts);
   if(rows.length===0){
-    tbody.innerHTML = `<tr><td colspan="13" class="empty-hint">No tickets in this group.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${colSpan}" class="empty-hint">No tickets in this group.</td></tr>`;
   } else {
-    tbody.innerHTML = rows.map(faultTableRowHtml).join("");
+    tbody.innerHTML = rows.map(r=>faultTableRowHtml(r, opts)).join("");
   }
   makeColumnsResizable(tableEl, storageKey);
 }
@@ -3586,6 +4171,108 @@ function getFaultGroupProblemStats(rows){
   });
   return items;
 }
+function getFaultCauseOverStats(rows){
+  const groups = new Map();
+  rows.forEach(r=>{
+    const v = String(r.cause_over||"").trim();
+    const key = v || "__blank__";
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  });
+  const items = [...groups.entries()].map(([key, groupRows])=>({
+    key,
+    label: faultCoLabel(key),
+    count: groupRows.length
+  }));
+  items.sort((a, b)=>{
+    if(a.key === "__blank__") return 1;
+    if(b.key === "__blank__") return -1;
+    return a.label.localeCompare(b.label, "th");
+  });
+  return items;
+}
+function renderFaultCauseOverCards(rows){
+  const container = document.getElementById("faultCoCards");
+  if(!container) return;
+  const stats = getFaultCauseOverStats(rows);
+  if(!stats.length){
+    container.innerHTML = `<div class="empty-hint" style="grid-column:1/-1">ไม่มีรายการ Over SLA</div>`;
+    return;
+  }
+  container.innerHTML = stats.map(s=>{
+    const active = faultOverSlaCauseFilter === s.key ? " active" : "";
+    return `<div class="fault-gp-card${active}" data-co-key="${esc(s.key)}" onclick="selectFaultOverSlaCause(this.getAttribute('data-co-key'))">
+      <div class="fault-gp-card-title">${esc(s.label)}</div>
+      <div class="fault-gp-card-foot">
+        <span class="fault-gp-card-lbl">รายการ</span>
+        <span class="fault-gp-card-val" style="color:var(--coral)">${s.count}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+function selectFaultOverSlaCause(key){
+  faultOverSlaCauseFilter = faultOverSlaCauseFilter === key ? null : key;
+  renderFault();
+}
+function filterFaultOverSlaByCause(rows, coKey){
+  if(!coKey) return rows;
+  return rows.filter(r=>{
+    const co = String(r.cause_over||"").trim();
+    if(coKey === "__blank__") return !co;
+    return co === coKey;
+  });
+}
+function getFaultLongTimeReasonStats(rows){
+  const groups = new Map();
+  rows.forEach(r=>{
+    const v = String(r.long_time_reason||"").trim();
+    const key = v || "__blank__";
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  });
+  const items = [...groups.entries()].map(([key, groupRows])=>({
+    key,
+    label: faultLtrLabel(key),
+    count: groupRows.length
+  }));
+  items.sort((a, b)=>{
+    if(a.key === "__blank__") return 1;
+    if(b.key === "__blank__") return -1;
+    return a.label.localeCompare(b.label, "th");
+  });
+  return items;
+}
+function renderFaultLongTimeReasonCards(rows){
+  const container = document.getElementById("faultLtrCards");
+  if(!container) return;
+  const stats = getFaultLongTimeReasonStats(rows);
+  if(!stats.length){
+    container.innerHTML = `<div class="empty-hint" style="grid-column:1/-1">ไม่มีรายการ Long time Repair</div>`;
+    return;
+  }
+  container.innerHTML = stats.map(s=>{
+    const active = faultLtrSlaReasonFilter === s.key ? " active" : "";
+    return `<div class="fault-gp-card${active}" data-ltr-key="${esc(s.key)}" onclick="selectFaultLtrSlaReason(this.getAttribute('data-ltr-key'))">
+      <div class="fault-gp-card-title">${esc(s.label)}</div>
+      <div class="fault-gp-card-foot">
+        <span class="fault-gp-card-lbl">รายการ</span>
+        <span class="fault-gp-card-val" style="color:var(--blue)">${s.count}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+function selectFaultLtrSlaReason(key){
+  faultLtrSlaReasonFilter = faultLtrSlaReasonFilter === key ? null : key;
+  renderFault();
+}
+function filterFaultLtrByReason(rows, ltrKey){
+  if(!ltrKey) return rows;
+  return rows.filter(r=>{
+    const v = String(r.long_time_reason||"").trim();
+    if(ltrKey === "__blank__") return !v;
+    return v === ltrKey;
+  });
+}
 function toggleFaultDashGpSites(btn, ev){
   ev.stopPropagation();
   ev.preventDefault();
@@ -3822,6 +4509,8 @@ function renderFaultControlDashboard(ctrlRows, kind){
 }
 function switchFaultSubTab(tab){
   faultSubTab = tab;
+  if(tab !== "over-sla") faultOverSlaCauseFilter = null;
+  if(tab !== "ltr-sla") faultLtrSlaReasonFilter = null;
   if(tab !== "control"){
     faultControlDetail = null;
     faultControlGroupProblem = null;
@@ -3859,17 +4548,27 @@ function renderFault(){
   const rows = getFilteredFaultTickets();
   if(faultSubTab === "overview"){
     renderFaultOverviewChart(rows);
+    renderFaultOverviewToolbar();
+    const overviewRows = filterFaultOverviewRows(rows);
+    document.getElementById("faultOverviewAllCount").textContent = overviewRows.length;
+    renderFaultTable(document.getElementById("faultOverviewAllTable"), overviewRows, "fault-overview-all", { overviewReasonCols:true });
+  } else if(faultSubTab === "over-sla"){
     const overRows = rows.filter(r=>(r._fault||classifyFaultTicket(r)).slaStatus === "Over SLA");
     document.getElementById("faultOverSlaCount").textContent = overRows.length;
-    renderFaultTable(document.getElementById("faultOverSlaTable"), overRows, "fault-over-sla");
+    renderFaultCauseOverCards(overRows);
+    const displayRows = filterFaultOverSlaByCause(overRows, faultOverSlaCauseFilter);
+    renderFaultTable(document.getElementById("faultOverSlaTable"), displayRows, "fault-over-sla", { showCauseOver:true });
   } else if(faultSubTab === "ltr-sla"){
     renderFaultLtrSlaChart(rows);
+    const ltrRows = rows.filter(isFaultLongTimeRepairTicket);
+    renderFaultLongTimeReasonCards(ltrRows);
     const gt12 = rows.filter(r=>{
       const c = r._fault||classifyFaultTicket(r);
       return c.slaStatus === "Within SLA" && c.bucket === ">12 Hrs.";
     });
     document.getElementById("faultGt12Count").textContent = gt12.length;
-    renderFaultTable(document.getElementById("faultGt12Table"), gt12, "fault-gt12");
+    const displayGt12 = filterFaultLtrByReason(gt12, faultLtrSlaReasonFilter);
+    renderFaultTable(document.getElementById("faultGt12Table"), displayGt12, "fault-gt12", { showLongTimeReason:true });
   } else if(faultSubTab === "ltr"){
     const buckets = [
       {key:"6-12 Hrs.", el:"fault612Table", cnt:"fault612Count", sk:"fault-612"},
@@ -3882,7 +4581,7 @@ function renderFault(){
         return c.slaStatus === "Within SLA" && c.bucket === b.key;
       });
       document.getElementById(b.cnt).textContent = bRows.length;
-      renderFaultTable(document.getElementById(b.el), bRows, b.sk);
+      renderFaultTable(document.getElementById(b.el), bRows, b.sk, { showLongTimeReason:true });
     });
   } else if(faultSubTab === "control"){
     const inCount = rows.filter(r=>normalizeFaultControl(r.control_status)==="in").length;
@@ -3929,7 +4628,7 @@ async function updateFaultField(workOrderId, field, value){
     body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})
   });
   toast("Saved");
-  if(currentTab==="fault" && faultSubTab==="control") renderFault();
+  if(currentTab==="fault" && (faultSubTab==="control" || faultSubTab==="over-sla" || faultSubTab==="ltr-sla" || faultSubTab==="ltr" || faultSubTab==="overview")) renderFault();
 }
 function parseFaultWoDate(str){
   if(!str) return null;
@@ -3991,7 +4690,7 @@ function applyFaultGroupProblemImport(payload, groupProblem, skillFromCol){
   }
 }
 function stripEmptyFaultInocFields(payload){
-  ["control_status","inoc_log","group_problem_free_text","skill"].forEach(k=>{
+  ["control_status","inoc_log","group_problem_free_text","skill","cause_over","long_time_reason"].forEach(k=>{
     if(payload[k] === undefined || payload[k] === null || payload[k] === "") delete payload[k];
   });
 }
@@ -4013,7 +4712,9 @@ function mapFaultExportImportRow(r){
     close_description: get("Close Description"),
     skill: normalizeFaultSkill(skillRaw) || skillRaw,
     inoc_log: get("INOC log"),
-    control_status: mapFaultControlImport(get("In or Out Control"))
+    control_status: mapFaultControlImport(get("In or Out Control")),
+    cause_over: get("Cause Over"),
+    long_time_reason: get("Long time Reason")
   };
   applyFaultGroupProblemImport(payload, get("Group Problem") || get("Group Problem Free Text"), skillRaw);
   stripEmptyFaultInocFields(payload);
@@ -4160,9 +4861,19 @@ function groupFaultImportPayloads(payloads){
 async function bulkInsertFaultTickets(rows){
   const statusEl = document.getElementById("statusMsgFault");
   statusEl.textContent = `Processing ${rows.length} rows…`;
-  const payloads = rows.map(mapFaultImportRow).filter(Boolean);
+  let woCreatorSkipped = 0;
+  let broadbandSkipped = 0;
+  const payloads = [];
+  rows.forEach(r=>{
+    if(!isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
+    if(isBroadbandRow(r)){ broadbandSkipped++; return; }
+    const p = mapFaultImportRow(r);
+    if(p) payloads.push(p);
+  });
   if(payloads.length===0){
-    statusEl.textContent = "No valid rows (missing Work Order ID).";
+    const woMsg = woCreatorSkipped ? ` (${woCreatorSkipped} non-System WO Creator skipped)` : "";
+    const bbMsg = broadbandSkipped ? ` (${broadbandSkipped} Broadband skipped)` : "";
+    statusEl.textContent = `No valid rows (missing Work Order ID)${woMsg}${bbMsg}.`;
     return;
   }
   const CHUNK = 40;
@@ -4185,7 +4896,7 @@ async function bulkInsertFaultTickets(rows){
       statusEl.textContent = `Processing… ${synced}/${payloads.length}`;
     }
   }
-  statusEl.textContent = `Synced ${synced} Fault PLKD row(s) ✓`;
+  statusEl.textContent = `Synced ${synced} Fault PLKD row(s) ✓${woCreatorSkipped>0 ? ` — ${woCreatorSkipped} non-System WO Creator skipped` : ""}${broadbandSkipped>0 ? ` — ${broadbandSkipped} Broadband row(s) skipped` : ""}`;
   await loadFaultTickets(false);
   renderAll();
 }
@@ -4214,6 +4925,8 @@ function toast(msg){
     await fetchSiteCodes();
     await fetchTeamMap();
     await fetchGroupProblems();
+    await fetchCauseOvers();
+    await fetchLongTimeReasons();
     await loadAll();
     moveTabIndicator();
     moveFaultSubTabIndicator();
@@ -4255,6 +4968,34 @@ function toast(msg){
       <button class="btn sm primary" onclick="addGroupProblemFromInput()">+ เพิ่ม</button>
     </div>
     <div class="modal-body gp-manage-list" id="gpManageBody"></div>
+    <div class="gp-manage-hint">ปิดใช้ = ไม่แสดงใน dropdown · ลบ = หายจากรายการ (ticket เก่ายังเก็บค่าเดิม) · แก้ชื่อแล้วกด บันทึก</div>
+  </div>
+</div>
+<div class="modal-overlay" id="coManageModal" onclick="if(event.target===this) closeCoManageModal()">
+  <div class="modal-box gp-manage-box">
+    <div class="modal-head">
+      <h3>จัดการ Cause Over</h3>
+      <button class="modal-close" onclick="closeCoManageModal()">✕</button>
+    </div>
+    <div class="gp-manage-toolbar">
+      <input type="text" id="coNewLabelInput" placeholder="หัวข้อใหม่…" onkeydown="if(event.key==='Enter') addCauseOverFromInput()">
+      <button class="btn sm primary" onclick="addCauseOverFromInput()">+ เพิ่ม</button>
+    </div>
+    <div class="modal-body gp-manage-list" id="coManageBody"></div>
+    <div class="gp-manage-hint">ปิดใช้ = ไม่แสดงใน dropdown · ลบ = หายจากรายการ (ticket เก่ายังเก็บค่าเดิม) · แก้ชื่อแล้วกด บันทึก</div>
+  </div>
+</div>
+<div class="modal-overlay" id="ltrManageModal" onclick="if(event.target===this) closeLtrManageModal()">
+  <div class="modal-box gp-manage-box">
+    <div class="modal-head">
+      <h3>จัดการ Long time Reason</h3>
+      <button class="modal-close" onclick="closeLtrManageModal()">✕</button>
+    </div>
+    <div class="gp-manage-toolbar">
+      <input type="text" id="ltrNewLabelInput" placeholder="หัวข้อใหม่…" onkeydown="if(event.key==='Enter') addLongTimeReasonFromInput()">
+      <button class="btn sm primary" onclick="addLongTimeReasonFromInput()">+ เพิ่ม</button>
+    </div>
+    <div class="modal-body gp-manage-list" id="ltrManageBody"></div>
     <div class="gp-manage-hint">ปิดใช้ = ไม่แสดงใน dropdown · ลบ = หายจากรายการ (ticket เก่ายังเก็บค่าเดิม) · แก้ชื่อแล้วกด บันทึก</div>
   </div>
 </div>
