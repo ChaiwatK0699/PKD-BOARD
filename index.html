@@ -218,6 +218,9 @@ textarea.cell-ta{resize:vertical; min-height:34px; font-family:'JetBrains Mono';
   padding:1px 5px; border-radius:8px; margin-left:5px; vertical-align:middle;}
 .tt-line{font-family:'JetBrains Mono'; font-size:12px; line-height:1.35;}
 .tt-line .ext{color:var(--muted-2); font-size:11px; margin-left:6px;}
+.tt-line-stack{display:flex; flex-direction:column; gap:3px; line-height:1.3; white-space:nowrap;}
+.tt-line-stack .tt-id-top{font-family:'JetBrains Mono'; font-weight:600; color:var(--text);}
+.tt-line-stack .tt-id-wo{font-family:'JetBrains Mono'; font-size:.92em; font-weight:600; color:var(--muted-2);}
 .sev-badge{display:inline-block; font-family:'JetBrains Mono'; font-size:11px; padding:1px 6px; border-radius:4px; background:var(--border-soft); color:var(--muted);}
 .sla-over{color:var(--coral); font-size:11.5px; font-family:'JetBrains Mono';}
 .sla-in{color:var(--teal); font-size:11.5px; font-family:'JetBrains Mono';}
@@ -590,13 +593,16 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-ft-ticket-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:left;}
 .srm-ft-ticket-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
 .srm-ft-ticket-table .subject-cell{max-width:220px;}
+.srm-ft-ticket-table .srm-pea-working-cell{width:132px; max-width:132px; padding:8px 10px; vertical-align:top;}
+.srm-ft-ticket-table thead th.srm-pea-working-col{width:132px; max-width:132px;}
 .srm-ft-ticket-table .srm-pea-working-ta{
-  min-width:160px; min-height:64px; font-size:15px; font-weight:600; line-height:1.45;
-  color:var(--text); background:var(--panel); border:1px solid var(--border);
-  padding:10px 12px; resize:vertical;
+  display:block; width:100%; min-width:0; max-width:100%; box-sizing:border-box;
+  min-height:0; height:auto; font-size:inherit; font-weight:700; line-height:1.4;
+  color:var(--text); background:var(--panel); border:1px solid var(--border); border-radius:4px;
+  padding:6px 8px; resize:none; overflow:hidden; font-family:'Inter',sans-serif;
 }
 .srm-ft-ticket-table .srm-pea-working-ta::placeholder{color:var(--muted-2); opacity:1;}
-.srm-ft-ticket-table .srm-pea-working-ta:focus{color:var(--text); background:var(--panel-2);}
+.srm-ft-ticket-table .srm-pea-working-ta:focus{outline:none; color:var(--text); background:var(--panel-2); border-color:var(--blue);}
 .srm-dash-be-table .srm-dash-sort-col{width:48px; text-align:center;}
 .srm-dash-be-table thead th:nth-child(4){text-align:center; width:96px;}
 .srm-dash-be-row.dragging{opacity:.45;}
@@ -713,11 +719,31 @@ body.screenshotting #srmFtManageModal{display:none !important;}
   border:1px solid var(--border-soft); border-radius:12px;
 }
 .srm-dash-detail .table-scroll{max-height:480px; overflow:auto; border:1px solid var(--border-soft); border-radius:8px;}
+.srm-dash-site-groups{display:flex; flex-direction:column; gap:16px;}
+.srm-dash-site-group{background:var(--panel-2); border:1px solid var(--border-soft); border-radius:10px; padding:14px 16px 16px;}
+.srm-dash-site-group-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap;}
+.srm-dash-site-group-title{font-family:'JetBrains Mono'; font-size:18px; font-weight:700; letter-spacing:.04em; color:var(--teal);}
+.srm-dash-site-group-meta{font-size:15px; font-weight:600; color:var(--muted);}
+.srm-dash-hidden-wrap{margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);}
+.srm-dash-hidden-head{font-size:14px; font-weight:700; color:var(--muted); margin-bottom:8px;}
+.srm-ft-ticket-table .srm-dash-hide-col{width:44px; text-align:center;}
+.srm-dash-hide-cell{text-align:center; vertical-align:middle;}
+.srm-dash-tt-hide-btn,
+.srm-dash-tt-unhide-btn{
+  width:30px; height:30px; border-radius:8px; border:1px solid var(--border); cursor:pointer;
+  font-family:'JetBrains Mono'; font-size:18px; font-weight:700; line-height:1; padding:0;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+.srm-dash-tt-hide-btn{background:var(--coral-dim); color:var(--coral); border-color:var(--coral);}
+.srm-dash-tt-hide-btn:hover{background:var(--coral); color:var(--btn-on-accent);}
+.srm-dash-tt-unhide-btn{background:var(--teal-dim); color:var(--teal); border-color:var(--teal);}
+.srm-dash-tt-unhide-btn:hover{background:var(--teal); color:var(--btn-on-accent);}
 .srm-dash-expand-panel{margin-top:14px; padding:12px 14px 14px; background:var(--panel-2); border:1px solid var(--border-soft); border-radius:10px; animation:srmFtExpandIn .2s ease-out;}
 .srm-dash-expand-panel .table-scroll{max-height:420px; overflow:auto; border:1px solid var(--border-soft); border-radius:8px;}
 #srmSubDashboard{
   background:var(--panel); border:1px solid var(--border); border-radius:14px;
   padding:22px 24px 26px; box-shadow:0 6px 28px var(--shadow-strong);
+  font-weight:600;
 }
 #srmDashKpiWrap{
   background:var(--panel-2); border:1px solid var(--border-soft); border-radius:12px;
@@ -742,37 +768,43 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 #srmSubDashboard .srm-dash-detail .table-scroll{
   background:var(--panel-2); border:1px solid var(--border-soft); border-radius:10px;
 }
-#srmSubDashboard .srm-dash-be-hint{font-size:16px;}
-#srmSubDashboard .srm-dash-slot-badge{width:34px; height:34px; font-size:16px;}
-#srmSubDashboard .srm-dash-a-card-label{font-size:20px;}
-#srmSubDashboard .srm-dash-a-metric-lbl{font-size:16px;}
-#srmSubDashboard .srm-dash-a-metric-val{font-size:36px;}
-#srmSubDashboard .srm-block-title{font-size:24px; margin-bottom:14px;}
-#srmSubDashboard .srm-dash-level-head{font-size:22px; margin-bottom:14px;}
-#srmSubDashboard .srm-dash-level-letter{width:40px; height:40px; font-size:22px;}
-#srmSubDashboard .srm-dash-summary-table{font-size:19px;}
-#srmSubDashboard .srm-dash-summary-table thead th{font-size:16px; padding:12px 14px;}
-#srmSubDashboard .srm-dash-summary-table tbody td{padding:14px;}
-#srmSubDashboard .srm-dash-sum-label{font-size:19px;}
-#srmSubDashboard .srm-dash-sum-count{font-size:22px;}
-#srmSubDashboard .fault-ctrl-prob-site-tag{font-size:16px; padding:5px 10px;}
-#srmSubDashboard .empty-hint{font-size:18px; padding:32px;}
-#srmSubDashboard .fault-ctrl-kpi .kpi-lbl{font-size:18px;}
-#srmSubDashboard .fault-ctrl-kpi .kpi-val{font-size:50px;}
-#srmSubDashboard .fault-ctrl-kpi .kpi-sub{font-size:16px;}
-#srmSubDashboard .srm-dash-detail .srm-ft-expand-head{font-size:20px;}
-#srmSubDashboard .srm-ft-ticket-table{font-size:18px;}
-#srmSubDashboard .srm-ft-ticket-table thead th{font-size:16px; padding:12px 14px;}
-#srmSubDashboard .srm-ft-ticket-table tbody td{padding:12px 14px; font-size:18px;}
-#srmSubDashboard .sev-badge{font-size:16px;}
-#srmSubDashboard .tt-line{font-size:17px;}
-#srmSubDashboard .tt-line .ext{font-size:15px;}
-#srmSubDashboard .muted-dash{font-size:18px;}
-#srmSubDashboard .srm-pea-working-ta{
-  min-width:180px; min-height:72px; font-size:19px; font-weight:600; line-height:1.45;
-  color:var(--text); padding:12px 14px;
-}
-#srmSubDashboard .srm-ft-ticket-table thead th.srm-pea-working-col{font-size:17px; color:var(--text);}
+#srmSubDashboard .srm-dash-be-hint{font-size:18px; font-weight:600;}
+#srmSubDashboard .srm-dash-slot-badge{width:38px; height:38px; font-size:18px; font-weight:700;}
+#srmSubDashboard .srm-dash-a-card-label{font-size:22px; font-weight:700;}
+#srmSubDashboard .srm-dash-a-metric-lbl{font-size:18px; font-weight:700;}
+#srmSubDashboard .srm-dash-a-metric-val{font-size:40px; font-weight:700;}
+#srmSubDashboard .srm-block-title{font-size:26px; font-weight:700; margin-bottom:14px;}
+#srmSubDashboard .srm-dash-level-head{font-size:24px; font-weight:700; margin-bottom:14px;}
+#srmSubDashboard .srm-dash-level-letter{width:44px; height:44px; font-size:24px; font-weight:700;}
+#srmSubDashboard .srm-dash-summary-table{font-size:21px; font-weight:600;}
+#srmSubDashboard .srm-dash-summary-table thead th{font-size:18px; font-weight:700; padding:12px 14px; color:var(--text);}
+#srmSubDashboard .srm-dash-summary-table tbody td{padding:14px; font-weight:600;}
+#srmSubDashboard .srm-dash-sum-label{font-size:21px; font-weight:700;}
+#srmSubDashboard .srm-dash-sum-count{font-size:26px; font-weight:700;}
+#srmSubDashboard .fault-ctrl-prob-site-tag{font-size:18px; font-weight:600; padding:5px 10px;}
+#srmSubDashboard .empty-hint{font-size:20px; font-weight:600; padding:32px;}
+#srmSubDashboard .fault-ctrl-kpi .kpi-lbl{font-size:20px; font-weight:700;}
+#srmSubDashboard .fault-ctrl-kpi .kpi-val{font-size:54px; font-weight:700;}
+#srmSubDashboard .fault-ctrl-kpi .kpi-sub{font-size:18px; font-weight:600;}
+#srmSubDashboard .srm-dash-detail .srm-ft-expand-head{font-size:22px; font-weight:700; color:var(--text);}
+#srmSubDashboard .srm-ft-ticket-table{font-size:20px; font-weight:600;}
+#srmSubDashboard .srm-ft-ticket-table thead th{font-size:18px; font-weight:700; padding:12px 14px; color:var(--text);}
+#srmSubDashboard .srm-ft-ticket-table tbody td{padding:12px 14px; font-size:20px; font-weight:600; color:var(--text);}
+#srmSubDashboard .sev-badge{font-size:18px; font-weight:700;}
+#srmSubDashboard .tt-line{font-size:20px; font-weight:600;}
+#srmSubDashboard .tt-line .ext{font-size:17px; font-weight:600;}
+#srmSubDashboard .tt-line-stack .tt-id-top{font-size:20px; font-weight:700;}
+#srmSubDashboard .tt-line-stack .tt-id-wo{font-size:17px; font-weight:600;}
+#srmSubDashboard .muted-dash{font-size:20px; font-weight:600;}
+#srmSubDashboard .srm-dash-detail .srm-ft-ticket-table{table-layout:fixed;}
+#srmSubDashboard .srm-ft-ticket-table .srm-pea-working-cell{width:168px; max-width:168px;}
+#srmSubDashboard .srm-ft-ticket-table thead th.srm-pea-working-col{width:168px; max-width:168px; font-size:18px; font-weight:700; color:var(--text);}
+#srmSubDashboard .srm-pea-working-ta{font-size:20px; font-weight:700; padding:8px 10px; line-height:1.35; color:var(--text);}
+#srmSubDashboard .srm-dash-site-group-title{font-size:20px; font-weight:700;}
+#srmSubDashboard .srm-dash-site-group-meta{font-size:17px; font-weight:600;}
+#srmSubDashboard .srm-dash-hidden-head{font-size:16px; font-weight:700;}
+#srmSubDashboard .srm-dash-tt-hide-btn,
+#srmSubDashboard .srm-dash-tt-unhide-btn{width:34px; height:34px; font-size:20px;}
 .srm-detail-box.wide{width:min(1200px,96vw);}
 .srm-ft-site-link{cursor:pointer; font-weight:700; text-decoration:underline; text-underline-offset:3px; transition:color .12s;}
 .srm-ft-site-link:hover{color:var(--blue);}
@@ -1392,6 +1424,7 @@ let srmDashFtFilter = null;
 let srmDashOpenSlot = null;
 let srmDashSelectedPath = { A:null, B:null, C:null, D:null, E:null };
 let srmDashTableExpand = null;
+let srmDashHiddenWoIds = new Set();
 const SRM_DASH_SLOT_COLORS = { A:"#2f80ed", B:"#1fa67a", C:"#d97706", D:"#7c3aed", E:"#e84a6a" };
 function resetSrmDashSelectedPath(){
   SRM_FT_SLOTS.forEach(s=>{ srmDashSelectedPath[s] = null; });
@@ -2235,6 +2268,7 @@ function resetSrmPageState(){
   srmDashOpenSlot = null;
   resetSrmDashSelectedPath();
   srmDashTableExpand = null;
+  srmDashHiddenWoIds = new Set();
   srmFtSiteIndex = {};
   srmMonthTickets = [];
 }
@@ -3044,8 +3078,8 @@ function renderSrmDashBtoECombinedTable(){
           <th class="srm-dash-sort-col" title="ลากจัดลำดับ">⠿</th>
           <th>Dropdown</th>
           <th>หัวข้อ</th>
-          <th>ใบงาน</th>
           <th>Site</th>
+          <th>รายชื่อ Site</th>
         </tr></thead>
         <tbody>${rows.map(r=>{
           const slotClass = r.slot.toLowerCase();
@@ -3058,7 +3092,7 @@ function renderSrmDashBtoECombinedTable(){
             <td class="srm-dash-sort-cell">${dragHandle}</td>
             <td><span class="srm-dash-slot-badge srm-dash-slot-${slotClass}">${r.slot}</span></td>
             <td class="srm-dash-sum-label">${esc(r.label)}</td>
-            <td class="srm-dash-sum-count">${r.ticketCount}</td>
+            <td class="srm-dash-sum-count">${r.sites.length}</td>
             <td class="srm-dash-sum-sites"><div class="fault-ctrl-prob-site-tags">${siteTags}</div></td>
           </tr>`;
         }).join("")}</tbody>
@@ -3077,19 +3111,79 @@ function renderSrmDashSlotTable(slot){
     </div>
     <div class="table-scroll">
       <table class="srm-dash-summary-table">
-        <thead><tr><th>หัวข้อ</th><th>ใบงาน</th><th>Site</th></tr></thead>
+        <thead><tr><th>หัวข้อ</th><th>Site</th><th>รายชื่อ Site</th></tr></thead>
         <tbody>${groups.map(g=>{
           const active = srmDashTableExpand && srmDashTableExpand.slot === slot && srmDashTableExpand.label === g.label ? " active" : "";
           const siteTags = faultGpSiteTagsHtml(g.sites.map(s=>({ site:s.site, count:s.count })), { showCount:false });
           return `<tr class="srm-dash-summary-row${active}" data-srm-dash-slot="${esc(slot)}" data-srm-dash-label="${esc(g.label)}">
             <td class="srm-dash-sum-label">${esc(g.label)}</td>
-            <td class="srm-dash-sum-count">${g.ticketCount}</td>
+            <td class="srm-dash-sum-count">${g.sites.length}</td>
             <td class="srm-dash-sum-sites"><div class="fault-ctrl-prob-site-tags">${siteTags}</div></td>
           </tr>`;
         }).join("")}</tbody>
       </table>
     </div>
   </div>`;
+}
+function getSrmDashRowWoKey(r){
+  return String(r?.work_order_id || r?.source_ticket_id || r?.sdm_tt || "").trim();
+}
+function getSrmDashTableExpandSiteGroups(){
+  const rows = getSrmDashTableExpandRows();
+  const map = new Map();
+  rows.forEach(r=>{
+    const site = extractFaultPlkdSite(r) || "-";
+    if(!map.has(site)) map.set(site, []);
+    map.get(site).push(r);
+  });
+  return [...map.entries()]
+    .sort((a,b)=> a[0].localeCompare(b[0]))
+    .map(([site, siteRows])=>{
+      siteRows.sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
+      const visible = [];
+      const hidden = [];
+      siteRows.forEach(r=>{
+        const key = getSrmDashRowWoKey(r);
+        if(key && srmDashHiddenWoIds.has(key)) hidden.push(r);
+        else visible.push(r);
+      });
+      return { site, visible, hidden, total: siteRows.length };
+    });
+}
+function renderSrmDashSiteGroupBlock(group){
+  const { site, visible, hidden, total } = group;
+  const tableOpts = { showPeaWorking:true, showHideControl:true };
+  let body = "";
+  if(visible.length){
+    body += renderSrmFtTicketTableHtml(visible, tableOpts);
+  }else if(hidden.length){
+    body += `<div class="empty-hint" style="padding:12px;">ซ่อน TT ทั้งหมดของ Site นี้แล้ว</div>`;
+  }else{
+    body += `<div class="empty-hint" style="padding:12px;">ไม่มี ticket</div>`;
+  }
+  if(hidden.length){
+    body += `<div class="srm-dash-hidden-wrap">
+      <div class="srm-dash-hidden-head">ซ่อนแล้ว ${hidden.length} TT · กด + เพื่อแสดง</div>
+      ${renderSrmFtTicketTableHtml(hidden, { ...tableOpts, unhideMode:true })}
+    </div>`;
+  }
+  return `<div class="srm-dash-site-group">
+    <div class="srm-dash-site-group-head">
+      <span class="srm-dash-site-group-title">${esc(site)}</span>
+      <span class="srm-dash-site-group-meta">${visible.length} / ${total} TT แสดง</span>
+    </div>
+    ${body}
+  </div>`;
+}
+function toggleSrmDashHideWo(woKey){
+  woKey = String(woKey||"").trim();
+  if(!woKey || !srmDashTableExpand) return;
+  if(srmDashHiddenWoIds.has(woKey)) srmDashHiddenWoIds.delete(woKey);
+  else srmDashHiddenWoIds.add(woKey);
+  renderSrmDashboardTab();
+  requestAnimationFrame(()=>{
+    document.querySelector(".srm-dash-detail")?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  });
 }
 function getSrmDashTableExpandRows(){
   if(!srmDashTableExpand) return [];
@@ -3104,8 +3198,10 @@ function getSrmDashTableExpandRows(){
 function toggleSrmDashTableRow(slot, label){
   if(srmDashTableExpand && srmDashTableExpand.slot === slot && srmDashTableExpand.label === label){
     srmDashTableExpand = null;
+    srmDashHiddenWoIds = new Set();
   }else{
     srmDashTableExpand = { slot, label };
+    srmDashHiddenWoIds = new Set();
   }
   renderSrmDashboardTab();
   if(srmDashTableExpand){
@@ -3116,11 +3212,14 @@ function toggleSrmDashTableRow(slot, label){
 }
 function renderSrmDashTableDetailPanel(){
   if(!srmDashTableExpand) return "";
-  const rows = getSrmDashTableExpandRows();
+  const groups = getSrmDashTableExpandSiteGroups();
   const title = `Dropdown ${srmDashTableExpand.slot}: ${srmDashTableExpand.label}`;
+  const visibleCount = groups.reduce((a,g)=> a + g.visible.length, 0);
+  const totalCount = groups.reduce((a,g)=> a + g.total, 0);
+  if(!totalCount) return `<div class="srm-dash-detail"><div class="srm-ft-expand-head">${esc(title)}</div><div class="empty-hint">ไม่มี ticket</div></div>`;
   return `<div class="srm-dash-detail">
-    <div class="srm-ft-expand-head">${esc(title)} · ${rows.length} ticket(s)</div>
-    ${rows.length ? `<div class="srm-dash-full-table">${renderSrmFtTicketTableHtml(rows, { showPeaWorking:true })}</div>` : `<div class="empty-hint">ไม่มี ticket</div>`}
+    <div class="srm-ft-expand-head">${esc(title)} · ${visibleCount} / ${totalCount} TT แสดง · ${groups.length} Site</div>
+    <div class="srm-dash-site-groups">${groups.map(renderSrmDashSiteGroupBlock).join("")}</div>
   </div>`;
 }
 function renderSrmDashSummaryTables(){
@@ -3256,6 +3355,13 @@ async function reorderSrmDashVisibleOptions(slot, orderedVisibleIds){
 function onSrmDashboardClick(e){
   if(e.target.closest(".srm-dash-drag-handle") || srmDashBeDragging) return;
   if(e.target.closest(".srm-pea-working-ta")) return;
+  const hideBtn = e.target.closest("[data-srm-dash-hide-wo]");
+  if(hideBtn){
+    e.stopPropagation();
+    e.preventDefault();
+    toggleSrmDashHideWo(hideBtn.getAttribute("data-srm-dash-hide-wo"));
+    return;
+  }
   const row = e.target.closest(".srm-dash-summary-row[data-srm-dash-slot]");
   if(row){
     toggleSrmDashTableRow(row.getAttribute("data-srm-dash-slot"), row.getAttribute("data-srm-dash-label") || "");
@@ -3498,21 +3604,30 @@ function mergeFaultPlkdFieldsForSrmDisplay(r){
     inoc_log: r.inoc_log || hit.inoc_log || ""
   };
 }
+function renderSrmTicketIdCellHtml(r){
+  const tt = r.source_ticket_id || r.sdm_tt || "-";
+  const wo = String(r.work_order_id || "").trim();
+  const woHtml = wo && wo !== tt ? `<span class="tt-id-wo">${esc(wo)}</span>` : "";
+  return `<td class="tt-line tt-line-stack"><span class="tt-id-top">${esc(tt)}</span>${woHtml}</td>`;
+}
 function renderSrmFtTicketTableHtml(rows, opts){
   opts = opts || {};
   const peaTh = opts.showPeaWorking ? `<th class="srm-pea-working-col">PEA Working</th>` : "";
+  const hideTh = opts.showHideControl ? `<th class="srm-dash-hide-col" title="${opts.unhideMode ? "แสดง" : "ซ่อน"}">${opts.unhideMode ? "+" : "−"}</th>` : "";
   return `<div class="table-scroll"><table class="srm-ft-ticket-table"><thead><tr>
-    <th>Ticket ID</th><th>Subject</th><th>Severity</th><th>Create Time</th><th>Closed</th><th>Downtime</th>${peaTh}
+    ${hideTh}<th>Ticket ID</th><th>Subject</th><th>Severity</th><th>Create Time</th><th>Closed</th><th>Downtime</th>${peaTh}
     <th>Closed Description</th><th>Group Problem</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>
   </tr></thead><tbody>${rows.map(row=>{
     const r = mergeFaultPlkdFieldsForSrmDisplay(row);
     const c = classifyFaultTicket(r);
-    const tt = r.source_ticket_id || r.sdm_tt || "-";
     const wo = r.work_order_id || "";
     const woAttr = esc(wo);
-    const peaTd = opts.showPeaWorking ? `<td><textarea class="home-feedback free-ta srm-pea-working-ta" data-wo-id="${woAttr}" data-srm-last-saved="${esc(r.pea_working||"")}" placeholder="PEA Working…" onchange="updateSrmFieldFromEl(this,'pea_working')" onblur="updateSrmFieldFromEl(this,'pea_working')">${esc(r.pea_working||"")}</textarea></td>` : "";
+    const woKey = esc(getSrmDashRowWoKey(r));
+    const hideTd = opts.showHideControl ? `<td class="srm-dash-hide-cell"><button type="button" class="${opts.unhideMode ? "srm-dash-tt-unhide-btn" : "srm-dash-tt-hide-btn"}" data-srm-dash-hide-wo="${woKey}" title="${opts.unhideMode ? "แสดง TT" : "ซ่อน TT"}">${opts.unhideMode ? "+" : "−"}</button></td>` : "";
+    const peaTd = opts.showPeaWorking ? `<td class="srm-pea-working-cell"><textarea class="srm-pea-working-ta" rows="2" data-wo-id="${woAttr}" data-srm-last-saved="${esc(r.pea_working||"")}" placeholder="PEA Working…" onchange="updateSrmFieldFromEl(this,'pea_working')" onblur="updateSrmFieldFromEl(this,'pea_working')">${esc(r.pea_working||"")}</textarea></td>` : "";
     return `<tr>
-      <td class="tt-line">${esc(tt)}${wo && wo !== tt ? `<span class="ext">${esc(wo)}</span>` : ""}</td>
+      ${hideTd}
+      ${renderSrmTicketIdCellHtml(r)}
       <td class="subject-cell">${esc(extractFaultSubjectDetail(r) || r.subject || "")}</td>
       <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
       <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
