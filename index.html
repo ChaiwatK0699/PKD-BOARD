@@ -2493,7 +2493,7 @@ function mergeFaultPlkdFieldsForSrmDisplay(r){
 }
 function renderSrmFtTicketTableHtml(rows){
   return `<div class="table-scroll"><table class="srm-ft-ticket-table"><thead><tr>
-    <th>Ticket ID</th><th>Subject</th><th>Create Time</th><th>Closed</th><th>Downtime</th>
+    <th>Ticket ID</th><th>Subject</th><th>Severity</th><th>Create Time</th><th>Closed</th><th>Downtime</th>
     <th>Closed Description</th><th>Group Problem</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>
   </tr></thead><tbody>${rows.map(row=>{
     const r = mergeFaultPlkdFieldsForSrmDisplay(row);
@@ -2503,6 +2503,7 @@ function renderSrmFtTicketTableHtml(rows){
     return `<tr>
       <td class="tt-line">${esc(tt)}${wo && wo !== tt ? `<span class="ext">${esc(wo)}</span>` : ""}</td>
       <td class="subject-cell">${esc(extractFaultSubjectDetail(r) || r.subject || "")}</td>
+      <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
       <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
       <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
       <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
