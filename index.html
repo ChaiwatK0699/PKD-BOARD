@@ -457,10 +457,10 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-scroll{overflow-x:auto; border:1px solid var(--border); border-radius:10px; background:var(--panel);}
 .srm-heat-wrap{padding:10px 12px 12px;}
 .srm-heat-grid{display:grid; gap:3px; min-width:max-content; align-items:stretch;}
-.srm-heat-corner,.srm-heat-col,.srm-heat-row,.srm-heat-cell{font-family:'JetBrains Mono'; font-size:11px;}
+.srm-heat-corner,.srm-heat-col,.srm-heat-cell{font-family:'JetBrains Mono'; font-size:11px;}
 .srm-heat-corner{
   position:sticky; left:0; top:0; z-index:4; background:var(--panel-2); border-radius:6px;
-  min-width:88px; min-height:72px; display:flex; align-items:flex-end; padding:6px 8px; font-weight:700; color:var(--muted);
+  min-width:104px; min-height:72px; display:flex; align-items:flex-end; padding:6px 8px; font-weight:700; color:var(--muted);
 }
 .srm-heat-col{
   position:sticky; top:0; z-index:3; background:var(--panel-2); border-radius:6px;
@@ -469,7 +469,7 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 }
 .srm-heat-row{
   position:sticky; left:0; z-index:2; background:var(--panel-2); border-radius:6px;
-  display:flex; align-items:center; padding:0 8px; min-height:28px; font-weight:700; color:var(--teal);
+  display:flex; align-items:center; padding:0 10px; min-height:32px; font-weight:700; font-size:13px; font-family:'JetBrains Mono'; color:var(--teal);
 }
 .srm-heat-cell{
   min-width:52px; min-height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center;
@@ -563,6 +563,12 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-ft-table{width:100%; border-collapse:collapse; font-size:14px;}
 .srm-ft-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--border); text-align:left;}
 .srm-ft-table tbody td{padding:10px 12px; border-bottom:1px solid var(--border-soft); vertical-align:middle;}
+.srm-ft-table th:first-child,
+.srm-ft-table td:first-child{min-width:120px; width:120px;}
+.srm-ft-table .srm-ft-site-link{
+  font-family:'JetBrains Mono'; font-size:17px; letter-spacing:.04em; color:var(--teal);
+  display:inline-block; padding:2px 0;
+}
 .srm-ft-table select{width:100%; min-width:72px; padding:4px 6px; border-radius:6px; border:1px solid var(--border); background:var(--panel-2); color:var(--text); font-size:12px;}
 .srm-ft-count{
   display:inline-flex; align-items:center; justify-content:center; min-width:36px; padding:4px 10px;
@@ -584,6 +590,189 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-ft-ticket-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:left;}
 .srm-ft-ticket-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
 .srm-ft-ticket-table .subject-cell{max-width:220px;}
+.srm-ft-ticket-table .srm-pea-working-ta{
+  min-width:160px; min-height:64px; font-size:15px; font-weight:600; line-height:1.45;
+  color:var(--text); background:var(--panel); border:1px solid var(--border);
+  padding:10px 12px; resize:vertical;
+}
+.srm-ft-ticket-table .srm-pea-working-ta::placeholder{color:var(--muted-2); opacity:1;}
+.srm-ft-ticket-table .srm-pea-working-ta:focus{color:var(--text); background:var(--panel-2);}
+.srm-dash-be-table .srm-dash-sort-col{width:48px; text-align:center;}
+.srm-dash-be-table thead th:nth-child(4){text-align:center; width:96px;}
+.srm-dash-be-row.dragging{opacity:.45;}
+.srm-dash-be-row.dragging td{box-shadow:0 6px 18px var(--shadow-strong);}
+.srm-dash-be-row.drag-over td{border-top:3px solid var(--blue);}
+.srm-dash-be-row.drag-over{background:var(--blue-dim);}
+.srm-dash-drag-handle{
+  cursor:grab; color:var(--muted); font-size:20px; line-height:1; user-select:none;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:34px; height:34px; border-radius:8px; border:1px solid var(--border-soft);
+  background:var(--panel-2); transition:background .12s, border-color .12s, color .12s;
+}
+.srm-dash-drag-handle:hover{background:var(--blue-dim); border-color:var(--blue); color:var(--blue);}
+.srm-dash-drag-handle:active{cursor:grabbing;}
+.srm-dash-slot-badge{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:30px; height:30px; border-radius:8px;
+  font-family:'Barlow Condensed'; font-weight:700; font-size:15px; line-height:1;
+  background:var(--slot-accent-dim, var(--blue-dim)); color:var(--slot-accent, var(--blue));
+  border:1px solid var(--slot-accent, var(--blue));
+}
+.srm-dash-be-hint{font-size:14px; color:var(--muted); margin:-6px 0 12px; line-height:1.45;}
+.srm-dash-a-card-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px;}
+.srm-dash-a-card{
+  display:flex; flex-direction:column; gap:14px;
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:18px 20px; min-height:120px;
+}
+.srm-dash-a-card-label{font-weight:600; font-size:19px; line-height:1.45; word-break:break-word; color:var(--text);}
+.srm-dash-a-card-metrics{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.srm-dash-a-metric{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  border-radius:10px; padding:14px 10px; border:1px solid transparent;
+}
+.srm-dash-a-metric.sa{background:var(--blue-dim); border-color:var(--blue); color:var(--blue);}
+.srm-dash-a-metric.nsa{background:var(--coral-dim); border-color:var(--coral); color:var(--coral);}
+.srm-dash-a-metric.zero{opacity:.35;}
+.srm-dash-a-metric-lbl{font-family:'Barlow Condensed'; font-weight:700; font-size:15px; letter-spacing:.06em; text-transform:uppercase;}
+.srm-dash-a-metric-val{font-family:'JetBrains Mono'; font-weight:700; font-size:32px; line-height:1;}
+.srm-dash-table-block{margin-bottom:22px;}
+.srm-dash-summary-table{width:100%; border-collapse:collapse; font-size:15px;}
+.srm-dash-summary-table thead th{
+  font-family:'Barlow Condensed'; font-weight:700; font-size:13px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap;
+}
+.srm-dash-summary-table thead th:nth-child(2){text-align:center; width:96px;}
+.srm-dash-summary-table tbody td{padding:12px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
+.srm-dash-summary-row{cursor:pointer; transition:background .12s;}
+.srm-dash-summary-row:hover{background:var(--row-hover);}
+.srm-dash-summary-row.active{background:var(--blue-dim); outline:2px solid var(--blue); outline-offset:-2px;}
+.srm-dash-sum-label{font-weight:600; line-height:1.45; word-break:break-word; min-width:140px;}
+.srm-dash-sum-count{
+  font-family:'JetBrains Mono'; font-weight:700; font-size:16px; text-align:center; color:var(--slot-accent, var(--blue));
+}
+.srm-dash-sum-sites .fault-ctrl-prob-site-tags{display:flex; flex-wrap:wrap; gap:6px;}
+.srm-dash-table-block .table-scroll{border:1px solid var(--border-soft); border-radius:10px; overflow:auto; max-height:420px;}
+.srm-dash-slot-block{margin-bottom:22px;}
+.srm-dash-kpi-row{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-bottom:18px;}
+@media(max-width:700px){ .srm-dash-kpi-row{grid-template-columns:1fr;} }
+.srm-dash-kpi-row .kpi-val.srm-dash-kpi-tickets{color:var(--blue);}
+.srm-dash-kpi-row .kpi-val.srm-dash-kpi-sites{color:var(--violet);}
+.srm-dash-breadcrumb{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:16px;}
+.srm-dash-crumb-sep{color:var(--muted); font-size:18px; line-height:1;}
+.srm-dash-crumb{
+  display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;
+  background:var(--panel); border:1px solid var(--border); border-radius:999px;
+  padding:8px 10px 8px 14px; font-size:16px; line-height:1.35;
+}
+.srm-dash-crumb-slot{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); font-size:14px;}
+.srm-dash-crumb-label{font-weight:600; color:var(--text);}
+.srm-dash-crumb-clear{
+  width:26px; height:26px; border:none; border-radius:50%; cursor:pointer;
+  background:var(--coral-dim); color:var(--coral); font-size:13px; line-height:1;
+  display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  transition:background .12s, color .12s;
+}
+.srm-dash-crumb-clear:hover{background:var(--coral); color:var(--btn-on-accent);}
+.srm-dash-slot-a{--slot-accent:var(--blue); --slot-accent-dim:var(--blue-dim);}
+.srm-dash-slot-b{--slot-accent:var(--teal); --slot-accent-dim:var(--teal-dim);}
+.srm-dash-slot-c{--slot-accent:var(--amber); --slot-accent-dim:var(--amber-dim);}
+.srm-dash-slot-d{--slot-accent:var(--violet); --slot-accent-dim:var(--violet-dim);}
+.srm-dash-slot-e{--slot-accent:var(--coral); --slot-accent-dim:var(--coral-dim);}
+.srm-dash-level{margin-bottom:18px;}
+.srm-dash-level-head{
+  display:flex; align-items:center; gap:10px; margin-bottom:12px;
+  font-family:'Barlow Condensed'; font-weight:700; font-size:18px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--slot-accent, var(--text));
+}
+.srm-dash-level-letter{
+  width:34px; height:34px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center;
+  background:var(--slot-accent, var(--blue)); color:var(--btn-on-accent); font-size:18px; line-height:1;
+}
+.srm-dash-topic-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px;}
+.srm-dash-topic-card{
+  display:flex; flex-direction:column; gap:10px; text-align:left;
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:14px 16px; cursor:pointer; transition:transform .12s, box-shadow .15s, border-color .15s, background .12s;
+  font-family:'Inter',sans-serif; color:var(--text);
+}
+.srm-dash-topic-card:hover{transform:translateY(-2px); box-shadow:0 6px 18px var(--shadow-strong); border-color:var(--slot-accent, var(--blue));}
+.srm-dash-topic-card.srm-dash-readonly-card{cursor:default; pointer-events:none;}
+.srm-dash-topic-card.srm-dash-readonly-card:hover{transform:none; box-shadow:none; border-color:var(--border);}
+.srm-dash-full-table{margin-top:14px;}
+.srm-dash-full-table .table-scroll{max-height:480px; overflow:auto; border:1px solid var(--border-soft); border-radius:8px;}
+.srm-dash-topic-card.active{
+  outline:2px solid var(--slot-accent, var(--violet)); outline-offset:2px;
+  border-color:var(--slot-accent, var(--violet)); background:var(--slot-accent-dim, var(--violet-dim));
+}
+.srm-dash-topic-label{font-weight:600; font-size:18px; line-height:1.45; word-break:break-word;}
+.srm-dash-topic-meta{display:flex; justify-content:space-between; gap:12px; font-size:16px; color:var(--muted);}
+.srm-dash-topic-meta b{font-family:'JetBrains Mono'; font-weight:700; color:var(--slot-accent, var(--blue)); margin-right:4px;}
+.srm-dash-detail{
+  margin-top:4px; padding:14px 16px 16px; background:var(--panel-2);
+  border:1px solid var(--border-soft); border-radius:12px;
+}
+.srm-dash-detail .table-scroll{max-height:480px; overflow:auto; border:1px solid var(--border-soft); border-radius:8px;}
+.srm-dash-expand-panel{margin-top:14px; padding:12px 14px 14px; background:var(--panel-2); border:1px solid var(--border-soft); border-radius:10px; animation:srmFtExpandIn .2s ease-out;}
+.srm-dash-expand-panel .table-scroll{max-height:420px; overflow:auto; border:1px solid var(--border-soft); border-radius:8px;}
+#srmSubDashboard{
+  background:var(--panel); border:1px solid var(--border); border-radius:14px;
+  padding:22px 24px 26px; box-shadow:0 6px 28px var(--shadow-strong);
+}
+#srmDashKpiWrap{
+  background:var(--panel-2); border:1px solid var(--border-soft); border-radius:12px;
+  padding:18px 20px; margin-bottom:22px;
+}
+#srmSubDashboard .srm-dash-table-block{
+  background:var(--panel-2); border:1px solid var(--border-soft); border-radius:12px;
+  padding:18px 20px 20px; margin-bottom:22px;
+}
+#srmSubDashboard .srm-dash-table-block .table-scroll{
+  background:var(--panel); border:1px solid var(--border); border-radius:10px;
+}
+#srmSubDashboard .fault-ctrl-kpi{
+  background:var(--panel); border-color:var(--border);
+  padding:18px 20px;
+}
+#srmSubDashboard .srm-dash-detail{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  padding:18px 20px 20px; margin-top:8px;
+  box-shadow:0 4px 16px var(--shadow-strong);
+}
+#srmSubDashboard .srm-dash-detail .table-scroll{
+  background:var(--panel-2); border:1px solid var(--border-soft); border-radius:10px;
+}
+#srmSubDashboard .srm-dash-be-hint{font-size:16px;}
+#srmSubDashboard .srm-dash-slot-badge{width:34px; height:34px; font-size:16px;}
+#srmSubDashboard .srm-dash-a-card-label{font-size:20px;}
+#srmSubDashboard .srm-dash-a-metric-lbl{font-size:16px;}
+#srmSubDashboard .srm-dash-a-metric-val{font-size:36px;}
+#srmSubDashboard .srm-block-title{font-size:24px; margin-bottom:14px;}
+#srmSubDashboard .srm-dash-level-head{font-size:22px; margin-bottom:14px;}
+#srmSubDashboard .srm-dash-level-letter{width:40px; height:40px; font-size:22px;}
+#srmSubDashboard .srm-dash-summary-table{font-size:19px;}
+#srmSubDashboard .srm-dash-summary-table thead th{font-size:16px; padding:12px 14px;}
+#srmSubDashboard .srm-dash-summary-table tbody td{padding:14px;}
+#srmSubDashboard .srm-dash-sum-label{font-size:19px;}
+#srmSubDashboard .srm-dash-sum-count{font-size:22px;}
+#srmSubDashboard .fault-ctrl-prob-site-tag{font-size:16px; padding:5px 10px;}
+#srmSubDashboard .empty-hint{font-size:18px; padding:32px;}
+#srmSubDashboard .fault-ctrl-kpi .kpi-lbl{font-size:18px;}
+#srmSubDashboard .fault-ctrl-kpi .kpi-val{font-size:50px;}
+#srmSubDashboard .fault-ctrl-kpi .kpi-sub{font-size:16px;}
+#srmSubDashboard .srm-dash-detail .srm-ft-expand-head{font-size:20px;}
+#srmSubDashboard .srm-ft-ticket-table{font-size:18px;}
+#srmSubDashboard .srm-ft-ticket-table thead th{font-size:16px; padding:12px 14px;}
+#srmSubDashboard .srm-ft-ticket-table tbody td{padding:12px 14px; font-size:18px;}
+#srmSubDashboard .sev-badge{font-size:16px;}
+#srmSubDashboard .tt-line{font-size:17px;}
+#srmSubDashboard .tt-line .ext{font-size:15px;}
+#srmSubDashboard .muted-dash{font-size:18px;}
+#srmSubDashboard .srm-pea-working-ta{
+  min-width:180px; min-height:72px; font-size:19px; font-weight:600; line-height:1.45;
+  color:var(--text); padding:12px 14px;
+}
+#srmSubDashboard .srm-ft-ticket-table thead th.srm-pea-working-col{font-size:17px; color:var(--text);}
 .srm-detail-box.wide{width:min(1200px,96vw);}
 .srm-ft-site-link{cursor:pointer; font-weight:700; text-decoration:underline; text-underline-offset:3px; transition:color .12s;}
 .srm-ft-site-link:hover{color:var(--blue);}
@@ -863,6 +1052,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="tab-indicator" id="tabIndicatorSrmSub"></div>
       <button class="tab-btn active" id="srmSubMappingBtn" onclick="switchSrmSubTab('mapping')">Mapping</button>
       <button class="tab-btn" id="srmSubFreeTextBtn" onclick="switchSrmSubTab('freetext')">Free Text</button>
+      <button class="tab-btn" id="srmSubDashboardBtn" onclick="switchSrmSubTab('dashboard')">Dashboard</button>
     </div>
     <div id="srmSubMapping">
       <div class="srm-block">
@@ -888,6 +1078,10 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <div class="srm-block-title">Site ในเดือน <span id="srmFtTicketCount">0</span></div>
         <div class="srm-ft-table-wrap table-scroll" id="srmFtTableWrap"></div>
       </div>
+    </div>
+    <div id="srmSubDashboard" style="display:none;">
+      <div id="srmDashKpiWrap"></div>
+      <div id="srmDashCascadeWrap"></div>
     </div>
   </div>
   <div id="faultView" class="tab-view" style="display:none;">
@@ -1192,6 +1386,16 @@ let srmFreeTextFilters = { A:"", B:"", C:"", D:"", E:"" };
 let srmFtManageSlot = "A";
 let srmFtSiteIndex = {};
 let srmFtExpand = null;
+let srmDashExpand = null;
+let srmDashSevFilter = null;
+let srmDashFtFilter = null;
+let srmDashOpenSlot = null;
+let srmDashSelectedPath = { A:null, B:null, C:null, D:null, E:null };
+let srmDashTableExpand = null;
+const SRM_DASH_SLOT_COLORS = { A:"#2f80ed", B:"#1fa67a", C:"#d97706", D:"#7c3aed", E:"#e84a6a" };
+function resetSrmDashSelectedPath(){
+  SRM_FT_SLOTS.forEach(s=>{ srmDashSelectedPath[s] = null; });
+}
 
 document.getElementById("boardDate").valueAsDate = new Date();
 
@@ -1987,7 +2191,8 @@ function getActiveSrmFtLabels(slot){
 function moveSrmSubTabIndicator(){
   const tabs = document.getElementById("tabsSrmSub");
   const ind = document.getElementById("tabIndicatorSrmSub");
-  const btn = document.getElementById(srmSubTab==="mapping" ? "srmSubMappingBtn" : "srmSubFreeTextBtn");
+  const btnIds = { mapping:"srmSubMappingBtn", freetext:"srmSubFreeTextBtn", dashboard:"srmSubDashboardBtn" };
+  const btn = document.getElementById(btnIds[srmSubTab] || "srmSubMappingBtn");
   if(!tabs || !ind || !btn) return;
   ind.style.left = btn.offsetLeft + "px";
   ind.style.width = btn.offsetWidth + "px";
@@ -1997,27 +2202,39 @@ async function reloadSrmFtAssignmentsFromDb(){
   const assigns = await fetchAllFromRest(SRM_FT_ASSIGN_REST + "?select=*&order=site_code.asc,slot.asc");
   applySrmFtAssignToMemory(assigns);
 }
+function renderSrmActiveSubTab(){
+  if(srmSubTab === "freetext") renderSrmFreeTextTab();
+  else if(srmSubTab === "dashboard") renderSrmDashboardTab();
+}
 function switchSrmSubTab(tab){
   srmSubTab = tab;
   document.getElementById("srmSubMappingBtn")?.classList.toggle("active", tab==="mapping");
   document.getElementById("srmSubFreeTextBtn")?.classList.toggle("active", tab==="freetext");
+  document.getElementById("srmSubDashboardBtn")?.classList.toggle("active", tab==="dashboard");
   document.getElementById("srmSubMapping").style.display = tab==="mapping" ? "block" : "none";
   document.getElementById("srmSubFreeText").style.display = tab==="freetext" ? "block" : "none";
+  document.getElementById("srmSubDashboard").style.display = tab==="dashboard" ? "block" : "none";
   moveSrmSubTabIndicator();
-  if(tab==="freetext"){
+  if(tab==="freetext" || tab==="dashboard"){
     if(!srmMonthTickets.length) buildSiteRepeatData();
     Promise.all([
       reloadSrmFtAssignmentsFromDb(),
       ensureFaultPlkdFieldIndex()
-    ]).then(()=> renderSrmFreeTextTab()).catch(e=>{
-      console.warn("reloadSrmFtAssignmentsFromDb failed:", e);
-      renderSrmFreeTextTab();
+    ]).then(()=> renderSrmActiveSubTab()).catch(e=>{
+      console.warn("SRM sub-tab load failed:", e);
+      renderSrmActiveSubTab();
     });
   }
 }
 function resetSrmPageState(){
   SRM_FT_SLOTS.forEach(s=>{ srmFreeTextFilters[s] = ""; });
   srmFtExpand = null;
+  srmDashExpand = null;
+  srmDashSevFilter = null;
+  srmDashFtFilter = null;
+  srmDashOpenSlot = null;
+  resetSrmDashSelectedPath();
+  srmDashTableExpand = null;
   srmFtSiteIndex = {};
   srmMonthTickets = [];
 }
@@ -2136,7 +2353,7 @@ function srmHeatAlpha(val, maxVal){
 }
 function buildSrmHeatGrid(opts){
   const { sites, days, getVal, fmtVal, maxVal, rgba, dayTotals, rowTotals, grandTotal, dayTotalClass, legendBarClass, legendLabel, streakLen, cellTicketsMap } = opts;
-  const gridStyle = `grid-template-columns:88px repeat(${days.length}, minmax(52px, 1fr)) 72px;`;
+  const gridStyle = `grid-template-columns:104px repeat(${days.length}, minmax(52px, 1fr)) 72px;`;
   let html = `<div class="srm-heat-wrap"><div class="srm-heat-grid" style="${gridStyle}">`;
   html += `<div class="srm-heat-corner">Site</div>`;
   days.forEach(d=>{ html += `<div class="srm-heat-col" title="${esc(d)}">${esc(fmtSrmDayLabel(d))}</div>`; });
@@ -2208,7 +2425,7 @@ function renderSiteRepeatMapping(){
     countWrap.innerHTML = empty;
     dtWrap.innerHTML = empty;
     renderSrmKeywordPanel(null);
-    if(srmSubTab==="freetext") renderSrmFreeTextTab();
+    if(srmSubTab==="freetext" || srmSubTab==="dashboard") renderSrmActiveSubTab();
     return;
   }
 
@@ -2222,7 +2439,7 @@ function renderSiteRepeatMapping(){
     dtWrap.innerHTML = empty;
     renderSrmKeywordPanel(null);
     if(sub) sub.textContent += ` · 0 Site · 0 วัน`;
-    if(srmSubTab==="freetext") renderSrmFreeTextTab();
+    if(srmSubTab==="freetext" || srmSubTab==="dashboard") renderSrmActiveSubTab();
     return;
   }
 
@@ -2259,7 +2476,7 @@ function renderSiteRepeatMapping(){
     legendLabel: "H:m"
   });
 
-  if(srmSubTab==="freetext") renderSrmFreeTextTab();
+  if(srmSubTab==="freetext" || srmSubTab==="dashboard") renderSrmActiveSubTab();
 }
 function collectSrmDetailRows(kind, params){
   params = params || {};
@@ -2287,6 +2504,796 @@ function collectSrmDetailRows(kind, params){
     rows = rows.filter(r=> matchSrmKeywords(r).some(kw=> kw.key === params.keyword));
   }
   return rows.sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
+}
+function buildSrmSeverityStats(){
+  const tickets = srmMonthTickets.length ? srmMonthTickets : getSrmMonthTickets();
+  const siteBySev = Object.fromEntries(HOME_SEV_CODES.map(c=>[c, new Map()]));
+  const counts = Object.fromEntries(HOME_SEV_CODES.map(c=>[c, 0]));
+  tickets.forEach(r=>{
+    const fam = ((r.severity||"").split("-")[0]||"").toUpperCase();
+    if(counts[fam] === undefined) return;
+    counts[fam]++;
+    const site = extractFaultPlkdSite(r);
+    if(!site) return;
+    const sm = siteBySev[fam];
+    sm.set(site, (sm.get(site)||0) + 1);
+  });
+  return HOME_SEV_CODES.map(code=>({
+    key: code,
+    label: code,
+    count: counts[code] || 0,
+    sites: [...siteBySev[code].entries()]
+      .map(([site, count])=>({ site, count }))
+      .sort((a,b)=> b.count - a.count || a.site.localeCompare(b.site))
+  }));
+}
+function normalizeSrmFtDashStats(groups){
+  return groups.map(g=>({
+    key: g.label,
+    label: g.label,
+    count: g.ticketCount,
+    sites: g.sites.map(s=>({ site: s.site, count: s.count }))
+  }));
+}
+function getSrmDashFilterKey(opts){
+  if(opts.section === "sev") return srmDashSevFilter;
+  if(opts.section === "ft" && srmDashFtFilter && srmDashFtFilter.slot === opts.slot) return srmDashFtFilter.label;
+  return null;
+}
+function buildSrmDashSitePanelHtml(stats, filterKey){
+  const items = filterKey ? stats.filter(s=> s.key === filterKey) : stats.filter(s=> s.count > 0);
+  if(!items.length) return `<div class="empty-hint">ไม่พบ Site</div>`;
+  return items.map(s=>`
+    <div class="fault-ctrl-gp-site-block">
+      ${filterKey ? "" : `<div class="gp-block-title">${esc(s.label)}</div>`}
+      <div class="fault-ctrl-prob-sites-label">Site ที่เกี่ยวข้อง (${s.sites.length} Site · ${s.count} TT)</div>
+      <div class="fault-ctrl-prob-site-tags">${faultGpSiteTagsHtml(s.sites)}</div>
+    </div>`).join("");
+}
+function renderSrmDashSimpleCountList(stats){
+  const sorted = [...stats].sort((a,b)=> b.count - a.count || a.label.localeCompare(b.label, "th"));
+  if(!sorted.length) return `<div class="empty-hint">ยังไม่มีหัวข้อใน Dropdown A</div>`;
+  return `<div class="srm-dash-count-panel">
+    <div class="srm-dash-count-head"><span>หัวข้อ</span><span>จำนวน (ใบ)</span></div>
+    ${sorted.map(s=>`
+      <div class="srm-dash-count-row">
+        <span class="srm-dash-count-label">${esc(s.label)}</span>
+        <span class="srm-dash-count-val">${s.count}</span>
+      </div>`).join("")}
+  </div>`;
+}
+function toggleSrmDashSlot(slot){
+  if(!SRM_FT_SLOTS.includes(slot)) return;
+  if(srmDashOpenSlot === slot){
+    srmDashOpenSlot = null;
+    srmDashExpand = null;
+    srmDashFtFilter = null;
+  }else{
+    srmDashOpenSlot = slot;
+    srmDashExpand = null;
+    srmDashFtFilter = null;
+  }
+  renderSrmDashboardTab();
+}
+function renderSrmDashSlotAccordion(slot){
+  const slotClass = slot.toLowerCase();
+  const stats = normalizeSrmFtDashStats(buildSrmFtSlotSummary(slot));
+  const total = stats.reduce((a,s)=> a + s.count, 0);
+  const topicCount = stats.filter(s=> s.count > 0).length;
+  const open = srmDashOpenSlot === slot;
+  let body = "";
+  if(open){
+    body = slot === "A"
+      ? renderSrmDashSimpleCountList(stats)
+      : renderSrmDashSplitTable(stats, {
+          section: "ft",
+          slot,
+          color: SRM_DASH_SLOT_COLORS[slot] || "var(--blue)",
+          leftHead: "หัวข้อ",
+          subLabel: `Dropdown ${slot}`,
+          emptyHint: `ยังไม่มีหัวข้อใน Dropdown ${slot}`
+        });
+  }
+  return `<div class="srm-dash-slot-accordion slot-${slotClass}${open ? " open" : ""}">
+    <button type="button" class="srm-dash-slot-toggle" onclick="toggleSrmDashSlot('${slot}')">
+      <span class="srm-dash-slot-letter">${slot}</span>
+      <span class="srm-dash-slot-title">Dropdown ${slot}</span>
+      <span class="srm-dash-slot-meta">${total} ใบ · ${topicCount} หัวข้อ</span>
+      <span class="srm-dash-slot-chevron">▸</span>
+    </button>
+    <div class="srm-dash-slot-body">${body}</div>
+  </div>`;
+}
+function renderSrmDashSplitTable(stats, opts){
+  opts = opts || {};
+  const filterKey = getSrmDashFilterKey(opts);
+  const rows = opts.showZero ? stats.slice() : stats.filter(s=> s.count > 0);
+  const total = stats.reduce((a,s)=> a + s.count, 0);
+  const sorted = [...rows].sort((a,b)=> b.count - a.count || a.label.localeCompare(b.label, "th"));
+  const top = sorted.find(s=> s.count > 0) || null;
+  const siteSet = new Set();
+  stats.forEach(s=> s.sites.forEach(st=> siteSet.add(st.site)));
+  const color = opts.color || "var(--blue)";
+  const kpiHtml = `<div class="fault-ctrl-kpi-row">
+    <div class="fault-ctrl-kpi">
+      <div class="kpi-lbl">Total Ticket</div>
+      <div class="kpi-val" style="color:${color}">${total}</div>
+      <div class="kpi-sub">${esc(opts.subLabel || "Summary")}</div>
+    </div>
+    <div class="fault-ctrl-kpi">
+      <div class="kpi-lbl">${opts.section === "sev" ? "Severity สูงสุด" : "หัวข้อหลัก"}</div>
+      <div class="kpi-val is-text" style="color:var(--blue)">${top ? esc(top.label) : "—"}</div>
+      <div class="kpi-sub">${top ? `${top.count} รายการ (${total ? Math.round((top.count / total) * 100) : 0}%)` : "—"}</div>
+    </div>
+    <div class="fault-ctrl-kpi">
+      <div class="kpi-lbl">Site ที่กระทบ</div>
+      <div class="kpi-val" style="color:var(--violet)">${siteSet.size}</div>
+      <div class="kpi-sub">${sorted.filter(s=> s.count > 0).length} รายการ</div>
+    </div>
+  </div>`;
+  if(!total && !opts.showZero){
+    return `<div class="fault-ctrl-dash"><div class="fault-ctrl-dash-main">${kpiHtml}<div class="fault-ctrl-prob-panel"><div class="empty-hint">${esc(opts.emptyHint || "ไม่มีข้อมูล")}</div></div></div></div>`;
+  }
+  const probList = sorted.map(s=>{
+    const pct = total ? Math.round((s.count / total) * 100) : 0;
+    const selected = filterKey === s.key ? " selected" : "";
+    const active = srmDashExpand && (
+      (opts.section === "sev" && srmDashExpand.type === "sev" && srmDashExpand.key === s.key) ||
+      (opts.section === "ft" && srmDashExpand.type === "ft" && srmDashExpand.slot === opts.slot && srmDashExpand.label === s.key)
+    ) ? " active" : "";
+    const rowClick = opts.section === "sev"
+      ? `selectSrmDashSev(${JSON.stringify(s.key)})`
+      : `selectSrmDashFt(${JSON.stringify(opts.slot)}, ${JSON.stringify(s.key)})`;
+    const siteTags = faultGpSiteTagsHtml(s.sites);
+    return `<div class="fault-ctrl-prob-item">
+      <div class="fault-ctrl-prob-row${selected}${active}" role="button" tabindex="0"
+        onclick="${rowClick}"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${rowClick}}">
+        <span class="fault-ctrl-prob-name">
+          <button type="button" class="fault-ctrl-prob-toggle" aria-expanded="false" title="ดู Site (${s.sites.length})" onclick="toggleSrmDashSites(this, event)">▸</button>
+          <span>${esc(s.label)}</span>
+        </span>
+        <span class="fault-ctrl-prob-bar"><i style="width:${pct}%;background:${color}"></i></span>
+        <span class="fault-ctrl-prob-count">${s.count}</span>
+        <span class="fault-ctrl-prob-pct">${pct}%</span>
+      </div>
+      <div class="fault-ctrl-prob-sites">
+        <div class="fault-ctrl-prob-sites-label">Site ที่เกี่ยวข้อง (${s.sites.length} Site · ${s.count} TT)</div>
+        <div class="fault-ctrl-prob-site-tags">${siteTags}</div>
+      </div>
+    </div>`;
+  }).join("");
+  const sitePanelHtml = buildSrmDashSitePanelHtml(stats, filterKey);
+  const tableTitle = filterKey
+    ? `Site ที่กระทบ · ${esc(filterKey)}`
+    : "Site ที่กระทบ · ทุกรายการ";
+  const listHtml = probList || `<div class="empty-hint">ไม่มีข้อมูล</div>`;
+  return `<div class="fault-ctrl-dash"><div class="fault-ctrl-dash-main">${kpiHtml}<div class="fault-ctrl-dash-split">
+    <div class="fault-ctrl-prob-panel">
+      <div class="fault-ctrl-prob-head">${esc(opts.leftHead || "รายการ")} <span>กดแถวกรอง Site · ▸ ดู Site · ดู TT ด้านล่าง</span></div>
+      ${listHtml}
+    </div>
+    <div class="fault-ctrl-gp-site-panel">
+      <div class="fault-ctrl-prob-head">${tableTitle}</div>
+      <div class="fault-ctrl-gp-scroll">${sitePanelHtml}</div>
+    </div>
+  </div></div></div>`;
+}
+function selectSrmDashSev(key){
+  const same = srmDashSevFilter === key && srmDashExpand?.type === "sev" && srmDashExpand.key === key;
+  if(same){
+    srmDashSevFilter = null;
+    srmDashExpand = null;
+  }else{
+    srmDashSevFilter = key;
+    srmDashExpand = { type:"sev", key };
+  }
+  renderSrmDashboardTab();
+  if(srmDashExpand){
+    requestAnimationFrame(()=>{
+      document.querySelector(".srm-dash-expand-panel")?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    });
+  }
+}
+function selectSrmDashFt(slot, label){
+  const same = srmDashFtFilter && srmDashFtFilter.slot === slot && srmDashFtFilter.label === label
+    && srmDashExpand?.type === "ft" && srmDashExpand.slot === slot && srmDashExpand.label === label;
+  if(same){
+    srmDashFtFilter = null;
+    srmDashExpand = null;
+  }else{
+    srmDashFtFilter = { slot, label };
+    srmDashExpand = { type:"ft", slot, label };
+  }
+  renderSrmDashboardTab();
+  if(srmDashExpand){
+    requestAnimationFrame(()=>{
+      document.querySelector(".srm-dash-expand-panel")?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    });
+  }
+}
+function toggleSrmDashSites(btn, ev){
+  ev.stopPropagation();
+  const item = btn.closest(".fault-ctrl-prob-item");
+  if(!item) return;
+  const open = item.classList.toggle("open");
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+function siteHasSrmDashPriorSlots(site, slot){
+  const assign = getSrmFtSiteAssign(site);
+  const slotIdx = SRM_FT_SLOTS.indexOf(slot);
+  if(slotIdx <= 0) return true;
+  for(let i = 0; i < slotIdx; i++){
+    if(!assign[SRM_FT_SLOTS[i]]) return false;
+  }
+  return true;
+}
+function buildSrmFtSlotSummary(slot){
+  if(!srmMonthTickets.length) buildSiteRepeatData();
+  const tickets = srmMonthTickets.slice();
+  const bySite = {};
+  tickets.forEach(r=>{
+    const site = extractFaultPlkdSite(r);
+    if(!site || site === "-") return;
+    if(!bySite[site]) bySite[site] = { site, saCount:0, nsaCount:0, saRows:[], nsaRows:[] };
+    if(isFaultSaSeverity(r)){ bySite[site].saCount++; bySite[site].saRows.push(r); }
+    else if(isFaultNsaSrmSeverity(r)){ bySite[site].nsaCount++; bySite[site].nsaRows.push(r); }
+  });
+  const map = new Map();
+  getActiveSrmFtLabels(slot).forEach(label=>{
+    map.set(label, { label, sites: [], ticketCount: 0, preset: true });
+  });
+  Object.keys(bySite).forEach(site=>{
+    if(!siteHasSrmDashPriorSlots(site, slot)) return;
+    const label = getSrmFtSiteAssign(site)[slot] || "";
+    if(!label) return;
+    if(!map.has(label)) map.set(label, { label, sites: [], ticketCount: 0 });
+    const entry = bySite[site];
+    const tc = entry.saCount + entry.nsaCount;
+    if(!tc) return;
+    map.get(label).sites.push({ site, count: tc, entry });
+    map.get(label).ticketCount += tc;
+  });
+  return [...map.values()]
+    .filter(g=> g.sites.length > 0 || g.preset)
+    .sort((a,b)=> b.sites.length - a.sites.length || a.label.localeCompare(b.label, "th"));
+}
+function siteMatchesSrmDashPriorSelections(site, slot){
+  const assign = getSrmFtSiteAssign(site);
+  const slotIdx = SRM_FT_SLOTS.indexOf(slot);
+  if(slotIdx < 0) return false;
+  for(let i = 0; i < slotIdx; i++){
+    const prevSlot = SRM_FT_SLOTS[i];
+    const required = srmDashSelectedPath[prevSlot];
+    if(!required) return false;
+    if(assign[prevSlot] !== required) return false;
+  }
+  return true;
+}
+function buildSrmFtSlotSummaryFiltered(slot){
+  const slotIdx = SRM_FT_SLOTS.indexOf(slot);
+  if(slotIdx < 0) return [];
+  for(let i = 0; i < slotIdx; i++){
+    if(!srmDashSelectedPath[SRM_FT_SLOTS[i]]) return [];
+  }
+  if(!getActiveSrmFtLabels(slot).length) return [];
+  if(!srmMonthTickets.length) buildSiteRepeatData();
+  const bySite = {};
+  srmMonthTickets.forEach(r=>{
+    const site = extractFaultPlkdSite(r);
+    if(!site || site === "-") return;
+    if(!siteMatchesSrmDashPriorSelections(site, slot)) return;
+    if(!bySite[site]) bySite[site] = { site, saCount:0, nsaCount:0, saRows:[], nsaRows:[] };
+    if(isFaultSaSeverity(r)){ bySite[site].saCount++; bySite[site].saRows.push(r); }
+    else if(isFaultNsaSrmSeverity(r)){ bySite[site].nsaCount++; bySite[site].nsaRows.push(r); }
+  });
+  const map = new Map();
+  Object.keys(bySite).forEach(site=>{
+    const label = getSrmFtSiteAssign(site)[slot] || "";
+    if(!label) return;
+    if(!map.has(label)) map.set(label, { label, sites: [], ticketCount: 0 });
+    const entry = bySite[site];
+    const tc = entry.saCount + entry.nsaCount;
+    if(!tc) return;
+    map.get(label).sites.push({ site, count: tc, entry });
+    map.get(label).ticketCount += tc;
+  });
+  return [...map.values()]
+    .filter(g=> g.sites.length > 0)
+    .sort((a,b)=> b.ticketCount - a.ticketCount || a.label.localeCompare(b.label, "th"));
+}
+function getSrmDashMonthKpi(){
+  if(!srmMonthTickets.length) buildSiteRepeatData();
+  const sites = new Set();
+  srmMonthTickets.forEach(r=>{
+    const site = extractFaultPlkdSite(r);
+    if(site) sites.add(site);
+  });
+  return { totalTickets: srmMonthTickets.length, siteCount: sites.size };
+}
+function getSrmDashLastSelectedSlotIdx(){
+  let lastIdx = -1;
+  for(let i = 0; i < SRM_FT_SLOTS.length; i++){
+    if(srmDashSelectedPath[SRM_FT_SLOTS[i]]) lastIdx = i;
+    else break;
+  }
+  return lastIdx;
+}
+function srmDashNextSlotHasData(fromSlot){
+  const idx = SRM_FT_SLOTS.indexOf(fromSlot);
+  if(idx < 0 || idx >= SRM_FT_SLOTS.length - 1) return false;
+  const nextSlot = SRM_FT_SLOTS[idx + 1];
+  if(!getActiveSrmFtLabels(nextSlot).length) return false;
+  return buildSrmFtSlotSummaryFiltered(nextSlot).length > 0;
+}
+function getSrmDashViewState(){
+  const lastIdx = getSrmDashLastSelectedSlotIdx();
+  if(lastIdx === -1) return { showDetail:false, nextSlot:"A" };
+  const lastSlot = SRM_FT_SLOTS[lastIdx];
+  let nextSlot = null;
+  if(lastIdx < SRM_FT_SLOTS.length - 1 && srmDashNextSlotHasData(lastSlot)){
+    nextSlot = SRM_FT_SLOTS[lastIdx + 1];
+  }
+  return { showDetail:true, nextSlot };
+}
+function getSrmDashFilteredTickets(){
+  if(!srmMonthTickets.length) buildSiteRepeatData();
+  const hasSelection = SRM_FT_SLOTS.some(s=> srmDashSelectedPath[s]);
+  if(!hasSelection) return [];
+  return srmMonthTickets.filter(r=>{
+    const site = extractFaultPlkdSite(r);
+    if(!site) return false;
+    const assign = getSrmFtSiteAssign(site);
+    for(const slot of SRM_FT_SLOTS){
+      const sel = srmDashSelectedPath[slot];
+      if(!sel) break;
+      if(assign[slot] !== sel) return false;
+    }
+    return true;
+  }).sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
+}
+function selectSrmDashLevel(slot, label){
+  if(!SRM_FT_SLOTS.includes(slot)) return;
+  label = String(label || "");
+  if(srmDashSelectedPath[slot] === label){
+    clearSrmDashFrom(slot);
+    return;
+  }
+  srmDashSelectedPath[slot] = label;
+  const idx = SRM_FT_SLOTS.indexOf(slot);
+  for(let i = idx + 1; i < SRM_FT_SLOTS.length; i++) srmDashSelectedPath[SRM_FT_SLOTS[i]] = null;
+  renderSrmDashboardTab();
+  if(getSrmDashLastSelectedSlotIdx() >= 0){
+    requestAnimationFrame(()=>{
+      const target = document.querySelector(".srm-dash-level:last-of-type")
+        || document.querySelector(".srm-dash-detail");
+      target?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    });
+  }
+}
+function clearSrmDashFrom(slot){
+  const idx = SRM_FT_SLOTS.indexOf(slot);
+  if(idx < 0) return;
+  for(let i = idx; i < SRM_FT_SLOTS.length; i++) srmDashSelectedPath[SRM_FT_SLOTS[i]] = null;
+  renderSrmDashboardTab();
+}
+function renderSrmDashKpi(){
+  const kpi = getSrmDashMonthKpi();
+  return `<div class="srm-dash-kpi-row">
+    <div class="fault-ctrl-kpi">
+      <div class="kpi-lbl">Total Ticket</div>
+      <div class="kpi-val srm-dash-kpi-tickets">${kpi.totalTickets}</div>
+      <div class="kpi-sub">Ticket ในเดือนที่เลือก</div>
+    </div>
+    <div class="fault-ctrl-kpi">
+      <div class="kpi-lbl">Site Count</div>
+      <div class="kpi-val srm-dash-kpi-sites">${kpi.siteCount}</div>
+      <div class="kpi-sub">Site ที่ไม่ซ้ำกัน</div>
+    </div>
+  </div>`;
+}
+function renderSrmDashBreadcrumb(){
+  const crumbs = [];
+  for(const slot of SRM_FT_SLOTS){
+    const label = srmDashSelectedPath[slot];
+    if(!label) break;
+    crumbs.push({ slot, label });
+  }
+  if(!crumbs.length) return "";
+  return `<div class="srm-dash-breadcrumb">${crumbs.map((c, i)=>`
+    ${i ? `<span class="srm-dash-crumb-sep">›</span>` : ""}
+    <span class="srm-dash-crumb srm-dash-slot-${c.slot.toLowerCase()}">
+      <span class="srm-dash-crumb-slot">Dropdown ${c.slot}:</span>
+      <span class="srm-dash-crumb-label">${esc(c.label)}</span>
+      <button type="button" class="srm-dash-crumb-clear" data-srm-dash-slot="${c.slot}" title="ยกเลิก">✕</button>
+    </span>`).join("")}</div>`;
+}
+function renderSrmDashLevel(slot){
+  const groups = slot === "A" && getSrmDashLastSelectedSlotIdx() === -1
+    ? buildSrmFtSlotSummary("A").filter(g=> g.sites.length > 0)
+    : buildSrmFtSlotSummaryFiltered(slot);
+  if(!groups.length) return "";
+  const slotClass = slot.toLowerCase();
+  const selected = srmDashSelectedPath[slot];
+  return `<div class="srm-dash-level srm-dash-slot-${slotClass}">
+    <div class="srm-dash-level-head">
+      <span class="srm-dash-level-letter">${slot}</span>
+      <span>Dropdown ${slot}</span>
+    </div>
+    <div class="srm-dash-topic-grid">
+      ${groups.map(g=>{
+        const active = selected === g.label ? " active" : "";
+        const ticketCount = g.ticketCount != null ? g.ticketCount : g.count;
+        const siteCount = g.sites.length;
+        return `<button type="button" class="srm-dash-topic-card${active}" data-srm-dash-slot="${esc(slot)}" data-srm-dash-label="${esc(g.label)}">
+          <div class="srm-dash-topic-label">${esc(g.label)}</div>
+          <div class="srm-dash-topic-meta">
+            <span><b>${ticketCount}</b> ticket</span>
+            <span><b>${siteCount}</b> site</span>
+          </div>
+        </button>`;
+      }).join("")}
+    </div>
+  </div>`;
+}
+function renderSrmDashEndDetail(){
+  const rows = getSrmDashFilteredTickets();
+  const parts = SRM_FT_SLOTS.filter(s=> srmDashSelectedPath[s]).map(s=> `Dropdown ${s}: ${srmDashSelectedPath[s]}`);
+  const title = parts.length ? parts.join(" › ") : "Ticket Detail";
+  if(!rows.length){
+    return `<div class="srm-dash-detail"><div class="srm-ft-expand-head">${esc(title)}</div><div class="empty-hint">ไม่มี ticket</div></div>`;
+  }
+  const bySite = new Map();
+  rows.forEach(r=>{
+    const site = extractFaultPlkdSite(r);
+    if(site) bySite.set(site, (bySite.get(site)||0) + 1);
+  });
+  const items = [...bySite.entries()].sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]));
+  return `<div class="srm-dash-detail">
+    <div class="srm-ft-expand-head">${esc(title)} · ${rows.length} ticket · ${items.length} site</div>
+    <div class="srm-dash-topic-grid">
+      ${items.map(([site, count])=>`
+        <div class="srm-dash-topic-card srm-dash-readonly-card">
+          <div class="srm-dash-topic-label">${esc(site)}</div>
+          <div class="srm-dash-topic-meta"><span><b>${count}</b> ticket</span></div>
+        </div>`).join("")}
+    </div>
+    <div class="srm-dash-full-table">${renderSrmFtTicketTableHtml(rows)}</div>
+  </div>`;
+}
+function renderSrmDashTicketDetail(){
+  return renderSrmDashEndDetail();
+}
+function getSrmDashGroupSaNsa(group){
+  let sa = 0, nsa = 0;
+  (group.sites || []).forEach(st=>{
+    if(!st.entry) return;
+    sa += st.entry.saCount || 0;
+    nsa += st.entry.nsaCount || 0;
+  });
+  return { sa, nsa, total: sa + nsa };
+}
+function renderSrmDashSlotACards(){
+  const groups = buildSrmFtSlotSummary("A")
+    .filter(g=> g.sites.length > 0)
+    .sort((a,b)=> getSrmDashGroupSaNsa(b).total - getSrmDashGroupSaNsa(a).total || a.label.localeCompare(b.label, "th"));
+  if(!groups.length) return "";
+  return `<div class="srm-dash-table-block srm-dash-slot-a">
+    <div class="srm-dash-level-head">
+      <span class="srm-dash-level-letter">A</span>
+      <span>Dropdown A</span>
+    </div>
+    <div class="srm-dash-a-card-grid">${groups.map(g=>{
+      const { sa, nsa } = getSrmDashGroupSaNsa(g);
+      return `<div class="srm-dash-a-card">
+        <div class="srm-dash-a-card-label">${esc(g.label)}</div>
+        <div class="srm-dash-a-card-metrics">
+          <div class="srm-dash-a-metric sa${sa ? "" : " zero"}">
+            <span class="srm-dash-a-metric-lbl">SA</span>
+            <span class="srm-dash-a-metric-val">${sa}</span>
+          </div>
+          <div class="srm-dash-a-metric nsa${nsa ? "" : " zero"}">
+            <span class="srm-dash-a-metric-lbl">NSA</span>
+            <span class="srm-dash-a-metric-val">${nsa}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join("")}</div>
+  </div>`;
+}
+function getSrmFtOptionMeta(slot, label){
+  const list = SRM_FREE_TEXT_OPTS[slot] || [];
+  const idx = list.findIndex(o=> o.label === label);
+  if(idx < 0) return { id:null, sortOrder:9999, idx:-1, len:list.length };
+  const opt = list[idx];
+  return { id:opt.id, sortOrder:opt.sort_order ?? 9999, idx, len:list.length };
+}
+function sortSrmDashGroupsByOptionOrder(groups, slot){
+  return groups.slice().sort((a,b)=>{
+    const sa = getSrmFtOptionMeta(slot, a.label).sortOrder;
+    const sb = getSrmFtOptionMeta(slot, b.label).sortOrder;
+    return sa - sb || a.label.localeCompare(b.label, "th");
+  });
+}
+function buildSrmDashBtoERows(){
+  const rows = [];
+  SRM_FT_SLOTS.filter(s=> s !== "A").forEach(slot=>{
+    const groups = sortSrmDashGroupsByOptionOrder(
+      buildSrmFtSlotSummary(slot).filter(g=> g.sites.length > 0),
+      slot
+    );
+    groups.forEach(g=>{
+      const meta = getSrmFtOptionMeta(slot, g.label);
+      rows.push({ slot, label:g.label, ticketCount:g.ticketCount, sites:g.sites, ...meta });
+    });
+  });
+  return rows;
+}
+function renderSrmDashBtoECombinedTable(){
+  const rows = buildSrmDashBtoERows();
+  if(!rows.length) return "";
+  return `<div class="srm-dash-table-block srm-dash-slot-be">
+    <div class="srm-dash-level-head">
+      <span class="srm-dash-level-letter">B</span>
+      <span>Dropdown B – E</span>
+    </div>
+    <div class="srm-dash-be-hint">ลำดับตามที่กำหนด · ลาก ⠿ เพื่อจัดลำดับภายใน Dropdown เดียวกัน</div>
+    <div class="table-scroll">
+      <table class="srm-dash-summary-table srm-dash-be-table">
+        <thead><tr>
+          <th class="srm-dash-sort-col" title="ลากจัดลำดับ">⠿</th>
+          <th>Dropdown</th>
+          <th>หัวข้อ</th>
+          <th>ใบงาน</th>
+          <th>Site</th>
+        </tr></thead>
+        <tbody>${rows.map(r=>{
+          const slotClass = r.slot.toLowerCase();
+          const active = srmDashTableExpand && srmDashTableExpand.slot === r.slot && srmDashTableExpand.label === r.label ? " active" : "";
+          const siteTags = faultGpSiteTagsHtml(r.sites.map(s=>({ site:s.site, count:s.count })), { showCount:false });
+          const dragHandle = r.id
+            ? `<span class="srm-dash-drag-handle" draggable="true" title="ลากเพื่อจัดลำดับ">⠿</span>`
+            : "";
+          return `<tr class="srm-dash-summary-row srm-dash-be-row srm-dash-slot-${slotClass}${active}" data-srm-dash-slot="${esc(r.slot)}" data-srm-dash-label="${esc(r.label)}"${r.id ? ` data-srm-dash-opt-id="${r.id}"` : ""}>
+            <td class="srm-dash-sort-cell">${dragHandle}</td>
+            <td><span class="srm-dash-slot-badge srm-dash-slot-${slotClass}">${r.slot}</span></td>
+            <td class="srm-dash-sum-label">${esc(r.label)}</td>
+            <td class="srm-dash-sum-count">${r.ticketCount}</td>
+            <td class="srm-dash-sum-sites"><div class="fault-ctrl-prob-site-tags">${siteTags}</div></td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+function renderSrmDashSlotTable(slot){
+  const groups = buildSrmFtSlotSummary(slot).filter(g=> g.sites.length > 0);
+  if(!groups.length) return "";
+  const slotClass = slot.toLowerCase();
+  return `<div class="srm-dash-table-block srm-dash-slot-${slotClass}">
+    <div class="srm-dash-level-head">
+      <span class="srm-dash-level-letter">${slot}</span>
+      <span>Dropdown ${slot}</span>
+    </div>
+    <div class="table-scroll">
+      <table class="srm-dash-summary-table">
+        <thead><tr><th>หัวข้อ</th><th>ใบงาน</th><th>Site</th></tr></thead>
+        <tbody>${groups.map(g=>{
+          const active = srmDashTableExpand && srmDashTableExpand.slot === slot && srmDashTableExpand.label === g.label ? " active" : "";
+          const siteTags = faultGpSiteTagsHtml(g.sites.map(s=>({ site:s.site, count:s.count })), { showCount:false });
+          return `<tr class="srm-dash-summary-row${active}" data-srm-dash-slot="${esc(slot)}" data-srm-dash-label="${esc(g.label)}">
+            <td class="srm-dash-sum-label">${esc(g.label)}</td>
+            <td class="srm-dash-sum-count">${g.ticketCount}</td>
+            <td class="srm-dash-sum-sites"><div class="fault-ctrl-prob-site-tags">${siteTags}</div></td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+function getSrmDashTableExpandRows(){
+  if(!srmDashTableExpand) return [];
+  const hit = buildSrmFtSlotSummary(srmDashTableExpand.slot).find(g=> g.label === srmDashTableExpand.label);
+  if(!hit) return [];
+  const rows = [];
+  hit.sites.forEach(st=>{
+    if(st.entry) rows.push(...st.entry.saRows, ...st.entry.nsaRows);
+  });
+  return rows.sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
+}
+function toggleSrmDashTableRow(slot, label){
+  if(srmDashTableExpand && srmDashTableExpand.slot === slot && srmDashTableExpand.label === label){
+    srmDashTableExpand = null;
+  }else{
+    srmDashTableExpand = { slot, label };
+  }
+  renderSrmDashboardTab();
+  if(srmDashTableExpand){
+    requestAnimationFrame(()=>{
+      document.querySelector(".srm-dash-detail")?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    });
+  }
+}
+function renderSrmDashTableDetailPanel(){
+  if(!srmDashTableExpand) return "";
+  const rows = getSrmDashTableExpandRows();
+  const title = `Dropdown ${srmDashTableExpand.slot}: ${srmDashTableExpand.label}`;
+  return `<div class="srm-dash-detail">
+    <div class="srm-ft-expand-head">${esc(title)} · ${rows.length} ticket(s)</div>
+    ${rows.length ? `<div class="srm-dash-full-table">${renderSrmFtTicketTableHtml(rows, { showPeaWorking:true })}</div>` : `<div class="empty-hint">ไม่มี ticket</div>`}
+  </div>`;
+}
+function renderSrmDashSummaryTables(){
+  const slotABlock = renderSrmDashSlotACards();
+  const beBlock = renderSrmDashBtoECombinedTable();
+  const blocks = [slotABlock, beBlock].filter(Boolean);
+  if(!blocks.length) return `<div class="empty-hint">ยังไม่มีข้อมูล Dropdown A–E ในเดือนนี้</div>`;
+  return blocks.join("") + renderSrmDashTableDetailPanel();
+}
+function renderSrmDashCascade(){
+  return renderSrmDashSummaryTables();
+}
+function getSrmDashExpandRows(){
+  if(!srmDashExpand) return { title:"", rows:[] };
+  if(srmDashExpand.type === "sev"){
+    const key = srmDashExpand.key;
+    const tickets = (srmMonthTickets.length ? srmMonthTickets : getSrmMonthTickets()).filter(r=>{
+      const fam = ((r.severity||"").split("-")[0]||"").toUpperCase();
+      return fam === key;
+    });
+    return {
+      title: `${key} · ${tickets.length} TT`,
+      rows: tickets.sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")))
+    };
+  }
+  const slot = srmDashExpand.slot;
+  const label = srmDashExpand.label;
+  const hit = buildSrmFtSlotSummary(slot).find(g=> g.label === label);
+  if(!hit) return { title: `Dropdown ${slot} · ${label}`, rows: [] };
+  const rows = [];
+  hit.sites.forEach(st=>{
+    if(st.entry) rows.push(...st.entry.saRows, ...st.entry.nsaRows);
+  });
+  rows.sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
+  return {
+    title: `Dropdown ${slot} · ${label} · ${hit.sites.length} Site · ${hit.ticketCount} TT`,
+    rows
+  };
+}
+function renderSrmDashExpandHtml(){
+  if(!srmDashExpand) return "";
+  const { title, rows } = getSrmDashExpandRows();
+  return `<div class="srm-dash-expand-panel">
+    <div class="srm-ft-expand-head">${esc(title)}</div>
+    ${rows.length ? renderSrmFtTicketTableHtml(rows) : `<div class="empty-hint" style="padding:16px;">ไม่มี ticket</div>`}
+  </div>`;
+}
+function renderSrmDashboardTab(){
+  const kpiWrap = document.getElementById("srmDashKpiWrap");
+  const cascadeWrap = document.getElementById("srmDashCascadeWrap");
+  if(!kpiWrap || !cascadeWrap) return;
+  if(!srmFreeTextDbReady){
+    kpiWrap.innerHTML = "";
+    cascadeWrap.innerHTML = `<div class="empty-hint">โหลด Database ไม่สำเร็จ — กรุณา Refresh หน้า</div>`;
+    return;
+  }
+  if(!srmMonthTickets.length) buildSiteRepeatData();
+  kpiWrap.innerHTML = renderSrmDashKpi();
+  cascadeWrap.innerHTML = renderSrmDashCascade();
+  wireSrmDashBeDragDrop();
+}
+let srmDashBeDragging = false;
+function wireSrmDashBeDragDrop(){
+  const tbody = document.querySelector(".srm-dash-be-table tbody");
+  if(!tbody) return;
+  let dragRow = null;
+  tbody.querySelectorAll("tr.srm-dash-be-row").forEach(tr=>{
+    const handle = tr.querySelector(".srm-dash-drag-handle");
+    if(handle){
+      handle.addEventListener("dragstart", (e)=>{
+        dragRow = tr;
+        srmDashBeDragging = true;
+        tr.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", tr.dataset.srmDashOptId || "");
+      });
+      handle.addEventListener("dragend", ()=>{
+        tr.classList.remove("dragging");
+        tbody.querySelectorAll(".drag-over").forEach(x=> x.classList.remove("drag-over"));
+        dragRow = null;
+        setTimeout(()=>{ srmDashBeDragging = false; }, 0);
+      });
+      handle.addEventListener("click", (e)=> e.stopPropagation());
+    }
+    tr.addEventListener("dragover", (e)=>{
+      if(!dragRow || dragRow === tr || dragRow.dataset.srmDashSlot !== tr.dataset.srmDashSlot) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      tr.classList.add("drag-over");
+    });
+    tr.addEventListener("dragleave", ()=> tr.classList.remove("drag-over"));
+    tr.addEventListener("drop", (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      tr.classList.remove("drag-over");
+      if(!dragRow || dragRow === tr || dragRow.dataset.srmDashSlot !== tr.dataset.srmDashSlot) return;
+      const slot = tr.dataset.srmDashSlot;
+      const slotRows = [...tbody.querySelectorAll(`tr.srm-dash-be-row[data-srm-dash-slot="${slot}"]`)];
+      const fromIdx = slotRows.indexOf(dragRow);
+      const toIdx = slotRows.indexOf(tr);
+      if(fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return;
+      slotRows.splice(fromIdx, 1);
+      slotRows.splice(toIdx, 0, dragRow);
+      const orderedIds = slotRows.map(row=> row.dataset.srmDashOptId).filter(Boolean);
+      reorderSrmDashVisibleOptions(slot, orderedIds);
+    });
+  });
+}
+async function reorderSrmDashVisibleOptions(slot, orderedVisibleIds){
+  if(!srmFreeTextDbReady){ toast("Database ยังไม่พร้อม"); return; }
+  slot = String(slot||"").toUpperCase();
+  if(!SRM_FT_SLOTS.includes(slot) || !orderedVisibleIds.length) return;
+  const list = (SRM_FREE_TEXT_OPTS[slot]||[]).slice();
+  const visibleSet = new Set(orderedVisibleIds.map(String));
+  const visible = orderedVisibleIds.map(id=> list.find(o=> String(o.id) === String(id))).filter(Boolean);
+  if(visible.length !== orderedVisibleIds.length) return;
+  const rest = list.filter(o=> !visibleSet.has(String(o.id)));
+  const newOrder = [...visible, ...rest];
+  try{
+    await Promise.all(newOrder.map((o, i)=> patchSrmFtOptionRow(o.id, { sort_order: i + 1 })));
+    if(srmSubTab === "dashboard"){
+      renderSrmDashboardTab();
+    }else{
+      renderSrmFtManageList();
+      renderSrmFreeTextTab();
+    }
+    toast("บันทึกลำดับแล้ว");
+  }catch(e){
+    console.error(e);
+    toast("เรียงลำดับไม่สำเร็จ");
+  }
+}
+function onSrmDashboardClick(e){
+  if(e.target.closest(".srm-dash-drag-handle") || srmDashBeDragging) return;
+  if(e.target.closest(".srm-pea-working-ta")) return;
+  const row = e.target.closest(".srm-dash-summary-row[data-srm-dash-slot]");
+  if(row){
+    toggleSrmDashTableRow(row.getAttribute("data-srm-dash-slot"), row.getAttribute("data-srm-dash-label") || "");
+  }
+}
+async function updateSrmTicketField(workOrderId, field, value){
+  const wo = String(workOrderId||"").trim();
+  if(!wo || !field || !SRM_EDITABLE_FIELDS.has(field)) return;
+  value = String(value ?? "");
+  try{
+    const res = await fetch(SRM_REST + `?work_order_id=eq.${encodeURIComponent(wo)}`, {
+      method:"PATCH",
+      headers:HEADERS,
+      body:JSON.stringify({ [field]: value, updated_at: new Date().toISOString() })
+    });
+    if(!res.ok) throw new Error(await res.text());
+    [srmTickets, srmMonthTickets].forEach(list=>{
+      const row = (list||[]).find(r=> String(r.work_order_id||"").trim() === wo);
+      if(row) row[field] = value;
+    });
+    toast("บันทึก PEA Working แล้ว");
+  }catch(e){
+    console.error(e);
+    toast("บันทึกไม่สำเร็จ — ตรวจสอบว่ารัน migration pea_working ใน Database แล้ว");
+  }
+}
+function updateSrmFieldFromEl(el, field){
+  const wo = el?.dataset?.woId;
+  if(!wo || !el) return;
+  if(el.dataset.srmSaving === "1") return;
+  const prev = el.dataset.srmLastSaved ?? "";
+  const next = el.value ?? "";
+  if(prev === next) return;
+  el.dataset.srmSaving = "1";
+  updateSrmTicketField(wo, field, next).finally(()=>{
+    el.dataset.srmSaving = "0";
+    el.dataset.srmLastSaved = next;
+  });
 }
 function openSrmDetail(kind, params){
   params = params || {};
@@ -2491,15 +3498,19 @@ function mergeFaultPlkdFieldsForSrmDisplay(r){
     inoc_log: r.inoc_log || hit.inoc_log || ""
   };
 }
-function renderSrmFtTicketTableHtml(rows){
+function renderSrmFtTicketTableHtml(rows, opts){
+  opts = opts || {};
+  const peaTh = opts.showPeaWorking ? `<th class="srm-pea-working-col">PEA Working</th>` : "";
   return `<div class="table-scroll"><table class="srm-ft-ticket-table"><thead><tr>
-    <th>Ticket ID</th><th>Subject</th><th>Severity</th><th>Create Time</th><th>Closed</th><th>Downtime</th>
+    <th>Ticket ID</th><th>Subject</th><th>Severity</th><th>Create Time</th><th>Closed</th><th>Downtime</th>${peaTh}
     <th>Closed Description</th><th>Group Problem</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>
   </tr></thead><tbody>${rows.map(row=>{
     const r = mergeFaultPlkdFieldsForSrmDisplay(row);
     const c = classifyFaultTicket(r);
     const tt = r.source_ticket_id || r.sdm_tt || "-";
     const wo = r.work_order_id || "";
+    const woAttr = esc(wo);
+    const peaTd = opts.showPeaWorking ? `<td><textarea class="home-feedback free-ta srm-pea-working-ta" data-wo-id="${woAttr}" data-srm-last-saved="${esc(r.pea_working||"")}" placeholder="PEA Working…" onchange="updateSrmFieldFromEl(this,'pea_working')" onblur="updateSrmFieldFromEl(this,'pea_working')">${esc(r.pea_working||"")}</textarea></td>` : "";
     return `<tr>
       <td class="tt-line">${esc(tt)}${wo && wo !== tt ? `<span class="ext">${esc(wo)}</span>` : ""}</td>
       <td class="subject-cell">${esc(extractFaultSubjectDetail(r) || r.subject || "")}</td>
@@ -2507,6 +3518,7 @@ function renderSrmFtTicketTableHtml(rows){
       <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
       <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
       <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
+      ${peaTd}
       <td class="subject-cell">${esc(r.close_description||"")}</td>
       <td>${esc(r.group_problem_free_text||"")}</td>
       <td>${esc(r.cause_over||"")}</td>
@@ -2673,7 +3685,7 @@ async function toggleSrmFtActive(slot, id, checked){
 async function moveSrmFtRow(slot, id, dir){
   if(!srmFreeTextDbReady){ toast("Database ยังไม่พร้อม"); return; }
   const list = (SRM_FREE_TEXT_OPTS[slot]||[]).slice();
-  const idx = list.findIndex(o=> o.id === id);
+  const idx = list.findIndex(o=> String(o.id) === String(id));
   const swapIdx = dir === "up" ? idx - 1 : idx + 1;
   if(idx < 0 || swapIdx < 0 || swapIdx >= list.length) return;
   const a = list[idx], b = list[swapIdx];
@@ -2684,6 +3696,7 @@ async function moveSrmFtRow(slot, id, dir){
     ]);
     renderSrmFtManageList();
     renderSrmFreeTextTab();
+    if(srmSubTab === "dashboard") renderSrmDashboardTab();
   }catch(e){
     console.error(e);
     toast("เรียงลำดับไม่สำเร็จ");
@@ -5374,9 +6387,15 @@ function selectFaultDashGroupProblem(key){
   faultControlDashGpFilter = faultControlDashGpFilter === key ? null : key;
   renderFaultControlPanel(getFilteredFaultTickets());
 }
-function faultGpSiteTagsHtml(sites){
+function faultGpSiteTagsHtml(sites, opts){
+  opts = opts || {};
   if(!sites.length) return `<span class="muted-dash">ไม่พบ Site PLKD</span>`;
-  return sites.map(st=>`<span class="fault-ctrl-prob-site-tag" title="${st.count} TT">${esc(st.site)}<b>${st.count}</b></span>`).join("");
+  const showCount = opts.showCount !== false;
+  return sites.map(st=>{
+    const countHtml = showCount ? `<b>${st.count}</b>` : "";
+    const title = showCount && st.count != null ? `${st.count} TT` : esc(st.site);
+    return `<span class="fault-ctrl-prob-site-tag" title="${title}">${esc(st.site)}${countHtml}</span>`;
+  }).join("");
 }
 function buildFaultGpSitePanelHtml(stats, filterKey){
   const items = filterKey ? stats.filter(s=> s.key === filterKey) : stats;
@@ -5857,9 +6876,12 @@ const SRM_IMPORT_FIELDS = [
   "incident_urgency","severity","created_time","require_finish_time","source_sla",
   "dispatched_time","accepted_time","departed_time","arrived_time","completed_time","closed_time",
   "time_to_arrive","time_to_complete","time_to_leave","work_type","fault_size","point",
-  "root_cause","sub_root_cause","close_description","complete_solution","subject","update_status","wo_creator"
+  "root_cause","sub_root_cause","close_description","complete_solution","subject","update_status","wo_creator",
+  "pea_working"
 ];
+const SRM_EDITABLE_FIELDS = new Set(["pea_working"]);
 function mapSrmImportRow(r){
+  const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
   const raw = mapFaultImportRow(r);
   if(!raw) return null;
   if(!rowHasWoCreatorColumn(r)) delete raw.wo_creator;
@@ -5868,6 +6890,8 @@ function mapSrmImportRow(r){
   SRM_IMPORT_FIELDS.forEach(k=>{
     if(raw[k] !== undefined && raw[k] !== null && raw[k] !== "") payload[k] = raw[k];
   });
+  const pea = get("PEA Working");
+  if(pea) payload.pea_working = pea;
   return payload.work_order_id ? payload : null;
 }
 function mapSvcAvaImportRow(r){
@@ -5986,7 +7010,7 @@ async function refreshSiteRepeatMapping(){
     const ctx = getSrmMonthContext();
     const data = buildSiteRepeatData();
     renderSiteRepeatMapping();
-    if(srmSubTab === "freetext") renderSrmFreeTextTab();
+    if(srmSubTab === "freetext" || srmSubTab === "dashboard") renderSrmActiveSubTab();
     if(statusEl) statusEl.textContent = formatSrmRefreshStatus(data, ctx);
   }catch(e){
     console.error(e);
@@ -6009,7 +7033,7 @@ async function clearSiteRepeatMappingData(){
   if(!woIds.length){
     resetSrmPageState();
     renderSiteRepeatMapping();
-    if(srmSubTab === "freetext") renderSrmFreeTextTab();
+    if(srmSubTab === "freetext" || srmSubTab === "dashboard") renderSrmActiveSubTab();
     toast(`ไม่มีข้อมูล SRM ในเดือน ${ctx.monthLabel}`);
     return;
   }
@@ -6029,7 +7053,7 @@ async function clearSiteRepeatMappingData(){
     srmTickets = srmTickets.filter(r=> !removed.has(r.work_order_id));
     resetSrmPageState();
     renderSiteRepeatMapping();
-    if(srmSubTab === "freetext") renderSrmFreeTextTab();
+    if(srmSubTab === "freetext" || srmSubTab === "dashboard") renderSrmActiveSubTab();
     if(statusEl) statusEl.textContent = `ล้างแล้ว · เดือน ${ctx.monthLabel} · ลบ ${woIds.length} TT`;
     toast("ล้างข้อมูลแล้ว");
   }catch(e){
@@ -6094,7 +7118,7 @@ async function bulkInsertSrmTickets(rows){
   const ctx = getSrmMonthContext();
   const data = buildSiteRepeatData();
   renderSiteRepeatMapping();
-  if(srmSubTab === "freetext") renderSrmFreeTextTab();
+  if(srmSubTab === "freetext" || srmSubTab === "dashboard") renderSrmActiveSubTab();
   statusEl.textContent = `อัปโหลด ${synced} แถว · เดือน ${ctx.monthLabel} · ${data.grandCount} TT · ${data.sites.length} Site`;
 }
 function groupFaultImportPayloads(payloads){
@@ -6190,6 +7214,7 @@ function toast(msg){
     document.getElementById("srmView")?.addEventListener("click", onSrmViewClick);
     document.getElementById("srmSubFreeText")?.addEventListener("click", onSrmFtPanelClick);
     document.getElementById("srmSubFreeText")?.addEventListener("change", onSrmFtPanelChange);
+    document.getElementById("srmSubDashboard")?.addEventListener("click", onSrmDashboardClick);
     Promise.all([fetchGroupProblems(), fetchCauseOvers(), fetchLongTimeReasons()]).catch(e=>{
       console.warn("Fault config load failed:", e);
     });
