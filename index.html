@@ -179,7 +179,7 @@ input.search-box{background:var(--panel-2); border:1px solid var(--border); colo
 .btn.green:hover{filter:brightness(1.08);}
 .btn.ghost{background:transparent;}
 .btn.sm{padding:5px 10px; font-size:12.5px;}
-#fileInputPending, #fileInputClosed, #fileInputSvcAva{display:none;}
+#fileInputPending, #fileInputClosed, #fileInputSvcAva, #fileInputSrm{display:none;}
 .status-msg{font-family:'JetBrains Mono'; font-size:12.5px; color:var(--muted);}
 .team-block{margin-bottom:20px; border:1px solid var(--border-soft); border-radius:10px; overflow:hidden; background:var(--panel);}
 .team-head{display:flex; align-items:center; gap:12px; padding:10px 16px; background:var(--panel-2); border-bottom:1px solid var(--border-soft);}
@@ -850,7 +850,14 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
   <div id="srmView" class="tab-view" style="display:none;">
     <div class="srm-head">
       <h2>Site Repeat Mapping</h2>
-      <p id="srmSubtitle">Severity SA1–SA6 · NSA1–NSA4 · WO Creator System · มี Source Ticket ID · ไม่รวม Broadband · Closed 00:00–23:59</p>
+      <p id="srmSubtitle">SA1–SA6 · NSA1–NSA4 · WO Creator System · ไม่รวม Broadband · ไม่รวม MT · Closed 00:00–23:59</p>
+    </div>
+    <div class="toolbar">
+      <button class="btn primary" onclick="document.getElementById('fileInputSrm').click()">⭱ Upload Work Order</button>
+      <input type="file" id="fileInputSrm" accept=".csv,.xlsx,.xls" onchange="handleSrmUpload(event)">
+      <button class="btn ghost sm" onclick="refreshSiteRepeatMapping()">↻ Refresh</button>
+      <button class="btn ghost sm" onclick="clearSiteRepeatMappingData()">ล้างข้อมูล</button>
+      <span class="status-msg" id="statusMsgSrm"></span>
     </div>
     <div class="tabs" id="tabsSrmSub" style="margin-bottom:16px;">
       <div class="tab-indicator" id="tabIndicatorSrmSub"></div>
@@ -1061,6 +1068,23 @@ function isSystemWoCreatorRow(r){
   const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
   return isSystemWoCreatorValue(get("WO Creator") || get("Wo Creator"));
 }
+function passesWoCreatorImportFilter(r){
+  if(!rowHasWoCreatorColumn(r)) return true;
+  return isSystemWoCreatorRow(r);
+}
+function isSrmMaintenanceWo(r){
+  const wo = String(r?.work_order_id || "").trim().toUpperCase();
+  return wo.startsWith("MT-") || /^MT\d/.test(wo);
+}
+function passesSrmTicketFocus(r){
+  if(!r) return false;
+  if(isSrmMaintenanceWo(r)) return false;
+  if(!isFaultSrmSeverity(r)) return false;
+  if(isFaultBroadbandTicket(r)) return false;
+  if(!isFaultSystemWoCreator(r)) return false;
+  if(!hasFaultSourceTicketId(r)) return false;
+  return true;
+}
 function isFaultSystemWoCreator(r){
   return isSystemWoCreatorValue(r?.wo_creator);
 }
@@ -1104,9 +1128,11 @@ let expandedTeams = new Set(); // empty = all teams start collapsed by default
 
 /* ---- Fault PLKD state ---- */
 const FAULT_REST = REST + "/fault_ants_tickets";
+const SRM_REST = REST + "/srm_tickets";
 const FAULT_BUCKET_COLORS = {"1-2 Hrs.":"#2f9e44","2-6 Hrs.":"#e6b800","6-12 Hrs.":"#e88b6a",">12 Hrs.":"#d94a35"};
 const FAULT_LTR_BUCKETS = ["1-2 Hrs.","2-6 Hrs.","6-12 Hrs.",">12 Hrs."];
 let faultTickets = [];
+let srmTickets = [];
 let faultSubTab = "overview";
 let faultRegionFilter = "";
 let faultControlDetail = null;
@@ -1411,6 +1437,7 @@ async function loadAll(){
     toast("โหลดข้อมูลไม่สำเร็จ");
   }
   loadFaultTickets(false).catch(e=> console.warn("Fault load failed:", e));
+  loadSrmTickets(false).catch(e=> console.warn("SRM load failed:", e));
 }
 function renderAll(){
   try{ renderHome(); }catch(e){ console.error("renderHome failed:", e); }
@@ -1746,11 +1773,8 @@ function highlightSrmKeywords(text){
 }
 function getSrmMonthTickets(){
   const { days } = getSrmMonthContext();
-  return faultTickets.filter(r=>{
-    if(!isFaultSrmSeverity(r)) return false;
-    if(isFaultBroadbandTicket(r)) return false;
-    if(!isFaultSystemWoCreator(r)) return false;
-    if(!hasFaultSourceTicketId(r)) return false;
+  return srmTickets.filter(r=>{
+    if(!passesSrmTicketFocus(r)) return false;
     if(!r?.closed_time) return false;
     const day = String(r.closed_time).slice(0,10);
     if(!days.includes(day)) return false;
@@ -1987,6 +2011,17 @@ function switchSrmSubTab(tab){
     });
   }
 }
+function resetSrmPageState(){
+  SRM_FT_SLOTS.forEach(s=>{ srmFreeTextFilters[s] = ""; });
+  srmFtExpand = null;
+  srmFtSiteIndex = {};
+  srmMonthTickets = [];
+}
+function formatSrmRefreshStatus(data, ctx){
+  const tt = data?.grandCount || 0;
+  const sites = data?.sites?.length || 0;
+  return `รีเฟรชแล้ว · เดือน ${ctx.monthLabel} · ${tt} TT · ${sites} Site`;
+}
 function getSrmMonthContext(){
   const boardDate = document.getElementById("boardDate").value;
   const [y, m] = boardDate.split("-").map(Number);
@@ -2010,11 +2045,8 @@ function buildSiteRepeatData(){
   const dayDt = Object.fromEntries(days.map(d=>[d,0]));
   let grandCount = 0, grandDt = 0, maxCellDt = 0, maxCellCount = 0;
 
-  faultTickets.forEach(r=>{
-    if(!isFaultSrmSeverity(r)) return;
-    if(isFaultBroadbandTicket(r)) return;
-    if(!isFaultSystemWoCreator(r)) return;
-    if(!hasFaultSourceTicketId(r)) return;
+  srmTickets.forEach(r=>{
+    if(!passesSrmTicketFocus(r)) return;
     if(!r?.closed_time) return;
     const day = String(r.closed_time).slice(0,10);
     if(!days.includes(day)) return;
@@ -2165,7 +2197,7 @@ function renderSiteRepeatMapping(){
   const dtWrap = document.getElementById("srmDtWrap");
   if(!countWrap || !dtWrap) return;
   const ctx = getSrmMonthContext();
-  if(sub) sub.textContent = `Severity SA1–SA6 · NSA1–NSA4 · WO Creator System · มี Source Ticket ID · ไม่รวม Broadband · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}`;
+  if(sub) sub.textContent = `SA1–SA6 · NSA1–NSA4 · WO Creator System · ไม่รวม Broadband · ไม่รวม MT · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}`;
 
   if(!SITE_SET.size){
     const empty = `<div class="empty-hint" style="padding:24px;">ยังไม่มีรายชื่อ 168 Site — รอโหลด site codes</div>`;
@@ -5581,16 +5613,25 @@ async function loadFaultTickets(showToast){
   try{
     faultTickets = await fetchAllFromRest(FAULT_REST + "?select=*&order=created_time.asc");
     if(currentTab==="fault") renderFault();
-    if(currentTab==="srm") renderSiteRepeatMapping();
     if(showToast) toast(`Fault data loaded (${faultTickets.length} rows)`);
     migrateLegacyFaultSkills().then(()=> migrateGroupProblemLabels()).then(()=>{
       if(currentTab==="fault") renderFault();
-      if(currentTab==="srm") renderSiteRepeatMapping();
     }).catch(e=> console.warn("fault ticket migrate:", e));
   }catch(e){
     console.warn("loadFaultTickets failed:", e);
     faultTickets = faultTickets || [];
     if(showToast) toast("Fault load failed");
+  }
+}
+async function loadSrmTickets(showToast){
+  try{
+    srmTickets = await fetchAllFromRest(SRM_REST + "?select=*&order=created_time.asc");
+    if(currentTab==="srm") renderSiteRepeatMapping();
+    if(showToast) toast(`SRM loaded (${srmTickets.length} rows)`);
+  }catch(e){
+    console.warn("loadSrmTickets failed:", e);
+    srmTickets = srmTickets || [];
+    if(showToast) toast("SRM load failed");
   }
 }
 async function updateFaultField(workOrderId, field, value){
@@ -5739,8 +5780,28 @@ function mapFaultImportRow(r){
   };
   const woCreator = get("WO Creator") || get("Wo Creator");
   if(woCreator) payload.wo_creator = woCreator;
+  else if(!rowHasWoCreatorColumn(r)) payload.wo_creator = "System";
   applyFaultGroupProblemImport(payload, get("Group Problem Free Text") || get("Group Problem"), get("Skill"));
   return payload;
+}
+const SRM_IMPORT_FIELDS = [
+  "work_order_id","source_ticket_id","sdm_tt","external_ticket_id",
+  "region","province","skill","team","site_id","status","suspend_status",
+  "incident_urgency","severity","created_time","require_finish_time","source_sla",
+  "dispatched_time","accepted_time","departed_time","arrived_time","completed_time","closed_time",
+  "time_to_arrive","time_to_complete","time_to_leave","work_type","fault_size","point",
+  "root_cause","sub_root_cause","close_description","complete_solution","subject","update_status","wo_creator"
+];
+function mapSrmImportRow(r){
+  const raw = mapFaultImportRow(r);
+  if(!raw) return null;
+  if(!rowHasWoCreatorColumn(r)) delete raw.wo_creator;
+  if(!passesSrmTicketFocus(raw)) return null;
+  const payload = { updated_at: new Date().toISOString() };
+  SRM_IMPORT_FIELDS.forEach(k=>{
+    if(raw[k] !== undefined && raw[k] !== null && raw[k] !== "") payload[k] = raw[k];
+  });
+  return payload.work_order_id ? payload : null;
 }
 function mapSvcAvaImportRow(r){
   const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
@@ -5803,8 +5864,13 @@ function mapSvcAvaImportRow(r){
   return payload;
 }
 function getFaultUploadSheet(wb){
-  const name = wb.SheetNames.find(n=>/^Fault PLKD$/i.test(String(n).trim()));
-  return wb.Sheets[name || wb.SheetNames[0]];
+  const names = wb.SheetNames || [];
+  const pick = (re)=> names.find(n=>re.test(String(n).trim()));
+  const name = pick(/^Fault PLKD$/i)
+    || pick(/^CM\s*-\s*Work Order List$/i)
+    || names.find(n=>!/filter/i.test(String(n)))
+    || names[0];
+  return wb.Sheets[name];
 }
 function handleFaultUpload(evt){
   const file = evt.target.files[0];
@@ -5819,10 +5885,149 @@ function handleFaultUpload(evt){
       const sheet = getFaultUploadSheet(wb);
       rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
     }
-    await bulkInsertFaultTickets(rows);
+    await bulkInsertFaultTickets(rows, "statusMsgFault");
     evt.target.value = "";
   };
   if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
+}
+function handleSrmUpload(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    let rows = [];
+    if(file.name.match(/\.csv$/i)){
+      rows = parseCSV(e.target.result);
+    } else {
+      const wb = XLSX.read(e.target.result, {type:"binary"});
+      const sheet = getFaultUploadSheet(wb);
+      rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
+    }
+    await bulkInsertSrmTickets(rows);
+    evt.target.value = "";
+  };
+  if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
+}
+async function refreshSiteRepeatMapping(){
+  const statusEl = document.getElementById("statusMsgSrm");
+  if(statusEl) statusEl.textContent = "กำลังโหลด…";
+  resetSrmPageState();
+  try{
+    srmTickets = await fetchAllFromRest(SRM_REST + "?select=*&order=created_time.asc");
+    await fetchSrmFreeTextFromDb();
+    const ctx = getSrmMonthContext();
+    const data = buildSiteRepeatData();
+    renderSiteRepeatMapping();
+    if(srmSubTab === "freetext") renderSrmFreeTextTab();
+    if(statusEl) statusEl.textContent = formatSrmRefreshStatus(data, ctx);
+  }catch(e){
+    console.error(e);
+    if(statusEl) statusEl.textContent = "รีเฟรชไม่สำเร็จ";
+  }
+}
+async function clearSiteRepeatMappingData(){
+  const ctx = getSrmMonthContext();
+  if(!srmTickets.length){
+    try{
+      srmTickets = await fetchAllFromRest(SRM_REST + "?select=work_order_id,closed_time,severity,site_id,wo_creator,source_ticket_id,subject,work_type,close_description,root_cause&order=created_time.asc");
+    }catch(e){
+      console.error(e);
+      toast("โหลดข้อมูลไม่สำเร็จ");
+      return;
+    }
+  }
+  const tickets = getSrmMonthTickets();
+  const woIds = [...new Set(tickets.map(r=>r.work_order_id).filter(Boolean))];
+  if(!woIds.length){
+    resetSrmPageState();
+    renderSiteRepeatMapping();
+    if(srmSubTab === "freetext") renderSrmFreeTextTab();
+    toast(`ไม่มีข้อมูล SRM ในเดือน ${ctx.monthLabel}`);
+    return;
+  }
+  if(!confirm(`ล้างข้อมูล Site Repeat Mapping?\n\n· ลบ ${woIds.length} TT ในเดือน ${ctx.monthLabel} จาก Database (ตาราง srm_tickets)\n· ไม่กระทบหน้า Fault PLKD\n· Free Text (dropdown A–E) ไม่ถูกลบ`)) return;
+  const statusEl = document.getElementById("statusMsgSrm");
+  if(statusEl) statusEl.textContent = "กำลังล้าง…";
+  const CHUNK = 40;
+  try{
+    for(let i = 0; i < woIds.length; i += CHUNK){
+      const chunk = woIds.slice(i, i + CHUNK);
+      const inList = chunk.map(id=>encodeURIComponent(id)).join(",");
+      const res = await fetch(SRM_REST + `?work_order_id=in.(${inList})`, { method:"DELETE", headers:HEADERS });
+      if(!res.ok) throw new Error(await res.text());
+      if(statusEl) statusEl.textContent = `กำลังล้าง… ${Math.min(i + chunk.length, woIds.length)}/${woIds.length}`;
+    }
+    const removed = new Set(woIds);
+    srmTickets = srmTickets.filter(r=> !removed.has(r.work_order_id));
+    resetSrmPageState();
+    renderSiteRepeatMapping();
+    if(srmSubTab === "freetext") renderSrmFreeTextTab();
+    if(statusEl) statusEl.textContent = `ล้างแล้ว · เดือน ${ctx.monthLabel} · ลบ ${woIds.length} TT`;
+    toast("ล้างข้อมูลแล้ว");
+  }catch(e){
+    console.error(e);
+    if(statusEl) statusEl.textContent = "ล้างข้อมูลไม่สำเร็จ";
+    toast("ล้างข้อมูลไม่สำเร็จ");
+  }
+}
+async function bulkInsertSrmTickets(rows){
+  const statusEl = document.getElementById("statusMsgSrm");
+  if(!statusEl) return;
+  statusEl.textContent = `Processing ${rows.length} rows…`;
+  let woCreatorSkipped = 0;
+  let broadbandSkipped = 0;
+  let mtSkipped = 0;
+  let severitySkipped = 0;
+  let noSourceTicketSkipped = 0;
+  const payloads = [];
+  rows.forEach(r=>{
+    if(isSrmMaintenanceWo({ work_order_id: String(r["Work Order ID"] || "").trim() })){ mtSkipped++; return; }
+    if(!isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
+    if(isBroadbandRow(r)){ broadbandSkipped++; return; }
+    const p = mapSrmImportRow(r);
+    if(!p){
+      if(!isFaultSrmSeverity(r)) severitySkipped++;
+      else if(!hasFaultSourceTicketId(r)) noSourceTicketSkipped++;
+      return;
+    }
+    payloads.push(p);
+  });
+  if(payloads.length===0){
+    const woMsg = woCreatorSkipped ? ` (${woCreatorSkipped} non-System WO Creator skipped)` : "";
+    const bbMsg = broadbandSkipped ? ` (${broadbandSkipped} Broadband skipped)` : "";
+    const mtMsg = mtSkipped ? ` (${mtSkipped} MT skipped)` : "";
+    const sevMsg = severitySkipped ? ` (${severitySkipped} severity skipped)` : "";
+    const ttMsg = noSourceTicketSkipped ? ` (${noSourceTicketSkipped} no Source Ticket ID skipped)` : "";
+    statusEl.textContent = `No valid rows (SA1–6/NSA1–4 · System · ไม่รวม Broadband/MT)${woMsg}${bbMsg}${mtMsg}${sevMsg}${ttMsg}.`;
+    return;
+  }
+  const CHUNK = 40;
+  let synced = 0;
+  for(const group of groupFaultImportPayloads(payloads)){
+    for(let i = 0; i < group.length; i += CHUNK){
+      const chunk = group.slice(i, i + CHUNK);
+      const res = await fetch(SRM_REST + "?on_conflict=work_order_id", {
+        method:"POST",
+        headers:{...HEADERS, "Prefer":"resolution=merge-duplicates,return=representation"},
+        body: JSON.stringify(chunk)
+      });
+      if(!res.ok){
+        const errText = await res.text();
+        console.error(errText);
+        statusEl.textContent = `Import failed at row ${i+1}: ${errText}`.slice(0, 300);
+        return;
+      }
+      synced += chunk.length;
+      statusEl.textContent = `Processing… ${synced}/${payloads.length}`;
+    }
+  }
+  srmTickets = await fetchAllFromRest(SRM_REST + "?select=*&order=created_time.asc");
+  resetSrmPageState();
+  const ctx = getSrmMonthContext();
+  const data = buildSiteRepeatData();
+  renderSiteRepeatMapping();
+  if(srmSubTab === "freetext") renderSrmFreeTextTab();
+  statusEl.textContent = `อัปโหลด ${synced} แถว · เดือน ${ctx.monthLabel} · ${data.grandCount} TT · ${data.sites.length} Site`;
 }
 function groupFaultImportPayloads(payloads){
   const groups = new Map();
@@ -5833,15 +6038,16 @@ function groupFaultImportPayloads(payloads){
   });
   return [...groups.values()];
 }
-async function bulkInsertFaultTickets(rows){
-  const statusEl = document.getElementById("statusMsgFault");
+async function bulkInsertFaultTickets(rows, statusElId = "statusMsgFault"){
+  const statusEl = document.getElementById(statusElId);
+  if(!statusEl) return;
   statusEl.textContent = `Processing ${rows.length} rows…`;
   let woCreatorSkipped = 0;
   let broadbandSkipped = 0;
   let noSourceTicketSkipped = 0;
   const payloads = [];
   rows.forEach(r=>{
-    if(!isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
+    if(!passesWoCreatorImportFilter(r)){ woCreatorSkipped++; return; }
     if(isBroadbandRow(r)){ broadbandSkipped++; return; }
     const p = mapFaultImportRow(r);
     if(!p) return;
@@ -5852,7 +6058,7 @@ async function bulkInsertFaultTickets(rows){
     const woMsg = woCreatorSkipped ? ` (${woCreatorSkipped} non-System WO Creator skipped)` : "";
     const bbMsg = broadbandSkipped ? ` (${broadbandSkipped} Broadband skipped)` : "";
     const ttMsg = noSourceTicketSkipped ? ` (${noSourceTicketSkipped} no Source Ticket ID skipped)` : "";
-    statusEl.textContent = `No valid rows (missing Work Order ID)${woMsg}${bbMsg}${ttMsg}.`;
+    statusEl.textContent = `No valid rows (need Work Order ID + Source Ticket ID)${woMsg}${bbMsg}${ttMsg}.`;
     return;
   }
   const CHUNK = 40;
