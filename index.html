@@ -879,7 +879,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       </div>
     </div>
     <div id="srmSubFreeText" style="display:none;">
-      <div class="srm-ft-filter-hint" id="srmFtHint">Dropdown A–E กรอง Site · คลิก SA / NSA ยืดรายละเอียด TT ใต้แถว</div>
+      <div class="srm-ft-filter-hint" id="srmFtHint">Dropdown A–E กรอง Site · คลิก Site / SA / NSA ยืดรายละเอียด TT ใต้แถว</div>
       <div class="srm-ft-toolbar">
         <button type="button" class="btn sm ghost" onclick="resetSrmFtDropdowns()">Reset Dropdown</button>
       </div>
@@ -2395,11 +2395,13 @@ function getSrmFtExpandRows(site, sevKind){
   if(!entry) return [];
   if(sevKind === "sa") return entry.saRows.slice();
   if(sevKind === "nsa") return entry.nsaRows.slice();
+  if(sevKind === "all") return entry.saRows.concat(entry.nsaRows);
   return [];
 }
 function getSrmFtExpandLabel(sevKind){
   if(sevKind === "sa") return "SA";
   if(sevKind === "nsa") return "NSA";
+  if(sevKind === "all") return "All TT";
   return "";
 }
 function renderSrmFtTableRowHtml(row){
@@ -2409,10 +2411,11 @@ function renderSrmFtTableRowHtml(row){
   const isExpanded = exp && exp.site === row.site;
   const expandSa = isExpanded && exp.sev === "sa";
   const expandNsa = isExpanded && exp.sev === "nsa";
+  const expandAll = isExpanded && exp.sev === "all";
   const saCls = row.saCount ? "srm-ft-count sa" : "srm-ft-count sa zero";
   const nsaCls = row.nsaCount ? "srm-ft-count nsa" : "srm-ft-count nsa zero";
   let html = `<tr class="srm-ft-row${isExpanded ? " expanded" : ""}" data-site="${esc(row.site)}">
-    <td class="site-plkd-cell">${esc(row.site)}</td>
+    <td><span class="srm-ft-site-link site-plkd-cell${expandAll ? " active" : ""}" data-site="${esc(row.site)}" role="button" tabindex="0" title="คลิกดู TT ทั้งหมดของ ${esc(row.site)}">${esc(row.site)}</span></td>
     <td><span class="${saCls}${expandSa ? " active" : ""}" data-site="${esc(row.site)}" data-sev="sa" role="button" tabindex="0" title="คลิกยืด/ย่อ TT SA">${row.saCount || ""}</span></td>
     <td><span class="${nsaCls}${expandNsa ? " active" : ""}" data-site="${esc(row.site)}" data-sev="nsa" role="button" tabindex="0" title="คลิกยืด/ย่อ TT NSA">${row.nsaCount || ""}</span></td>
     ${SRM_FT_SLOTS.map(slot=>{
@@ -2459,7 +2462,7 @@ function renderSrmFtTicketTableHtml(rows){
 }
 function toggleSrmFtExpand(site, sevKind){
   site = String(site||"").trim().toUpperCase();
-  if(sevKind !== "sa" && sevKind !== "nsa") return;
+  if(sevKind !== "sa" && sevKind !== "nsa" && sevKind !== "all") return;
   if(srmFtExpand && srmFtExpand.site === site && srmFtExpand.sev === sevKind){
     srmFtExpand = null;
   }else{
@@ -2477,9 +2480,16 @@ function toggleSrmFtExpand(site, sevKind){
 function onSrmFtPanelClick(e){
   if(e.target.closest("select")) return;
   const countEl = e.target.closest(".srm-ft-count[data-site][data-sev]");
-  if(!countEl || countEl.classList.contains("zero")) return;
-  e.stopPropagation();
-  toggleSrmFtExpand(countEl.dataset.site, countEl.dataset.sev);
+  if(countEl && !countEl.classList.contains("zero")){
+    e.stopPropagation();
+    toggleSrmFtExpand(countEl.dataset.site, countEl.dataset.sev);
+    return;
+  }
+  const siteEl = e.target.closest(".srm-ft-site-link[data-site]");
+  if(siteEl){
+    e.stopPropagation();
+    toggleSrmFtExpand(siteEl.dataset.site, "all");
+  }
 }
 function onSrmFtPanelChange(e){
   const sel = e.target.closest("select.srm-ft-assign-select");
