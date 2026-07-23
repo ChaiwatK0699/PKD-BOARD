@@ -579,8 +579,8 @@ body.screenshotting #srmFtManageModal{display:none !important;}
   border:2px solid transparent; transition:transform .12s, box-shadow .15s;
 }
 .srm-ft-count:hover{transform:scale(1.06); box-shadow:0 4px 12px var(--shadow-strong);}
-.srm-ft-count.sa{background:rgba(47,128,237,.15); color:var(--blue); border-color:rgba(47,128,237,.35);}
-.srm-ft-count.nsa{background:rgba(232,74,106,.12); color:var(--coral); border-color:rgba(232,74,106,.35);}
+.srm-ft-count.sa{background:rgba(232,74,106,.12); color:var(--coral); border-color:rgba(232,74,106,.35);}
+.srm-ft-count.nsa{background:rgba(52,216,166,.12); color:var(--teal); border-color:rgba(52,216,166,.35);}
 .srm-ft-count.zero{opacity:.35; cursor:default; pointer-events:none;}
 .srm-ft-count.active,.srm-ft-site-link.active{outline:2px solid var(--blue); outline-offset:2px; box-shadow:0 0 0 2px var(--blue-dim);}
 .srm-ft-row.expanded td{background:var(--blue-dim);}
@@ -591,6 +591,18 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-ft-expand-panel .table-scroll{max-height:420px; overflow:auto; border:1px solid var(--border-soft); border-radius:8px;}
 .srm-ft-hidden-block{margin-top:22px;}
 .srm-ft-hidden-hint{font-size:14px; color:var(--muted); margin:-6px 0 12px; line-height:1.45;}
+.srm-ft-sev-panel{margin-bottom:18px;}
+.srm-ft-sev-cards{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:14px;}
+@media(max-width:640px){ .srm-ft-sev-cards{grid-template-columns:1fr;} }
+.srm-ft-sev-card{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  border-radius:12px; padding:18px 20px; border:1px solid transparent; min-height:108px;
+}
+.srm-ft-sev-card.sa{background:var(--coral-dim); border-color:var(--coral); color:var(--coral);}
+.srm-ft-sev-card.nsa{background:var(--teal-dim); border-color:var(--teal); color:var(--teal);}
+.srm-ft-sev-card-lbl{font-family:'Barlow Condensed'; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase;}
+.srm-ft-sev-card-val{font-family:'JetBrains Mono'; font-weight:700; font-size:40px; line-height:1;}
+.srm-ft-sev-chart-card{margin-bottom:0;}
 .srm-ft-ticket-table{width:100%; border-collapse:collapse; font-size:13px;}
 .srm-ft-ticket-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:left;}
 .srm-ft-ticket-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
@@ -1113,6 +1125,14 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <button type="button" class="btn sm ghost" onclick="resetSrmFtDropdowns()">Reset Dropdown</button>
       </div>
       <div class="srm-ft-grid" id="srmFtGrid"></div>
+      <div class="srm-ft-sev-panel" id="srmFtSevPanel">
+        <div class="srm-ft-sev-cards" id="srmFtSevCards"></div>
+        <div class="fault-chart-card srm-ft-sev-chart-card">
+          <div class="fault-chart-title">Severity Trend · SA / NSA ตามวันที่ปิด</div>
+          <div class="fault-legend" id="srmFtSevLegend"></div>
+          <div class="fault-chart-wrap"><canvas id="srmFtSevChart"></canvas></div>
+        </div>
+      </div>
       <div class="srm-block">
         <div class="srm-block-title">Site ในเดือน <span id="srmFtTicketCount">0</span></div>
         <div class="srm-ft-table-wrap table-scroll" id="srmFtTableWrap"></div>
@@ -1430,6 +1450,7 @@ let srmFreeTextFilters = { A:"", B:"", C:"", D:"", E:"" };
 let srmFtManageSlot = "A";
 let srmFtSiteIndex = {};
 let srmFtExpand = null;
+let srmFtSevChartInst = null;
 let srmDashExpand = null;
 let srmDashSevFilter = null;
 let srmDashFtFilter = null;
@@ -2202,6 +2223,179 @@ function passesSrmFreeTextSiteFilters(site){
 function isFaultNsaSrmSeverity(r){
   const fam = ((r.severity||"").split("-")[0] || "").toUpperCase();
   return /^NSA[1-4]$/.test(fam);
+}
+function getSrmFtSeverityKey(r){
+  return ((r.severity||"").split("-")[0] || "").toUpperCase();
+}
+function getSrmFtFilteredTickets(){
+  if(!srmMonthTickets.length) buildSiteRepeatData();
+  return srmMonthTickets.filter(r=>{
+    if(isSrmDashHidden(r)) return false;
+    const site = extractFaultPlkdSite(r);
+    if(!site || site === "-") return false;
+    return passesSrmFreeTextSiteFilters(site);
+  });
+}
+function buildSrmFtSeverityStats(){
+  const tickets = getSrmFtFilteredTickets();
+  const dayKeys = buildFaultDayLabelsFromRows(tickets);
+  const labels = dayKeys.map(fmtFaultDayLabel);
+  const saCounts = [];
+  const nsaCounts = [];
+  const totals = [];
+  dayKeys.forEach(day=>{
+    const dayRows = tickets.filter(r=> r.closed_time && String(r.closed_time).slice(0,10) === day);
+    let sa = 0, nsa = 0;
+    dayRows.forEach(r=>{
+      if(isFaultSaSeverity(r)) sa++;
+      else if(isFaultNsaSrmSeverity(r)) nsa++;
+    });
+    saCounts.push(sa);
+    nsaCounts.push(nsa);
+    totals.push(sa + nsa);
+  });
+  const saTotal = saCounts.reduce((a,n)=> a + n, 0);
+  const nsaTotal = nsaCounts.reduce((a,n)=> a + n, 0);
+  return { labels, dayKeys, saCounts, nsaCounts, totals, saTotal, nsaTotal };
+}
+function destroySrmFtSevChart(){
+  if(srmFtSevChartInst){ srmFtSevChartInst.destroy(); srmFtSevChartInst = null; }
+}
+function renderSrmFtSeverityCards(stats){
+  const wrap = document.getElementById("srmFtSevCards");
+  if(!wrap) return;
+  wrap.innerHTML = `
+    <div class="srm-ft-sev-card sa">
+      <span class="srm-ft-sev-card-lbl">SA</span>
+      <span class="srm-ft-sev-card-val">${stats.saTotal}</span>
+    </div>
+    <div class="srm-ft-sev-card nsa">
+      <span class="srm-ft-sev-card-lbl">NSA</span>
+      <span class="srm-ft-sev-card-val">${stats.nsaTotal}</span>
+    </div>`;
+}
+function renderSrmFtSeverityChart(stats){
+  const canvas = document.getElementById("srmFtSevChart");
+  const legendEl = document.getElementById("srmFtSevLegend");
+  const chartWrap = canvas?.closest(".fault-chart-wrap");
+  if(!canvas || typeof Chart === "undefined") return;
+  destroySrmFtSevChart();
+  const saColor = "#d94a35";
+  const nsaColor = "#2f9e44";
+  const totalAll = stats.totals.reduce((a,n)=> a + n, 0);
+  if(legendEl){
+    legendEl.innerHTML = `
+      <span><i style="background:${saColor}"></i>SA · ${stats.saTotal} TT</span>
+      <span><i style="background:${nsaColor}"></i>NSA · ${stats.nsaTotal} TT</span>
+      <span><i style="background:#7c4fd6"></i>Total Ticket · <strong>${totalAll}</strong></span>`;
+  }
+  if(!stats.labels.length){
+    if(chartWrap){
+      let emptyEl = chartWrap.querySelector(".srm-ft-sev-chart-empty");
+      if(!emptyEl){
+        emptyEl = document.createElement("div");
+        emptyEl.className = "empty-hint srm-ft-sev-chart-empty";
+        emptyEl.style.padding = "48px 16px";
+        chartWrap.appendChild(emptyEl);
+      }
+      emptyEl.textContent = "ไม่มี TT ตรงเงื่อนไข";
+      emptyEl.style.display = "block";
+    }
+    canvas.style.display = "none";
+    return;
+  }
+  if(chartWrap){
+    chartWrap.querySelector(".srm-ft-sev-chart-empty")?.remove();
+  }
+  canvas.style.display = "block";
+  const countMax = faultCountAxisMax(stats.totals);
+  const countStep = faultCountAxisStep(countMax);
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  srmFtSevChartInst = new Chart(canvas, {
+    type:"bar",
+    data:{
+      labels:stats.labels,
+      datasets:[
+        {
+          label:"SA",
+          data:stats.saCounts,
+          backgroundColor:saColor,
+          stack:"tickets",
+          yAxisID:"yCount",
+          order:2
+        },
+        {
+          label:"NSA",
+          data:stats.nsaCounts,
+          backgroundColor:nsaColor,
+          stack:"tickets",
+          yAxisID:"yCount",
+          order:2
+        },
+        {
+          label:"Total Ticket",
+          data:stats.totals,
+          type:"line",
+          borderColor:"#7c4fd6",
+          backgroundColor:"transparent",
+          tension:.3,
+          pointRadius:5,
+          pointBackgroundColor:"#7c4fd6",
+          pointBorderColor:"#ffffff",
+          pointBorderWidth:2,
+          borderWidth:2.5,
+          yAxisID:"yCount",
+          order:1
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      layout:{padding:{top:44, bottom:8, right:8}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label(ctx){
+              return ` ${ctx.dataset.label}: ${ctx.formattedValue} TT`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          stacked:true,
+          ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}},
+          grid:{color:gridColor}
+        },
+        yCount:{
+          stacked:true,
+          position:"left",
+          beginAtZero:true,
+          min:0,
+          max:countMax,
+          title:{display:true, text:"จำนวน Ticket", color:textColor, font:{size:13, weight:"bold"}},
+          ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}},
+          grid:{color:gridColor}
+        }
+      }
+    },
+    plugins:[faultBarLabelPlugin]
+  });
+}
+function renderSrmFtSeverityPanel(){
+  const cards = document.getElementById("srmFtSevCards");
+  if(!cards) return;
+  if(!srmFreeTextDbReady){
+    cards.innerHTML = "";
+    destroySrmFtSevChart();
+    return;
+  }
+  const stats = buildSrmFtSeverityStats();
+  renderSrmFtSeverityCards(stats);
+  renderSrmFtSeverityChart(stats);
 }
 function buildSrmFreeTextSiteRows(){
   const tickets = srmMonthTickets.length ? srmMonthTickets.slice() : getSrmMonthTickets();
@@ -3549,6 +3743,7 @@ function renderSrmFreeTextTab(){
     grid.innerHTML = "";
     wrap.innerHTML = `<div class="empty-hint" style="padding:24px;">โหลด Database ไม่สำเร็จ — กรุณา Refresh หน้า</div>`;
     if(countEl) countEl.textContent = "0";
+    renderSrmFtSeverityPanel();
     renderSrmFtHiddenSection();
     return;
   }
@@ -3570,6 +3765,7 @@ function renderSrmFreeTextTab(){
 
   const siteRows = buildSrmFreeTextSiteRows();
   if(countEl) countEl.textContent = String(siteRows.length);
+  renderSrmFtSeverityPanel();
 
   if(!siteRows.length){
     wrap.innerHTML = `<div class="empty-hint" style="padding:24px;">ไม่มี Site ตรงเงื่อนไข</div>`;
@@ -6186,12 +6382,17 @@ const faultBarLabelPlugin = {
   id: "faultBarLabels",
   afterDraw(chart){
     const ctx = chart.ctx;
-    const isLtr = chart.canvas && chart.canvas.id === "faultLtrSlaChart";
-    const isOverview = chart.canvas && chart.canvas.id === "faultOverviewChart";
-    if(isOverview) chart._faultOverviewLabelBoxes = [];
+    const chartId = chart.canvas?.id;
+    const isLtr = chartId === "faultLtrSlaChart";
+    const isOverview = chartId === "faultOverviewChart";
+    const isSrmFtSev = chartId === "srmFtSevChart";
+    const useOverviewLabels = isOverview || isSrmFtSev;
+    if(useOverviewLabels) chart._faultOverviewLabelBoxes = [];
     ctx.save();
-    if(isOverview){
-      const lineOrder = ["Total Ticket", "Service Availability", "Service Availability Avg."];
+    if(useOverviewLabels){
+      const lineOrder = isOverview
+        ? ["Total Ticket", "Service Availability", "Service Availability Avg."]
+        : ["Total Ticket"];
       lineOrder.forEach(label=>{
         const di = chart.data.datasets.findIndex(d=> d.label === label);
         if(di < 0) return;
@@ -6203,7 +6404,7 @@ const faultBarLabelPlugin = {
     chart.data.datasets.forEach((dataset, di)=>{
       const meta = chart.getDatasetMeta(di);
       if(meta.type === "line"){
-        if(isOverview) return;
+        if(useOverviewLabels) return;
         meta.data.forEach((pt, i)=>{
           const val = dataset.data[i];
           if(val == null || (val === 0 && dataset.label !== "Service Availability" && dataset.label !== "Service Availability Avg.")) return;
@@ -6218,7 +6419,7 @@ const faultBarLabelPlugin = {
       meta.data.forEach((bar, i)=>{
         if(bar.hidden || bar.skip) return;
         if(isLtr) drawFaultLtrSegmentLabel(ctx, bar, dataset.data[i]);
-        else drawFaultOverviewBarLabel(ctx, bar, dataset.data[i]);
+        else if(isOverview || isSrmFtSev) drawFaultOverviewBarLabel(ctx, bar, dataset.data[i]);
       });
     });
     ctx.restore();
