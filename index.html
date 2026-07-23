@@ -589,6 +589,8 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 @keyframes srmFtExpandIn{from{opacity:0; transform:translateY(-4px);}to{opacity:1; transform:translateY(0);}}
 .srm-ft-expand-head{font-family:'Barlow Condensed'; font-weight:700; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
 .srm-ft-expand-panel .table-scroll{max-height:420px; overflow:auto; border:1px solid var(--border-soft); border-radius:8px;}
+.srm-ft-hidden-block{margin-top:22px;}
+.srm-ft-hidden-hint{font-size:14px; color:var(--muted); margin:-6px 0 12px; line-height:1.45;}
 .srm-ft-ticket-table{width:100%; border-collapse:collapse; font-size:13px;}
 .srm-ft-ticket-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:left;}
 .srm-ft-ticket-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
@@ -1083,7 +1085,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div class="tabs" id="tabsSrmSub" style="margin-bottom:16px;">
       <div class="tab-indicator" id="tabIndicatorSrmSub"></div>
       <button class="tab-btn active" id="srmSubMappingBtn" onclick="switchSrmSubTab('mapping')">Mapping</button>
-      <button class="tab-btn" id="srmSubFreeTextBtn" onclick="switchSrmSubTab('freetext')">Free Text</button>
+      <button class="tab-btn" id="srmSubFreeTextBtn" onclick="switchSrmSubTab('freetext')">Detail</button>
       <button class="tab-btn" id="srmSubDashboardBtn" onclick="switchSrmSubTab('dashboard')">Dashboard</button>
     </div>
     <div id="srmSubMapping">
@@ -1109,6 +1111,11 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="srm-block">
         <div class="srm-block-title">Site ในเดือน <span id="srmFtTicketCount">0</span></div>
         <div class="srm-ft-table-wrap table-scroll" id="srmFtTableWrap"></div>
+      </div>
+      <div class="srm-block srm-ft-hidden-block" id="srmFtHiddenBlock">
+        <div class="srm-block-title">TT ที่ซ่อนจาก Dashboard <span id="srmFtHiddenCount">0</span></div>
+        <div class="srm-ft-hidden-hint">กด + เพื่อนำกลับมาแสดงใน Dashboard · ทุกคนเห็นเหมือนกัน</div>
+        <div id="srmFtHiddenWrap"></div>
       </div>
     </div>
     <div id="srmSubDashboard" style="display:none;">
@@ -1424,7 +1431,6 @@ let srmDashFtFilter = null;
 let srmDashOpenSlot = null;
 let srmDashSelectedPath = { A:null, B:null, C:null, D:null, E:null };
 let srmDashTableExpand = null;
-let srmDashHiddenWoIds = new Set();
 const SRM_DASH_SLOT_COLORS = { A:"#2f80ed", B:"#1fa67a", C:"#d97706", D:"#7c3aed", E:"#e84a6a" };
 function resetSrmDashSelectedPath(){
   SRM_FT_SLOTS.forEach(s=>{ srmDashSelectedPath[s] = null; });
@@ -2064,7 +2070,7 @@ async function fetchSrmFreeTextFromDb(){
     console.error("fetchSrmFreeTextFromDb failed:", e);
     srmFreeTextDbReady = false;
     resetSrmFreeTextMemory();
-    toast("โหลด SRM Free Text จาก Database ไม่สำเร็จ");
+    toast("โหลด Detail จาก Database ไม่สำเร็จ");
   }
 }
 async function createSrmFtOptionRow(slot, label, extra){
@@ -2268,7 +2274,6 @@ function resetSrmPageState(){
   srmDashOpenSlot = null;
   resetSrmDashSelectedPath();
   srmDashTableExpand = null;
-  srmDashHiddenWoIds = new Set();
   srmFtSiteIndex = {};
   srmMonthTickets = [];
 }
@@ -2764,7 +2769,7 @@ function siteHasSrmDashPriorSlots(site, slot){
 }
 function buildSrmFtSlotSummary(slot){
   if(!srmMonthTickets.length) buildSiteRepeatData();
-  const tickets = srmMonthTickets.slice();
+  const tickets = filterSrmDashVisibleTickets(srmMonthTickets.slice());
   const bySite = {};
   tickets.forEach(r=>{
     const site = extractFaultPlkdSite(r);
@@ -2814,6 +2819,7 @@ function buildSrmFtSlotSummaryFiltered(slot){
   if(!srmMonthTickets.length) buildSiteRepeatData();
   const bySite = {};
   srmMonthTickets.forEach(r=>{
+    if(isSrmDashHidden(r)) return;
     const site = extractFaultPlkdSite(r);
     if(!site || site === "-") return;
     if(!siteMatchesSrmDashPriorSelections(site, slot)) return;
@@ -2838,12 +2844,13 @@ function buildSrmFtSlotSummaryFiltered(slot){
 }
 function getSrmDashMonthKpi(){
   if(!srmMonthTickets.length) buildSiteRepeatData();
+  const tickets = filterSrmDashVisibleTickets(srmMonthTickets);
   const sites = new Set();
-  srmMonthTickets.forEach(r=>{
+  tickets.forEach(r=>{
     const site = extractFaultPlkdSite(r);
     if(site) sites.add(site);
   });
-  return { totalTickets: srmMonthTickets.length, siteCount: sites.size };
+  return { totalTickets: tickets.length, siteCount: sites.size };
 }
 function getSrmDashLastSelectedSlotIdx(){
   let lastIdx = -1;
@@ -2875,6 +2882,7 @@ function getSrmDashFilteredTickets(){
   const hasSelection = SRM_FT_SLOTS.some(s=> srmDashSelectedPath[s]);
   if(!hasSelection) return [];
   return srmMonthTickets.filter(r=>{
+    if(isSrmDashHidden(r)) return false;
     const site = extractFaultPlkdSite(r);
     if(!site) return false;
     const assign = getSrmFtSiteAssign(site);
@@ -3128,6 +3136,48 @@ function renderSrmDashSlotTable(slot){
 function getSrmDashRowWoKey(r){
   return String(r?.work_order_id || r?.source_ticket_id || r?.sdm_tt || "").trim();
 }
+function isSrmDashHidden(r){
+  const v = r?.dash_hidden;
+  return v === true || v === "true" || v === "t" || v === 1 || v === "1";
+}
+function filterSrmDashVisibleTickets(tickets){
+  return (tickets||[]).filter(r=> !isSrmDashHidden(r));
+}
+function ticketMatchesSrmWoKey(r, key){
+  key = String(key||"").trim();
+  if(!key || !r) return false;
+  const wo = String(r.work_order_id||"").trim();
+  return wo === key || getSrmDashRowWoKey(r) === key;
+}
+function applySrmTicketFieldLocal(matchKey, field, value){
+  matchKey = String(matchKey||"").trim();
+  if(!matchKey || !field) return;
+  [srmTickets, srmMonthTickets].forEach(list=>{
+    (list||[]).forEach(r=>{
+      if(ticketMatchesSrmWoKey(r, matchKey)) r[field] = value;
+    });
+  });
+}
+function findSrmTicketByWoKey(key){
+  key = String(key||"").trim();
+  if(!key) return null;
+  for(const list of [srmMonthTickets, srmTickets]){
+    const hit = (list||[]).find(r=>{
+      const wo = String(r?.work_order_id || "").trim();
+      return getSrmDashRowWoKey(r) === key || wo === key;
+    });
+    if(hit) return hit;
+  }
+  return null;
+}
+function getSrmDashHiddenTickets(){
+  const tickets = srmMonthTickets.length ? srmMonthTickets.slice() : getSrmMonthTickets();
+  return tickets.filter(isSrmDashHidden).sort((a,b)=>{
+    const sa = extractFaultPlkdSite(a) || "";
+    const sb = extractFaultPlkdSite(b) || "";
+    return sa.localeCompare(sb) || String(a.closed_time||"").localeCompare(String(b.closed_time||""));
+  });
+}
 function getSrmDashTableExpandSiteGroups(){
   const rows = getSrmDashTableExpandRows();
   const map = new Map();
@@ -3140,49 +3190,52 @@ function getSrmDashTableExpandSiteGroups(){
     .sort((a,b)=> a[0].localeCompare(b[0]))
     .map(([site, siteRows])=>{
       siteRows.sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
-      const visible = [];
-      const hidden = [];
-      siteRows.forEach(r=>{
-        const key = getSrmDashRowWoKey(r);
-        if(key && srmDashHiddenWoIds.has(key)) hidden.push(r);
-        else visible.push(r);
-      });
-      return { site, visible, hidden, total: siteRows.length };
-    });
+      return { site, rows: siteRows, total: siteRows.length };
+    })
+    .filter(g=> g.total > 0);
 }
 function renderSrmDashSiteGroupBlock(group){
-  const { site, visible, hidden, total } = group;
+  const { site, rows, total } = group;
   const tableOpts = { showPeaWorking:true, showHideControl:true };
-  let body = "";
-  if(visible.length){
-    body += renderSrmFtTicketTableHtml(visible, tableOpts);
-  }else if(hidden.length){
-    body += `<div class="empty-hint" style="padding:12px;">ซ่อน TT ทั้งหมดของ Site นี้แล้ว</div>`;
-  }else{
-    body += `<div class="empty-hint" style="padding:12px;">ไม่มี ticket</div>`;
-  }
-  if(hidden.length){
-    body += `<div class="srm-dash-hidden-wrap">
-      <div class="srm-dash-hidden-head">ซ่อนแล้ว ${hidden.length} TT · กด + เพื่อแสดง</div>
-      ${renderSrmFtTicketTableHtml(hidden, { ...tableOpts, unhideMode:true })}
-    </div>`;
-  }
+  const body = rows.length
+    ? renderSrmFtTicketTableHtml(rows, tableOpts)
+    : `<div class="empty-hint" style="padding:12px;">ไม่มี ticket</div>`;
   return `<div class="srm-dash-site-group">
     <div class="srm-dash-site-group-head">
       <span class="srm-dash-site-group-title">${esc(site)}</span>
-      <span class="srm-dash-site-group-meta">${visible.length} / ${total} TT แสดง</span>
+      <span class="srm-dash-site-group-meta">${total} TT</span>
     </div>
     ${body}
   </div>`;
 }
-function toggleSrmDashHideWo(woKey){
+async function toggleSrmDashHideWo(woKey){
   woKey = String(woKey||"").trim();
-  if(!woKey || !srmDashTableExpand) return;
-  if(srmDashHiddenWoIds.has(woKey)) srmDashHiddenWoIds.delete(woKey);
-  else srmDashHiddenWoIds.add(woKey);
-  renderSrmDashboardTab();
+  if(!woKey) return;
+  const row = findSrmTicketByWoKey(woKey);
+  const wo = String(row?.work_order_id || "").trim();
+  if(!wo){
+    toast("ไม่พบ Work Order ID — ไม่สามารถบันทึกได้");
+    return;
+  }
+  const nextHidden = !isSrmDashHidden(row);
+  applySrmTicketFieldLocal(woKey, "dash_hidden", nextHidden);
+  applySrmTicketFieldLocal(wo, "dash_hidden", nextHidden);
+  if(srmSubTab === "dashboard") renderSrmDashboardTab();
+  else if(srmSubTab === "freetext") renderSrmFreeTextTab();
+  const ok = await updateSrmTicketField(wo, "dash_hidden", nextHidden, row);
+  if(!ok){
+    applySrmTicketFieldLocal(woKey, "dash_hidden", !nextHidden);
+    applySrmTicketFieldLocal(wo, "dash_hidden", !nextHidden);
+    if(srmSubTab === "dashboard") renderSrmDashboardTab();
+    else if(srmSubTab === "freetext") renderSrmFreeTextTab();
+    return;
+  }
   requestAnimationFrame(()=>{
-    document.querySelector(".srm-dash-detail")?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    if(srmSubTab === "dashboard" && srmDashTableExpand){
+      document.querySelector(".srm-dash-detail")?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    }else if(srmSubTab === "freetext"){
+      document.getElementById("srmFtHiddenBlock")?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    }
   });
 }
 function getSrmDashTableExpandRows(){
@@ -3198,10 +3251,8 @@ function getSrmDashTableExpandRows(){
 function toggleSrmDashTableRow(slot, label){
   if(srmDashTableExpand && srmDashTableExpand.slot === slot && srmDashTableExpand.label === label){
     srmDashTableExpand = null;
-    srmDashHiddenWoIds = new Set();
   }else{
     srmDashTableExpand = { slot, label };
-    srmDashHiddenWoIds = new Set();
   }
   renderSrmDashboardTab();
   if(srmDashTableExpand){
@@ -3214,11 +3265,10 @@ function renderSrmDashTableDetailPanel(){
   if(!srmDashTableExpand) return "";
   const groups = getSrmDashTableExpandSiteGroups();
   const title = `Dropdown ${srmDashTableExpand.slot}: ${srmDashTableExpand.label}`;
-  const visibleCount = groups.reduce((a,g)=> a + g.visible.length, 0);
   const totalCount = groups.reduce((a,g)=> a + g.total, 0);
   if(!totalCount) return `<div class="srm-dash-detail"><div class="srm-ft-expand-head">${esc(title)}</div><div class="empty-hint">ไม่มี ticket</div></div>`;
   return `<div class="srm-dash-detail">
-    <div class="srm-ft-expand-head">${esc(title)} · ${visibleCount} / ${totalCount} TT แสดง · ${groups.length} Site</div>
+    <div class="srm-ft-expand-head">${esc(title)} · ${totalCount} TT · ${groups.length} Site</div>
     <div class="srm-dash-site-groups">${groups.map(renderSrmDashSiteGroupBlock).join("")}</div>
   </div>`;
 }
@@ -3236,10 +3286,11 @@ function getSrmDashExpandRows(){
   if(!srmDashExpand) return { title:"", rows:[] };
   if(srmDashExpand.type === "sev"){
     const key = srmDashExpand.key;
-    const tickets = (srmMonthTickets.length ? srmMonthTickets : getSrmMonthTickets()).filter(r=>{
+    const tickets = filterSrmDashVisibleTickets(
+      (srmMonthTickets.length ? srmMonthTickets : getSrmMonthTickets()).filter(r=>{
       const fam = ((r.severity||"").split("-")[0]||"").toUpperCase();
       return fam === key;
-    });
+    }));
     return {
       title: `${key} · ${tickets.length} TT`,
       rows: tickets.sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")))
@@ -3367,25 +3418,58 @@ function onSrmDashboardClick(e){
     toggleSrmDashTableRow(row.getAttribute("data-srm-dash-slot"), row.getAttribute("data-srm-dash-label") || "");
   }
 }
-async function updateSrmTicketField(workOrderId, field, value){
-  const wo = String(workOrderId||"").trim();
-  if(!wo || !field || !SRM_EDITABLE_FIELDS.has(field)) return;
-  value = String(value ?? "");
-  try{
-    const res = await fetch(SRM_REST + `?work_order_id=eq.${encodeURIComponent(wo)}`, {
+async function patchSrmTicketRecord(row, field, payloadValue){
+  const wo = String(row?.work_order_id || "").trim();
+  const tt = String(row?.source_ticket_id || row?.sdm_tt || "").trim();
+  const id = String(row?.id || "").trim();
+  const filters = [];
+  if(wo) filters.push(`work_order_id=eq.${encodeURIComponent(wo)}`);
+  if(tt) filters.push(`source_ticket_id=eq.${encodeURIComponent(tt)}`);
+  if(id) filters.push(`id=eq.${encodeURIComponent(id)}`);
+  if(!filters.length) return null;
+  let lastErr = "";
+  for(const filter of filters){
+    const res = await fetch(SRM_REST + `?${filter}`, {
       method:"PATCH",
       headers:HEADERS,
-      body:JSON.stringify({ [field]: value, updated_at: new Date().toISOString() })
+      body:JSON.stringify({ [field]: payloadValue, updated_at: new Date().toISOString() })
     });
-    if(!res.ok) throw new Error(await res.text());
-    [srmTickets, srmMonthTickets].forEach(list=>{
-      const row = (list||[]).find(r=> String(r.work_order_id||"").trim() === wo);
-      if(row) row[field] = value;
-    });
-    toast("บันทึก PEA Working แล้ว");
+    if(!res.ok){
+      lastErr = await res.text();
+      continue;
+    }
+    const data = await res.json().catch(()=>[]);
+    if(Array.isArray(data) && data.length) return data[0];
+  }
+  throw new Error(lastErr || "No rows updated");
+}
+async function updateSrmTicketField(workOrderId, field, value, sourceRow){
+  const wo = String(workOrderId||"").trim();
+  if(!wo || !field || !SRM_EDITABLE_FIELDS.has(field)) return false;
+  let payloadValue;
+  if(field === "dash_hidden"){
+    payloadValue = value === true || value === "true" || value === 1 || value === "1";
+  }else{
+    payloadValue = String(value ?? "");
+  }
+  const row = sourceRow || findSrmTicketByWoKey(wo);
+  try{
+    const saved = await patchSrmTicketRecord(row || { work_order_id: wo }, field, payloadValue);
+    if(saved){
+      applySrmTicketFieldLocal(wo, field, saved[field]);
+      const savedKey = getSrmDashRowWoKey(saved);
+      if(savedKey && savedKey !== wo) applySrmTicketFieldLocal(savedKey, field, saved[field]);
+    }else{
+      applySrmTicketFieldLocal(wo, field, payloadValue);
+    }
+    if(field === "dash_hidden") toast(payloadValue ? "ซ่อน TT แล้ว (ทุกคนเห็นเหมือนกัน)" : "แสดง TT แล้ว");
+    else toast("บันทึก PEA Working แล้ว");
+    return true;
   }catch(e){
     console.error(e);
-    toast("บันทึกไม่สำเร็จ — ตรวจสอบว่ารัน migration pea_working ใน Database แล้ว");
+    if(field === "dash_hidden") toast("บันทึกไม่สำเร็จ — ตรวจสอบว่ารัน migration dash_hidden ใน Database แล้ว");
+    else toast("บันทึกไม่สำเร็จ — ตรวจสอบว่ารัน migration pea_working ใน Database แล้ว");
+    return false;
   }
 }
 function updateSrmFieldFromEl(el, field){
@@ -3473,6 +3557,7 @@ function renderSrmFreeTextTab(){
     grid.innerHTML = "";
     wrap.innerHTML = `<div class="empty-hint" style="padding:24px;">โหลด Database ไม่สำเร็จ — กรุณา Refresh หน้า</div>`;
     if(countEl) countEl.textContent = "0";
+    renderSrmFtHiddenSection();
     return;
   }
   grid.innerHTML = SRM_FT_SLOTS.map(slot=>{
@@ -3496,6 +3581,7 @@ function renderSrmFreeTextTab(){
 
   if(!siteRows.length){
     wrap.innerHTML = `<div class="empty-hint" style="padding:24px;">ไม่มี Site ตรงเงื่อนไข</div>`;
+    renderSrmFtHiddenSection();
     return;
   }
 
@@ -3505,15 +3591,29 @@ function renderSrmFreeTextTab(){
     <th>NSA</th>
     ${SRM_FT_SLOTS.map(s=>`<th>${s}</th>`).join("")}
   </tr></thead><tbody>${siteRows.map(row=>renderSrmFtTableRowHtml(row)).join("")}</tbody></table>`;
+  renderSrmFtHiddenSection();
+}
+function renderSrmFtHiddenSection(){
+  const wrap = document.getElementById("srmFtHiddenWrap");
+  const countEl = document.getElementById("srmFtHiddenCount");
+  if(!wrap) return;
+  const hidden = getSrmDashHiddenTickets();
+  if(countEl) countEl.textContent = String(hidden.length);
+  if(!hidden.length){
+    wrap.innerHTML = `<div class="empty-hint" style="padding:20px;">ไม่มี TT ที่ซ่อนอยู่</div>`;
+    return;
+  }
+  wrap.innerHTML = renderSrmFtTicketTableHtml(hidden, { showHideControl:true, unhideMode:true });
 }
 function getSrmFtExpandRows(site, sevKind){
   site = String(site||"").trim().toUpperCase();
   const entry = srmFtSiteIndex[site];
   if(!entry) return [];
-  if(sevKind === "sa") return entry.saRows.slice();
-  if(sevKind === "nsa") return entry.nsaRows.slice();
-  if(sevKind === "all") return entry.saRows.concat(entry.nsaRows);
-  return [];
+  let rows = [];
+  if(sevKind === "sa") rows = entry.saRows.slice();
+  else if(sevKind === "nsa") rows = entry.nsaRows.slice();
+  else if(sevKind === "all") rows = entry.saRows.concat(entry.nsaRows);
+  return rows.filter(r=> !isSrmDashHidden(r));
 }
 function getSrmFtExpandLabel(sevKind){
   if(sevKind === "sa") return "SA";
@@ -3622,8 +3722,8 @@ function renderSrmFtTicketTableHtml(rows, opts){
     const c = classifyFaultTicket(r);
     const wo = r.work_order_id || "";
     const woAttr = esc(wo);
-    const woKey = esc(getSrmDashRowWoKey(r));
-    const hideTd = opts.showHideControl ? `<td class="srm-dash-hide-cell"><button type="button" class="${opts.unhideMode ? "srm-dash-tt-unhide-btn" : "srm-dash-tt-hide-btn"}" data-srm-dash-hide-wo="${woKey}" title="${opts.unhideMode ? "แสดง TT" : "ซ่อน TT"}">${opts.unhideMode ? "+" : "−"}</button></td>` : "";
+    const woKey = getSrmDashRowWoKey(r);
+    const hideTd = opts.showHideControl ? `<td class="srm-dash-hide-cell"><button type="button" class="${opts.unhideMode ? "srm-dash-tt-unhide-btn" : "srm-dash-tt-hide-btn"}" data-srm-dash-hide-wo="${esc(woKey)}" title="${opts.unhideMode ? "แสดง TT" : "ซ่อน TT"}">${opts.unhideMode ? "+" : "−"}</button></td>` : "";
     const peaTd = opts.showPeaWorking ? `<td class="srm-pea-working-cell"><textarea class="srm-pea-working-ta" rows="2" data-wo-id="${woAttr}" data-srm-last-saved="${esc(r.pea_working||"")}" placeholder="PEA Working…" onchange="updateSrmFieldFromEl(this,'pea_working')" onblur="updateSrmFieldFromEl(this,'pea_working')">${esc(r.pea_working||"")}</textarea></td>` : "";
     return `<tr>
       ${hideTd}
@@ -3661,6 +3761,13 @@ function toggleSrmFtExpand(site, sevKind){
 }
 function onSrmFtPanelClick(e){
   if(e.target.closest("select")) return;
+  const hideBtn = e.target.closest("[data-srm-dash-hide-wo]");
+  if(hideBtn){
+    e.stopPropagation();
+    e.preventDefault();
+    toggleSrmDashHideWo(hideBtn.getAttribute("data-srm-dash-hide-wo"));
+    return;
+  }
   const countEl = e.target.closest(".srm-ft-count[data-site][data-sev]");
   if(countEl && !countEl.classList.contains("zero")){
     e.stopPropagation();
@@ -3724,7 +3831,7 @@ function closeSrmFtManageModal(){
 function renderSrmFtManageList(){
   const title = document.getElementById("srmFtManageTitle");
   const body = document.getElementById("srmFtManageBody");
-  if(title) title.textContent = `จัดการ Free Text ${srmFtManageSlot}`;
+  if(title) title.textContent = `จัดการ Detail ${srmFtManageSlot}`;
   if(!body) return;
   const list = (SRM_FREE_TEXT_OPTS[srmFtManageSlot] || []).slice();
   if(!list.length){
@@ -3757,7 +3864,7 @@ async function addSrmFtFromInput(){
     if(input) input.value = "";
     renderSrmFtManageList();
     renderSrmFreeTextTab();
-    toast(`เพิ่ม Free Text ${slot} แล้ว`);
+    toast(`เพิ่มตัวเลือก Detail ${slot} แล้ว`);
   }catch(e){
     console.error(e);
     toast("เพิ่มไม่สำเร็จ");
@@ -3821,7 +3928,7 @@ async function deleteSrmFtRow(slot, id){
   const list = SRM_FREE_TEXT_OPTS[slot] || [];
   const row = list.find(o=> o.id === id);
   if(!row) return;
-  if(!confirm(`ลบ "${row.label}" จาก Free Text ${slot}?`)) return;
+  if(!confirm(`ลบ "${row.label}" จาก Detail ${slot}?`)) return;
   try{
     await clearSrmFtAssignmentsForLabel(slot, row.label);
     if(srmFreeTextFilters[slot] === row.label) srmFreeTextFilters[slot] = "";
@@ -6994,7 +7101,7 @@ const SRM_IMPORT_FIELDS = [
   "root_cause","sub_root_cause","close_description","complete_solution","subject","update_status","wo_creator",
   "pea_working"
 ];
-const SRM_EDITABLE_FIELDS = new Set(["pea_working"]);
+const SRM_EDITABLE_FIELDS = new Set(["pea_working", "dash_hidden"]);
 function mapSrmImportRow(r){
   const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
   const raw = mapFaultImportRow(r);
@@ -7152,7 +7259,7 @@ async function clearSiteRepeatMappingData(){
     toast(`ไม่มีข้อมูล SRM ในเดือน ${ctx.monthLabel}`);
     return;
   }
-  if(!confirm(`ล้างข้อมูล Site Repeat Mapping?\n\n· ลบ ${woIds.length} TT ในเดือน ${ctx.monthLabel} จาก Database (ตาราง srm_tickets)\n· ไม่กระทบหน้า Fault PLKD\n· Free Text (dropdown A–E) ไม่ถูกลบ`)) return;
+  if(!confirm(`ล้างข้อมูล Site Repeat Mapping?\n\n· ลบ ${woIds.length} TT ในเดือน ${ctx.monthLabel} จาก Database (ตาราง srm_tickets)\n· ไม่กระทบหน้า Fault PLKD\n· Detail (dropdown A–E) ไม่ถูกลบ`)) return;
   const statusEl = document.getElementById("statusMsgSrm");
   if(statusEl) statusEl.textContent = "กำลังล้าง…";
   const CHUNK = 40;
@@ -7403,7 +7510,7 @@ function toast(msg){
 <div class="modal-overlay" id="srmFtManageModal" onclick="if(event.target===this) closeSrmFtManageModal()">
   <div class="modal-box gp-manage-box">
     <div class="modal-head">
-      <h3 id="srmFtManageTitle">จัดการ Free Text</h3>
+      <h3 id="srmFtManageTitle">จัดการ Detail</h3>
       <button class="modal-close" onclick="closeSrmFtManageModal()">✕</button>
     </div>
     <div class="gp-manage-toolbar">
