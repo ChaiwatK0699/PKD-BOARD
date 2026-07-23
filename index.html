@@ -1133,6 +1133,7 @@ const FAULT_BUCKET_COLORS = {"1-2 Hrs.":"#2f9e44","2-6 Hrs.":"#e6b800","6-12 Hrs
 const FAULT_LTR_BUCKETS = ["1-2 Hrs.","2-6 Hrs.","6-12 Hrs.",">12 Hrs."];
 let faultTickets = [];
 let srmTickets = [];
+let faultPlkdFieldIndex = null;
 let faultSubTab = "overview";
 let faultRegionFilter = "";
 let faultControlDetail = null;
@@ -2005,7 +2006,10 @@ function switchSrmSubTab(tab){
   moveSrmSubTabIndicator();
   if(tab==="freetext"){
     if(!srmMonthTickets.length) buildSiteRepeatData();
-    reloadSrmFtAssignmentsFromDb().then(()=> renderSrmFreeTextTab()).catch(e=>{
+    Promise.all([
+      reloadSrmFtAssignmentsFromDb(),
+      ensureFaultPlkdFieldIndex()
+    ]).then(()=> renderSrmFreeTextTab()).catch(e=>{
       console.warn("reloadSrmFtAssignmentsFromDb failed:", e);
       renderSrmFreeTextTab();
     });
@@ -2438,15 +2442,64 @@ function renderSrmFtTableRowHtml(row){
   }
   return html;
 }
+function rebuildFaultPlkdFieldIndex(){
+  const byWo = new Map();
+  (faultTickets||[]).forEach(r=>{
+    const wo = String(r.work_order_id||"").trim();
+    if(!wo) return;
+    byWo.set(wo, {
+      group_problem_free_text: String(r.group_problem_free_text||"").trim(),
+      cause_over: String(r.cause_over||"").trim(),
+      long_time_reason: String(r.long_time_reason||"").trim(),
+      inoc_log: String(r.inoc_log||"").trim()
+    });
+  });
+  faultPlkdFieldIndex = byWo;
+}
+async function ensureFaultPlkdFieldIndex(){
+  if(faultPlkdFieldIndex) return;
+  if(faultTickets.length){
+    rebuildFaultPlkdFieldIndex();
+    return;
+  }
+  const rows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,group_problem_free_text,cause_over,long_time_reason,inoc_log");
+  const byWo = new Map();
+  rows.forEach(r=>{
+    const wo = String(r.work_order_id||"").trim();
+    if(!wo) return;
+    byWo.set(wo, {
+      group_problem_free_text: String(r.group_problem_free_text||"").trim(),
+      cause_over: String(r.cause_over||"").trim(),
+      long_time_reason: String(r.long_time_reason||"").trim(),
+      inoc_log: String(r.inoc_log||"").trim()
+    });
+  });
+  faultPlkdFieldIndex = byWo;
+}
+function mergeFaultPlkdFieldsForSrmDisplay(r){
+  if(!r) return r;
+  if(!faultPlkdFieldIndex) rebuildFaultPlkdFieldIndex();
+  const wo = String(r.work_order_id||"").trim();
+  if(!wo) return r;
+  const hit = faultPlkdFieldIndex.get(wo);
+  if(!hit) return r;
+  return {
+    ...r,
+    group_problem_free_text: r.group_problem_free_text || hit.group_problem_free_text || "",
+    cause_over: r.cause_over || hit.cause_over || "",
+    long_time_reason: r.long_time_reason || hit.long_time_reason || "",
+    inoc_log: r.inoc_log || hit.inoc_log || ""
+  };
+}
 function renderSrmFtTicketTableHtml(rows){
   return `<div class="table-scroll"><table class="srm-ft-ticket-table"><thead><tr>
     <th>Ticket ID</th><th>Subject</th><th>Create Time</th><th>Closed</th><th>Downtime</th>
-    <th>Closed Description</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>
-  </tr></thead><tbody>${rows.map(r=>{
+    <th>Closed Description</th><th>Group Problem</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>
+  </tr></thead><tbody>${rows.map(row=>{
+    const r = mergeFaultPlkdFieldsForSrmDisplay(row);
     const c = classifyFaultTicket(r);
     const tt = r.source_ticket_id || r.sdm_tt || "-";
     const wo = r.work_order_id || "";
-    const inoc = getFaultInocLogDisplay(r);
     return `<tr>
       <td class="tt-line">${esc(tt)}${wo && wo !== tt ? `<span class="ext">${esc(wo)}</span>` : ""}</td>
       <td class="subject-cell">${esc(extractFaultSubjectDetail(r) || r.subject || "")}</td>
@@ -2454,9 +2507,10 @@ function renderSrmFtTicketTableHtml(rows){
       <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
       <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
       <td class="subject-cell">${esc(r.close_description||"")}</td>
+      <td>${esc(r.group_problem_free_text||"")}</td>
       <td>${esc(r.cause_over||"")}</td>
       <td>${esc(r.long_time_reason||"")}</td>
-      <td class="subject-cell">${esc(inoc.text||"")}</td>
+      <td class="subject-cell">${esc(r.inoc_log||"")}</td>
     </tr>`;
   }).join("")}</tbody></table></div>`;
 }
@@ -5622,6 +5676,7 @@ function renderFault(){
 async function loadFaultTickets(showToast){
   try{
     faultTickets = await fetchAllFromRest(FAULT_REST + "?select=*&order=created_time.asc");
+    rebuildFaultPlkdFieldIndex();
     if(currentTab==="fault") renderFault();
     if(showToast) toast(`Fault data loaded (${faultTickets.length} rows)`);
     migrateLegacyFaultSkills().then(()=> migrateGroupProblemLabels()).then(()=>{
@@ -5653,6 +5708,7 @@ async function updateFaultField(workOrderId, field, value){
     method:"PATCH", headers:HEADERS,
     body: JSON.stringify({[field]: value, updated_at: new Date().toISOString()})
   });
+  if(field === "group_problem_free_text" || field === "cause_over" || field === "long_time_reason" || field === "inoc_log") rebuildFaultPlkdFieldIndex();
   toast("Saved");
   if(currentTab==="fault" && (faultSubTab==="control" || faultSubTab==="over-sla" || faultSubTab==="ltr-sla" || faultSubTab==="ltr" || faultSubTab==="overview")) renderFault();
 }
@@ -5925,6 +5981,7 @@ async function refreshSiteRepeatMapping(){
   try{
     srmTickets = await fetchAllFromRest(SRM_REST + "?select=*&order=created_time.asc");
     await fetchSrmFreeTextFromDb();
+    await ensureFaultPlkdFieldIndex();
     const ctx = getSrmMonthContext();
     const data = buildSiteRepeatData();
     renderSiteRepeatMapping();
