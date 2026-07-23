@@ -635,12 +635,14 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 }
 .srm-dash-a-card-label{font-weight:600; font-size:19px; line-height:1.45; word-break:break-word; color:var(--text);}
 .srm-dash-a-card-metrics{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.srm-dash-a-card-metrics-single{grid-template-columns:1fr;}
 .srm-dash-a-metric{
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
   border-radius:10px; padding:14px 10px; border:1px solid transparent;
 }
 .srm-dash-a-metric.sa{background:var(--blue-dim); border-color:var(--blue); color:var(--blue);}
 .srm-dash-a-metric.nsa{background:var(--coral-dim); border-color:var(--coral); color:var(--coral);}
+.srm-dash-a-metric.site{background:var(--violet-dim); border-color:var(--violet); color:var(--violet);}
 .srm-dash-a-metric.zero{opacity:.35;}
 .srm-dash-a-metric-lbl{font-family:'Barlow Condensed'; font-weight:700; font-size:15px; letter-spacing:.06em; text-transform:uppercase;}
 .srm-dash-a-metric-val{font-family:'JetBrains Mono'; font-weight:700; font-size:32px; line-height:1;}
@@ -3006,19 +3008,10 @@ function renderSrmDashEndDetail(){
 function renderSrmDashTicketDetail(){
   return renderSrmDashEndDetail();
 }
-function getSrmDashGroupSaNsa(group){
-  let sa = 0, nsa = 0;
-  (group.sites || []).forEach(st=>{
-    if(!st.entry) return;
-    sa += st.entry.saCount || 0;
-    nsa += st.entry.nsaCount || 0;
-  });
-  return { sa, nsa, total: sa + nsa };
-}
 function renderSrmDashSlotACards(){
   const groups = buildSrmFtSlotSummary("A")
     .filter(g=> g.sites.length > 0)
-    .sort((a,b)=> getSrmDashGroupSaNsa(b).total - getSrmDashGroupSaNsa(a).total || a.label.localeCompare(b.label, "th"));
+    .sort((a,b)=> b.sites.length - a.sites.length || a.label.localeCompare(b.label, "th"));
   if(!groups.length) return "";
   return `<div class="srm-dash-table-block srm-dash-slot-a">
     <div class="srm-dash-level-head">
@@ -3026,17 +3019,13 @@ function renderSrmDashSlotACards(){
       <span>Dropdown A</span>
     </div>
     <div class="srm-dash-a-card-grid">${groups.map(g=>{
-      const { sa, nsa } = getSrmDashGroupSaNsa(g);
+      const siteCount = g.sites.length;
       return `<div class="srm-dash-a-card">
         <div class="srm-dash-a-card-label">${esc(g.label)}</div>
-        <div class="srm-dash-a-card-metrics">
-          <div class="srm-dash-a-metric sa${sa ? "" : " zero"}">
-            <span class="srm-dash-a-metric-lbl">SA</span>
-            <span class="srm-dash-a-metric-val">${sa}</span>
-          </div>
-          <div class="srm-dash-a-metric nsa${nsa ? "" : " zero"}">
-            <span class="srm-dash-a-metric-lbl">NSA</span>
-            <span class="srm-dash-a-metric-val">${nsa}</span>
+        <div class="srm-dash-a-card-metrics srm-dash-a-card-metrics-single">
+          <div class="srm-dash-a-metric site${siteCount ? "" : " zero"}">
+            <span class="srm-dash-a-metric-lbl">Site</span>
+            <span class="srm-dash-a-metric-val">${siteCount}</span>
           </div>
         </div>
       </div>`;
