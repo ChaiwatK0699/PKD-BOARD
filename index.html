@@ -530,9 +530,21 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-heat-daytotal.srm-heat-clickable:hover{transform:scale(1.05); box-shadow:0 2px 10px var(--shadow-strong);}
 .srm-detail-kw{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
 .srm-detail-kw span{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.04em; text-transform:uppercase; padding:3px 8px; border-radius:6px;}
-.srm-ft-filter-hint{font-size:12px; color:var(--muted); margin-bottom:8px; line-height:1.45;}
-.srm-ft-toolbar{display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:10px;}
-.srm-ft-grid{display:grid; grid-template-columns:repeat(5, minmax(110px, 1fr)); gap:8px; margin-bottom:14px;}
+.srm-ft-filter-panel{
+  margin-bottom:18px; padding:14px 16px; background:var(--panel); border:1px solid var(--border);
+  border-radius:10px;
+}
+.srm-ft-filter-head{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
+.srm-ft-filter-title{
+  font-family:'Barlow Condensed'; font-weight:700; font-size:15px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--text); margin:0 0 4px;
+}
+.srm-ft-filter-hint{font-size:12px; color:var(--muted); margin:0; line-height:1.45; max-width:720px;}
+.srm-ft-toolbar{display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-shrink:0;}
+.srm-ft-grid{display:grid; grid-template-columns:repeat(5, minmax(120px, 1fr)); gap:10px;}
+.srm-ft-slot-label{display:block; margin-bottom:4px;}
+@media(max-width:900px){ .srm-ft-grid{grid-template-columns:repeat(2, minmax(120px, 1fr));} }
+@media(max-width:520px){ .srm-ft-grid{grid-template-columns:1fr;} }
 .srm-ft-slot{
   background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:8px 10px;
   display:flex; flex-direction:column; gap:6px;
@@ -1120,11 +1132,19 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       </div>
     </div>
     <div id="srmSubFreeText" style="display:none;">
-      <div class="srm-ft-filter-hint" id="srmFtHint">Dropdown A–E กรอง Site · คลิก Site / SA / NSA ยืดรายละเอียด TT ใต้แถว</div>
-      <div class="srm-ft-toolbar">
-        <button type="button" class="btn sm ghost" onclick="resetSrmFtDropdowns()">Reset Dropdown</button>
+      <div class="srm-ft-filter-panel">
+        <div class="srm-ft-filter-head">
+          <div>
+            <div class="srm-ft-filter-title">ตัวกรอง Detail A–E</div>
+            <p class="srm-ft-filter-hint" id="srmFtHint">เลือกค่าใน Dropdown A–E เพื่อกรอง Site · คลิก Site / SA / NSA ในตารางเพื่อยืดรายละเอียด TT ใต้แถว</p>
+          </div>
+          <div class="srm-ft-toolbar">
+            <button type="button" class="btn sm ghost" onclick="resetSrmFtDropdowns()">Reset ตัวกรอง</button>
+            <button type="button" class="btn green sm" onclick="exportSrmDetailExcel()">⭳ Export Excel</button>
+          </div>
+        </div>
+        <div class="srm-ft-grid" id="srmFtGrid"></div>
       </div>
-      <div class="srm-ft-grid" id="srmFtGrid"></div>
       <div class="srm-ft-sev-panel" id="srmFtSevPanel">
         <div class="srm-ft-sev-cards" id="srmFtSevCards"></div>
         <div class="fault-chart-card srm-ft-sev-chart-card">
@@ -2236,8 +2256,19 @@ function getSrmFtFilteredTickets(){
     return passesSrmFreeTextSiteFilters(site);
   });
 }
+function getSrmFtCountableTickets(){
+  // Same as getSrmFtFilteredTickets but ignores the "hide from dashboard" flag,
+  // so SA/NSA totals and the trend chart still count hidden tickets.
+  // Use getSrmFtFilteredTickets() instead when rendering a visible list/table/export.
+  if(!srmMonthTickets.length) buildSiteRepeatData();
+  return srmMonthTickets.filter(r=>{
+    const site = extractFaultPlkdSite(r);
+    if(!site || site === "-") return false;
+    return passesSrmFreeTextSiteFilters(site);
+  });
+}
 function buildSrmFtSeverityStats(){
-  const tickets = getSrmFtFilteredTickets();
+  const tickets = getSrmFtCountableTickets();
   const dayKeys = buildFaultDayLabelsFromRows(tickets);
   const labels = dayKeys.map(fmtFaultDayLabel);
   const saCounts = [];
@@ -3753,10 +3784,11 @@ function renderSrmFreeTextTab(){
     const slotClass = slot.toLowerCase();
     return `<div class="srm-ft-slot slot-${slotClass}">
       <div class="srm-ft-slot-head">
-        <div class="srm-ft-slot-letter">${slot}</div>
+        <div class="srm-ft-slot-letter" title="Dropdown ${slot}">${slot}</div>
         <button type="button" class="btn sm ghost srm-ft-manage-btn" onclick="openSrmFtManageModal('${slot}')">⚙ จัดการ</button>
       </div>
-      <select class="srm-ft-big-select" onchange="onSrmFtFilterChange('${slot}', this.value)">
+      <label class="flabel srm-ft-slot-label" for="srmFtFilter${slot}">Dropdown ${slot}</label>
+      <select class="srm-ft-big-select" id="srmFtFilter${slot}" onchange="onSrmFtFilterChange('${slot}', this.value)">
         <option value="">— ทั้งหมด —</option>
         ${labels.map(l=>`<option value="${esc(l)}" ${cur===l?"selected":""}>${esc(l)}</option>`).join("")}
       </select>
@@ -3777,7 +3809,7 @@ function renderSrmFreeTextTab(){
     <th>Site</th>
     <th>SA</th>
     <th>NSA</th>
-    ${SRM_FT_SLOTS.map(s=>`<th>${s}</th>`).join("")}
+    ${SRM_FT_SLOTS.map(s=>`<th title="Detail ${s}">Detail ${s}</th>`).join("")}
   </tr></thead><tbody>${siteRows.map(row=>renderSrmFtTableRowHtml(row)).join("")}</tbody></table>`;
   renderSrmFtHiddenSection();
 }
@@ -3898,35 +3930,50 @@ function renderSrmTicketIdCellHtml(r){
   const woHtml = wo && wo !== tt ? `<span class="tt-id-wo">${esc(wo)}</span>` : "";
   return `<td class="tt-line tt-line-stack"><span class="tt-id-top">${esc(tt)}</span>${woHtml}</td>`;
 }
+function renderSrmFtDetailAssignCellsHtml(r){
+  const site = extractFaultPlkdSite(r);
+  const assign = getSrmFtSiteAssign(site);
+  return SRM_FT_SLOTS.map(s=>`<td>${esc(assign[s]||"")}</td>`).join("");
+}
 function renderSrmFtTicketTableHtml(rows, opts){
   opts = opts || {};
-  const peaTh = opts.showPeaWorking ? `<th class="srm-pea-working-col">PEA Working</th>` : "";
+  const peaTh = opts.showPeaWorking !== false ? `<th class="srm-pea-working-col">PEA Working</th>` : "";
   const hideTh = opts.showHideControl ? `<th class="srm-dash-hide-col" title="${opts.unhideMode ? "แสดง" : "ซ่อน"}">${opts.unhideMode ? "+" : "−"}</th>` : "";
+  const detailTh = SRM_FT_SLOTS.map(s=>`<th>Detail ${s}</th>`).join("");
   return `<div class="table-scroll"><table class="srm-ft-ticket-table"><thead><tr>
-    ${hideTh}<th>Ticket ID</th><th>Subject</th><th>Severity</th><th>Create Time</th><th>Closed</th><th>Downtime</th>${peaTh}
-    <th>Closed Description</th><th>Group Problem</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>
+    ${hideTh}<th>Site</th><th>Ticket ID</th>${detailTh}<th>Subject</th><th>Severity</th><th>Region</th><th>WO Creator</th>
+    <th>Create Time</th><th>Depart</th><th>Arrive</th><th>Closed</th><th>Downtime</th><th>Root Cause</th>
+    <th>Closed Description</th><th>Group Problem</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>${peaTh}
   </tr></thead><tbody>${rows.map(row=>{
     const r = mergeFaultPlkdFieldsForSrmDisplay(row);
     const c = classifyFaultTicket(r);
+    const site = extractFaultPlkdSite(r);
     const wo = r.work_order_id || "";
     const woAttr = esc(wo);
     const woKey = getSrmDashRowWoKey(r);
     const hideTd = opts.showHideControl ? `<td class="srm-dash-hide-cell"><button type="button" class="${opts.unhideMode ? "srm-dash-tt-unhide-btn" : "srm-dash-tt-hide-btn"}" data-srm-dash-hide-wo="${esc(woKey)}" title="${opts.unhideMode ? "แสดง TT" : "ซ่อน TT"}">${opts.unhideMode ? "+" : "−"}</button></td>` : "";
-    const peaTd = opts.showPeaWorking ? `<td class="srm-pea-working-cell"><textarea class="srm-pea-working-ta" rows="2" data-wo-id="${woAttr}" data-srm-last-saved="${esc(r.pea_working||"")}" placeholder="PEA Working…" onchange="updateSrmFieldFromEl(this,'pea_working')" onblur="updateSrmFieldFromEl(this,'pea_working')">${esc(r.pea_working||"")}</textarea></td>` : "";
+    const peaTd = opts.showPeaWorking !== false ? `<td class="srm-pea-working-cell"><textarea class="srm-pea-working-ta" rows="2" data-wo-id="${woAttr}" data-srm-last-saved="${esc(r.pea_working||"")}" placeholder="PEA Working…" onchange="updateSrmFieldFromEl(this,'pea_working')" onblur="updateSrmFieldFromEl(this,'pea_working')">${esc(r.pea_working||"")}</textarea></td>` : "";
     return `<tr>
       ${hideTd}
+      <td class="site-plkd-cell">${esc(site||"")}</td>
       ${renderSrmTicketIdCellHtml(r)}
+      ${renderSrmFtDetailAssignCellsHtml(r)}
       <td class="subject-cell">${esc(extractFaultSubjectDetail(r) || r.subject || "")}</td>
       <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
+      <td>${esc(r.region||"")}</td>
+      <td>${esc(r.wo_creator||"")}</td>
       <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
+      <td class="dt-cell">${fmtFaultDT(r.departed_time)}</td>
+      <td class="dt-cell">${fmtFaultDT(r.arrived_time)}</td>
       <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
       <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
-      ${peaTd}
+      <td class="subject-cell">${esc(r.root_cause||"")}</td>
       <td class="subject-cell">${esc(r.close_description||"")}</td>
       <td>${esc(r.group_problem_free_text||"")}</td>
       <td>${esc(r.cause_over||"")}</td>
       <td>${esc(r.long_time_reason||"")}</td>
       <td class="subject-cell">${esc(r.inoc_log||"")}</td>
+      ${peaTd}
     </tr>`;
   }).join("")}</tbody></table></div>`;
 }
@@ -5144,6 +5191,7 @@ function isFaultBroadbandTicket(r){
   return isBroadbandRow(r);
 }
 function passesFaultPlkdFocus(r){
+  if(isSrmMaintenanceWo(r)) return false;
   if(!isFaultSaSeverity(r)) return false;
   if(isFaultBroadbandTicket(r)) return false;
   if(!isPlkdFaultTicket(r)) return false;
@@ -5215,17 +5263,56 @@ const FAULT_EXPORT_COLS = [
   {h:"Ticket ID", get:r=>{ const tt=r.source_ticket_id||r.sdm_tt||""; return r.work_order_id ? `${tt}\n${r.work_order_id}` : tt; }},
   {h:"Subject", get:r=>extractFaultSubjectDetail(r)},
   {h:"SEVERITY", get:r=>r.severity||""},
+  {h:"Region", get:r=>r.region||""},
+  {h:"Province", get:r=>r.province||""},
+  {h:"Team", get:r=>r.team||""},
+  {h:"Skill", get:r=>r.skill||""},
+  {h:"Status", get:r=>r.status||""},
+  {h:"Work Type", get:r=>r.work_type||""},
+  {h:"WO Creator", get:r=>r.wo_creator||""},
   {h:"Ticket Open", get:r=>fmtFaultRawDT(r.created_time)},
+  {h:"Require Finish", get:r=>fmtFaultRawDT(r.require_finish_time)},
   {h:"Depart", get:r=>fmtFaultRawDT(r.departed_time)},
   {h:"Arrive", get:r=>fmtFaultRawDT(r.arrived_time)},
+  {h:"Completed", get:r=>fmtFaultRawDT(r.completed_time)},
   {h:"Close", get:r=>fmtFaultRawDT(r.closed_time)},
   {h:"Downtime", get:r=>{ const c=r._fault||classifyFaultTicket(r); return c.downtimeMinutes!=null?fmtHMText(c.downtimeMinutes):""; }},
+  {h:"Root Cause", get:r=>r.root_cause||""},
   {h:"Close Description", get:r=>r.close_description||""},
+  {h:"Complete Solution", get:r=>r.complete_solution||""},
   {h:"INOC log", get:r=>getFaultInocLogDisplay(r).text},
   {h:"In or Out Control", get:r=>r.control_status||""},
   {h:"Group Problem", get:r=>resolveFaultSkillAndGp(r).group_problem_free_text},
   {h:"Cause Over", get:r=>r.cause_over||""},
   {h:"Long time Reason", get:r=>r.long_time_reason||""}
+];
+const SRM_DETAIL_EXPORT_COLS = [
+  {h:"Site", get:r=>extractFaultPlkdSite(r)},
+  ...SRM_FT_SLOTS.map(slot=>({
+    h:`Detail ${slot}`,
+    get:r=>{
+      const site = extractFaultPlkdSite(r);
+      return site ? (getSrmFtSiteAssign(site)[slot] || "") : "";
+    }
+  })),
+  {h:"Ticket ID", get:r=>r.source_ticket_id||r.sdm_tt||""},
+  {h:"Work Order ID", get:r=>r.work_order_id||""},
+  {h:"Subject", get:r=>extractFaultSubjectDetail(r) || r.subject || ""},
+  {h:"Severity", get:r=>r.severity||""},
+  {h:"Region", get:r=>r.region||""},
+  {h:"WO Creator", get:r=>r.wo_creator||""},
+  {h:"Create Time", get:r=>fmtFaultRawDT(r.created_time)},
+  {h:"Depart", get:r=>fmtFaultRawDT(r.departed_time)},
+  {h:"Arrive", get:r=>fmtFaultRawDT(r.arrived_time)},
+  {h:"Closed", get:r=>fmtFaultRawDT(r.closed_time)},
+  {h:"Downtime", get:r=>{ const c=classifyFaultTicket(r); return c.downtimeMinutes!=null?fmtHMText(c.downtimeMinutes):""; }},
+  {h:"Root Cause", get:r=>r.root_cause||""},
+  {h:"Close Description", get:r=>r.close_description||""},
+  {h:"Group Problem", get:r=>r.group_problem_free_text||""},
+  {h:"Cause Over", get:r=>r.cause_over||""},
+  {h:"Long time Reason", get:r=>r.long_time_reason||""},
+  {h:"INOC Log", get:r=>r.inoc_log||""},
+  {h:"PEA Working", get:r=>r.pea_working||""}
 ];
 function fmtFaultDowntime(mins){
   if(mins === null || mins === undefined) return '<span class="muted-dash">—</span>';
@@ -7603,6 +7690,27 @@ function exportFaultExcel(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Fault PLKD");
   XLSX.writeFile(wb, `PLKD-FaultPLKD-${dateVal}.xlsx`);
+}
+async function exportSrmDetailExcel(){
+  await ensureFaultPlkdFieldIndex();
+  const rows = getSrmFtFilteredTickets()
+    .map(mergeFaultPlkdFieldsForSrmDisplay)
+    .sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")) || String(extractFaultPlkdSite(a)).localeCompare(String(extractFaultPlkdSite(b))));
+  if(!rows.length){ toast("No rows to export"); return; }
+  const dateVal = document.getElementById("boardDate").value;
+  const cols = SRM_DETAIL_EXPORT_COLS;
+  const data = rows.map(r=>{ const obj={}; cols.forEach(c=>{ obj[c.h]=c.get(r); }); return obj; });
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws["!cols"] = cols.map(c=>({ wch: Math.max(14, Math.min(36, c.h.length+2)) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "SRM Detail");
+  const filterParts = SRM_FT_SLOTS.map(s=>{
+    const v = srmFreeTextFilters[s];
+    return v ? `${s}=${v}` : null;
+  }).filter(Boolean);
+  const filterLabel = filterParts.length ? filterParts.join("_").replace(/[\\/?*[\]:]/g, "-").slice(0, 40) : "All";
+  XLSX.writeFile(wb, `PLKD-SRM-Detail-${dateVal}-${filterLabel}.xlsx`);
+  toast(`Exported ${rows.length} row(s)`);
 }
 
 function esc(s){ return String(s==null?"":s).replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
