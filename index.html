@@ -632,6 +632,15 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-ofcnode-group-badge.other{background:rgba(173,181,189,.2); color:#868e96;}
 .srm-ofcnode-rc-count{font-family:'JetBrains Mono', monospace; font-weight:700;}
 .srm-ofcnode-expand-row td{padding:0; border-bottom:1px solid var(--border-soft);}
+.srm-ft-ofcnode-filter{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 10px;}
+.srm-ft-ofcnode-filter .flabel{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-family:'Barlow Condensed'; font-weight:600;}
+.srm-ft-ofcnode-seg{display:flex; gap:4px; background:var(--panel-2); padding:4px; border-radius:8px; border:1px solid var(--border);}
+.srm-ft-ofcnode-btn{font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.06em; text-transform:uppercase; font-size:14px;
+  padding:7px 16px; border:none; border-radius:6px; cursor:pointer; background:transparent; color:var(--muted); transition:background .15s, color .15s, box-shadow .15s;}
+.srm-ft-ofcnode-btn:hover{color:var(--text);}
+.srm-ft-ofcnode-btn.ofc.active{background:var(--amber-dim); color:var(--amber); box-shadow:inset 0 0 0 1px var(--amber);}
+.srm-ft-ofcnode-btn.node.active{background:var(--blue-dim); color:var(--blue); box-shadow:inset 0 0 0 1px var(--blue);}
+.srm-ft-ofcnode-btn .seg-count{font-family:'JetBrains Mono'; font-size:12px; font-weight:700; margin-left:6px; opacity:.85;}
 .srm-ft-ticket-table{width:100%; border-collapse:collapse; font-size:13px;}
 .srm-ft-date-group-row td{background:var(--bg-soft, rgba(127,127,127,.08)); font-family:'Barlow Condensed'; font-weight:700; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--accent, #4f8ef7); padding:7px 10px; border-bottom:1px solid var(--border); border-top:1px solid var(--border);}
 .srm-ft-ticket-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:left;}
@@ -1172,6 +1181,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         </div>
         <div class="fault-chart-card srm-ft-sev-chart-card">
           <div class="fault-chart-title">Trend OFC / NODE · วิเคราะห์จาก Root Cause</div>
+          <div class="srm-ft-ofcnode-filter" id="srmFtOfcNodeFilter"></div>
           <div class="fault-legend" id="srmFtOfcNodeLegend"></div>
           <div class="fault-chart-wrap"><canvas id="srmFtOfcNodeChart"></canvas></div>
           <div class="srm-ft-ofcnode-detail-title" id="srmFtOfcNodeDetailToggle" role="button" tabindex="0" onclick="toggleSrmOfcNodeDetailCollapse()">
@@ -1498,6 +1508,7 @@ let srmFtManageSlot = "A";
 let srmFtSiteIndex = {};
 let srmFtExpand = null;
 let srmFtSevChartInst = null;
+let srmOfcNodeTrendGroup = "OFC";
 let srmDashExpand = null;
 let srmDashSevFilter = null;
 let srmDashFtFilter = null;
@@ -2323,32 +2334,63 @@ function classifySrmRootCauseGroup(r){
   if(/\bRAN\b|NodeB|gNodeB|eNodeB|\bBTS\b|FEMTO|IPRAN|Transmission|Power System|ระบบไฟฟ้า|Site Facility/i.test(rc)) return "NODE";
   return "OTHER";
 }
-function buildSrmOfcNodeStats(){
+function getSrmOfcNodeGroupTotals(){
   const tickets = getSrmFtCountableTickets();
+  let ofcTotal = 0, nodeTotal = 0;
+  tickets.forEach(r=>{
+    const g = classifySrmRootCauseGroup(r);
+    if(g === "OFC") ofcTotal++;
+    else if(g === "NODE") nodeTotal++;
+  });
+  return { ofcTotal, nodeTotal };
+}
+function buildSrmOfcNodeStats(group){
+  const gFilter = group || srmOfcNodeTrendGroup;
+  const tickets = getSrmFtCountableTickets().filter(r=> classifySrmRootCauseGroup(r) === gFilter);
   const dayKeys = buildFaultDayLabelsFromRows(tickets);
   const labels = dayKeys.map(fmtFaultDayLabel);
-  const ofcCounts = [];
-  const nodeCounts = [];
-  const otherCounts = [];
+  const saCounts = [];
+  const nsaCounts = [];
   const totals = [];
   dayKeys.forEach(day=>{
     const dayRows = tickets.filter(r=> r.closed_time && String(r.closed_time).slice(0,10) === day);
-    let ofc = 0, node = 0, other = 0;
+    let sa = 0, nsa = 0;
     dayRows.forEach(r=>{
-      const g = classifySrmRootCauseGroup(r);
-      if(g === "OFC") ofc++;
-      else if(g === "NODE") node++;
-      else other++;
+      if(isFaultSaSeverity(r)) sa++;
+      else if(isFaultNsaSrmSeverity(r)) nsa++;
     });
-    ofcCounts.push(ofc);
-    nodeCounts.push(node);
-    otherCounts.push(other);
-    totals.push(ofc + node + other);
+    saCounts.push(sa);
+    nsaCounts.push(nsa);
+    totals.push(sa + nsa);
   });
-  const ofcTotal = ofcCounts.reduce((a,n)=> a + n, 0);
-  const nodeTotal = nodeCounts.reduce((a,n)=> a + n, 0);
-  const otherTotal = otherCounts.reduce((a,n)=> a + n, 0);
-  return { labels, dayKeys, ofcCounts, nodeCounts, otherCounts, totals, ofcTotal, nodeTotal, otherTotal };
+  const saTotal = saCounts.reduce((a,n)=> a + n, 0);
+  const nsaTotal = nsaCounts.reduce((a,n)=> a + n, 0);
+  return { labels, dayKeys, saCounts, nsaCounts, totals, saTotal, nsaTotal, group: gFilter };
+}
+function setSrmOfcNodeTrendGroup(group){
+  if(group !== "OFC" && group !== "NODE") return;
+  if(srmOfcNodeTrendGroup === group) return;
+  srmOfcNodeTrendGroup = group;
+  srmOfcNodeExpandRc = null;
+  refreshSrmOfcNodeTrendPanel();
+}
+function renderSrmFtOfcNodeFilterButtons(){
+  const el = document.getElementById("srmFtOfcNodeFilter");
+  if(!el) return;
+  const { ofcTotal, nodeTotal } = getSrmOfcNodeGroupTotals();
+  const g = srmOfcNodeTrendGroup;
+  el.innerHTML = `
+    <span class="flabel">กลุ่ม Root Cause</span>
+    <div class="srm-ft-ofcnode-seg">
+      <button type="button" class="srm-ft-ofcnode-btn ofc ${g === "OFC" ? "active" : ""}" onclick="setSrmOfcNodeTrendGroup('OFC')">OFC<span class="seg-count">${ofcTotal}</span></button>
+      <button type="button" class="srm-ft-ofcnode-btn node ${g === "NODE" ? "active" : ""}" onclick="setSrmOfcNodeTrendGroup('NODE')">NODE<span class="seg-count">${nodeTotal}</span></button>
+    </div>`;
+}
+function refreshSrmOfcNodeTrendPanel(){
+  renderSrmFtOfcNodeFilterButtons();
+  const stats = buildSrmOfcNodeStats();
+  renderSrmFtOfcNodeChart(stats);
+  renderSrmFtOfcNodeDetailTable(buildSrmOfcNodeRootCauseDetail());
 }
 let srmFtOfcNodeChartInst = null;
 function destroySrmFtOfcNodeChart(){
@@ -2360,16 +2402,15 @@ function renderSrmFtOfcNodeChart(stats){
   const chartWrap = canvas?.closest(".fault-chart-wrap");
   if(!canvas || typeof Chart === "undefined") return;
   destroySrmFtOfcNodeChart();
-  const ofcColor = "#e8590c";
-  const nodeColor = "#1c7ed6";
-  const otherColor = "#adb5bd";
+  const saColor = "#d94a35";
+  const nsaColor = "#2f9e44";
   const totalAll = stats.totals.reduce((a,n)=> a + n, 0);
+  const groupLabel = stats.group === "NODE" ? "NODE" : "OFC";
   if(legendEl){
     legendEl.innerHTML = `
-      <span><i style="background:${ofcColor}"></i>OFC · ${stats.ofcTotal} TT</span>
-      <span><i style="background:${nodeColor}"></i>NODE · ${stats.nodeTotal} TT</span>
-      <span><i style="background:${otherColor}"></i>Other · ${stats.otherTotal} TT</span>
-      <span><i style="background:#7c4fd6"></i>Total Ticket · <strong>${totalAll}</strong></span>`;
+      <span><i style="background:${saColor}"></i>SA · ${stats.saTotal} TT</span>
+      <span><i style="background:${nsaColor}"></i>NSA · ${stats.nsaTotal} TT</span>
+      <span><i style="background:#7c4fd6"></i>${groupLabel} · Total <strong>${totalAll}</strong> TT</span>`;
   }
   if(!stats.labels.length){
     if(chartWrap){
@@ -2399,9 +2440,8 @@ function renderSrmFtOfcNodeChart(stats){
     data:{
       labels:stats.labels,
       datasets:[
-        { label:"OFC", data:stats.ofcCounts, backgroundColor:ofcColor, stack:"tickets", yAxisID:"yCount", order:2 },
-        { label:"NODE", data:stats.nodeCounts, backgroundColor:nodeColor, stack:"tickets", yAxisID:"yCount", order:2 },
-        { label:"Other", data:stats.otherCounts, backgroundColor:otherColor, stack:"tickets", yAxisID:"yCount", order:2 },
+        { label:"SA", data:stats.saCounts, backgroundColor:saColor, stack:"tickets", yAxisID:"yCount", order:2 },
+        { label:"NSA", data:stats.nsaCounts, backgroundColor:nsaColor, stack:"tickets", yAxisID:"yCount", order:2 },
         {
           label:"Total Ticket",
           data:stats.totals,
@@ -2428,8 +2468,21 @@ function renderSrmFtOfcNodeChart(stats){
         tooltip:{ callbacks:{ label(ctx){ return ` ${ctx.dataset.label}: ${ctx.formattedValue} TT`; } } }
       },
       scales:{
-        x:{ stacked:true, ticks:{color:textColor}, grid:{color:gridColor} },
-        yCount:{ stacked:true, min:0, max:countMax, ticks:{stepSize:countStep, color:textColor}, grid:{color:gridColor}, title:{display:true, text:"จำนวน Ticket", color:textColor} }
+        x:{
+          stacked:true,
+          ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}},
+          grid:{color:gridColor}
+        },
+        yCount:{
+          stacked:true,
+          position:"left",
+          beginAtZero:true,
+          min:0,
+          max:countMax,
+          title:{display:true, text:"จำนวน Ticket", color:textColor, font:{size:13, weight:"bold"}},
+          ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}},
+          grid:{color:gridColor}
+        }
       }
     },
     plugins:[faultBarLabelPlugin]
@@ -2572,7 +2625,7 @@ function toggleSrmOfcNodeDetailCollapse(){
 }
 let srmOfcNodeExpandRc = null;
 function buildSrmOfcNodeRootCauseDetail(){
-  const tickets = getSrmFtCountableTickets();
+  const tickets = getSrmFtCountableTickets().filter(r=> classifySrmRootCauseGroup(r) === srmOfcNodeTrendGroup);
   const byRc = {};
   tickets.forEach(r=>{
     const rc = String(r?.root_cause || "").trim() || "(ไม่ระบุ Root Cause)";
@@ -2603,7 +2656,7 @@ function renderSrmFtOfcNodeDetailTable(detailRows){
   const groupBadge = g=> g === "OFC" ? `<span class="srm-ofcnode-group-badge ofc">OFC</span>`
     : g === "NODE" ? `<span class="srm-ofcnode-group-badge node">NODE</span>`
     : `<span class="srm-ofcnode-group-badge other">OTHER</span>`;
-  const tickets = getSrmFtCountableTickets();
+  const tickets = getSrmFtCountableTickets().filter(r=> classifySrmRootCauseGroup(r) === srmOfcNodeTrendGroup);
   wrap.innerHTML = `<table class="srm-ft-ofcnode-detail-table"><thead><tr>
       <th>Root Cause</th><th>กลุ่ม</th><th>จำนวน TT</th>
     </tr></thead><tbody>${detailRows.map(row=>{
@@ -2624,14 +2677,14 @@ function renderSrmFtSeverityPanel(){
     cards.innerHTML = "";
     destroySrmFtSevChart();
     destroySrmFtOfcNodeChart();
+    const ofcFilt = document.getElementById("srmFtOfcNodeFilter");
+    if(ofcFilt) ofcFilt.innerHTML = "";
     return;
   }
   const stats = buildSrmFtSeverityStats();
   renderSrmFtSeverityCards(stats);
   renderSrmFtSeverityChart(stats);
-  const ofcNodeStats = buildSrmOfcNodeStats();
-  renderSrmFtOfcNodeChart(ofcNodeStats);
-  renderSrmFtOfcNodeDetailTable(buildSrmOfcNodeRootCauseDetail());
+  refreshSrmOfcNodeTrendPanel();
 }
 function buildSrmFreeTextSiteRows(){
   const tickets = srmMonthTickets.length ? srmMonthTickets.slice() : getSrmMonthTickets();
