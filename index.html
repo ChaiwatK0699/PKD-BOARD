@@ -615,7 +615,25 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-ft-sev-card-lbl{font-family:'Barlow Condensed'; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase;}
 .srm-ft-sev-card-val{font-family:'JetBrains Mono'; font-weight:700; font-size:40px; line-height:1;}
 .srm-ft-sev-chart-card{margin-bottom:0;}
+.srm-ft-site-td{position:relative; padding-top:16px !important;}
+.srm-ft-new-badge{position:absolute; top:2px; left:2px; background:#e03131; color:#fff; font-family:'Barlow Condensed'; font-weight:700; font-size:9px; letter-spacing:.04em; line-height:1; padding:2px 5px; border-radius:4px 0 4px 0; box-shadow:0 1px 3px rgba(0,0,0,.25); z-index:1;}
+.srm-ft-ofcnode-detail-title{font-family:'Barlow Condensed'; font-weight:700; font-size:13px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin:16px 0 8px; cursor:pointer; display:flex; align-items:center; gap:6px; user-select:none;}
+.srm-ft-ofcnode-detail-chevron{display:inline-block; transition:transform .15s ease; font-size:11px;}
+.srm-ft-ofcnode-detail-chevron.collapsed{transform:rotate(-90deg);}
+.srm-ft-ofcnode-detail-wrap-collapsed{display:none;}
+.srm-ft-ofcnode-detail-table{width:100%; border-collapse:collapse; font-size:13px;}
+.srm-ft-ofcnode-detail-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:6px 10px; border-bottom:1px solid var(--border); text-align:left;}
+.srm-ft-ofcnode-detail-table tbody td{padding:6px 10px; border-bottom:1px solid var(--border-soft);}
+.srm-ft-ofcnode-detail-table tbody tr.srm-ofcnode-rc-row{cursor:pointer;}
+.srm-ft-ofcnode-detail-table tbody tr.srm-ofcnode-rc-row:hover{background:var(--bg-soft, rgba(127,127,127,.06));}
+.srm-ofcnode-group-badge{display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.03em;}
+.srm-ofcnode-group-badge.ofc{background:rgba(232,89,12,.15); color:#e8590c;}
+.srm-ofcnode-group-badge.node{background:rgba(28,126,214,.15); color:#1c7ed6;}
+.srm-ofcnode-group-badge.other{background:rgba(173,181,189,.2); color:#868e96;}
+.srm-ofcnode-rc-count{font-family:'JetBrains Mono', monospace; font-weight:700;}
+.srm-ofcnode-expand-row td{padding:0; border-bottom:1px solid var(--border-soft);}
 .srm-ft-ticket-table{width:100%; border-collapse:collapse; font-size:13px;}
+.srm-ft-date-group-row td{background:var(--bg-soft, rgba(127,127,127,.08)); font-family:'Barlow Condensed'; font-weight:700; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--accent, #4f8ef7); padding:7px 10px; border-bottom:1px solid var(--border); border-top:1px solid var(--border);}
 .srm-ft-ticket-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:left;}
 .srm-ft-ticket-table tbody td{padding:8px 10px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
 .srm-ft-ticket-table .subject-cell{max-width:220px;}
@@ -1151,6 +1169,15 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
           <div class="fault-chart-title">Severity Trend · SA / NSA ตามวันที่ปิด</div>
           <div class="fault-legend" id="srmFtSevLegend"></div>
           <div class="fault-chart-wrap"><canvas id="srmFtSevChart"></canvas></div>
+        </div>
+        <div class="fault-chart-card srm-ft-sev-chart-card">
+          <div class="fault-chart-title">Trend OFC / NODE · วิเคราะห์จาก Root Cause</div>
+          <div class="fault-legend" id="srmFtOfcNodeLegend"></div>
+          <div class="fault-chart-wrap"><canvas id="srmFtOfcNodeChart"></canvas></div>
+          <div class="srm-ft-ofcnode-detail-title" id="srmFtOfcNodeDetailToggle" role="button" tabindex="0" onclick="toggleSrmOfcNodeDetailCollapse()">
+            <span class="srm-ft-ofcnode-detail-chevron" id="srmFtOfcNodeDetailChevron">▾</span> Detail Root Cause
+          </div>
+          <div class="table-scroll" id="srmFtOfcNodeDetailWrap" onclick="onSrmFtOfcNodeDetailClick(event)"></div>
         </div>
       </div>
       <div class="srm-block">
@@ -2289,6 +2316,125 @@ function buildSrmFtSeverityStats(){
   const nsaTotal = nsaCounts.reduce((a,n)=> a + n, 0);
   return { labels, dayKeys, saCounts, nsaCounts, totals, saTotal, nsaTotal };
 }
+function classifySrmRootCauseGroup(r){
+  const rc = String(r?.root_cause || "").trim();
+  if(!rc) return "OTHER";
+  if(/fiber|ไฟเบอร์/i.test(rc)) return "OFC";
+  if(/\bRAN\b|NodeB|gNodeB|eNodeB|\bBTS\b|FEMTO|IPRAN|Transmission|Power System|ระบบไฟฟ้า|Site Facility/i.test(rc)) return "NODE";
+  return "OTHER";
+}
+function buildSrmOfcNodeStats(){
+  const tickets = getSrmFtCountableTickets();
+  const dayKeys = buildFaultDayLabelsFromRows(tickets);
+  const labels = dayKeys.map(fmtFaultDayLabel);
+  const ofcCounts = [];
+  const nodeCounts = [];
+  const otherCounts = [];
+  const totals = [];
+  dayKeys.forEach(day=>{
+    const dayRows = tickets.filter(r=> r.closed_time && String(r.closed_time).slice(0,10) === day);
+    let ofc = 0, node = 0, other = 0;
+    dayRows.forEach(r=>{
+      const g = classifySrmRootCauseGroup(r);
+      if(g === "OFC") ofc++;
+      else if(g === "NODE") node++;
+      else other++;
+    });
+    ofcCounts.push(ofc);
+    nodeCounts.push(node);
+    otherCounts.push(other);
+    totals.push(ofc + node + other);
+  });
+  const ofcTotal = ofcCounts.reduce((a,n)=> a + n, 0);
+  const nodeTotal = nodeCounts.reduce((a,n)=> a + n, 0);
+  const otherTotal = otherCounts.reduce((a,n)=> a + n, 0);
+  return { labels, dayKeys, ofcCounts, nodeCounts, otherCounts, totals, ofcTotal, nodeTotal, otherTotal };
+}
+let srmFtOfcNodeChartInst = null;
+function destroySrmFtOfcNodeChart(){
+  if(srmFtOfcNodeChartInst){ srmFtOfcNodeChartInst.destroy(); srmFtOfcNodeChartInst = null; }
+}
+function renderSrmFtOfcNodeChart(stats){
+  const canvas = document.getElementById("srmFtOfcNodeChart");
+  const legendEl = document.getElementById("srmFtOfcNodeLegend");
+  const chartWrap = canvas?.closest(".fault-chart-wrap");
+  if(!canvas || typeof Chart === "undefined") return;
+  destroySrmFtOfcNodeChart();
+  const ofcColor = "#e8590c";
+  const nodeColor = "#1c7ed6";
+  const otherColor = "#adb5bd";
+  const totalAll = stats.totals.reduce((a,n)=> a + n, 0);
+  if(legendEl){
+    legendEl.innerHTML = `
+      <span><i style="background:${ofcColor}"></i>OFC · ${stats.ofcTotal} TT</span>
+      <span><i style="background:${nodeColor}"></i>NODE · ${stats.nodeTotal} TT</span>
+      <span><i style="background:${otherColor}"></i>Other · ${stats.otherTotal} TT</span>
+      <span><i style="background:#7c4fd6"></i>Total Ticket · <strong>${totalAll}</strong></span>`;
+  }
+  if(!stats.labels.length){
+    if(chartWrap){
+      let emptyEl = chartWrap.querySelector(".srm-ft-ofcnode-chart-empty");
+      if(!emptyEl){
+        emptyEl = document.createElement("div");
+        emptyEl.className = "empty-hint srm-ft-ofcnode-chart-empty";
+        emptyEl.style.padding = "48px 16px";
+        chartWrap.appendChild(emptyEl);
+      }
+      emptyEl.textContent = "ไม่มี TT ตรงเงื่อนไข";
+      emptyEl.style.display = "block";
+    }
+    canvas.style.display = "none";
+    return;
+  }
+  if(chartWrap){
+    chartWrap.querySelector(".srm-ft-ofcnode-chart-empty")?.remove();
+  }
+  canvas.style.display = "block";
+  const countMax = faultCountAxisMax(stats.totals);
+  const countStep = faultCountAxisStep(countMax);
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  srmFtOfcNodeChartInst = new Chart(canvas, {
+    type:"bar",
+    data:{
+      labels:stats.labels,
+      datasets:[
+        { label:"OFC", data:stats.ofcCounts, backgroundColor:ofcColor, stack:"tickets", yAxisID:"yCount", order:2 },
+        { label:"NODE", data:stats.nodeCounts, backgroundColor:nodeColor, stack:"tickets", yAxisID:"yCount", order:2 },
+        { label:"Other", data:stats.otherCounts, backgroundColor:otherColor, stack:"tickets", yAxisID:"yCount", order:2 },
+        {
+          label:"Total Ticket",
+          data:stats.totals,
+          type:"line",
+          borderColor:"#7c4fd6",
+          backgroundColor:"transparent",
+          tension:.3,
+          pointRadius:5,
+          pointBackgroundColor:"#7c4fd6",
+          pointBorderColor:"#ffffff",
+          pointBorderWidth:2,
+          borderWidth:2.5,
+          yAxisID:"yCount",
+          order:1
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      layout:{padding:{top:44, bottom:8, right:8}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{ callbacks:{ label(ctx){ return ` ${ctx.dataset.label}: ${ctx.formattedValue} TT`; } } }
+      },
+      scales:{
+        x:{ stacked:true, ticks:{color:textColor}, grid:{color:gridColor} },
+        yCount:{ stacked:true, min:0, max:countMax, ticks:{stepSize:countStep, color:textColor}, grid:{color:gridColor}, title:{display:true, text:"จำนวน Ticket", color:textColor} }
+      }
+    },
+    plugins:[faultBarLabelPlugin]
+  });
+}
 function destroySrmFtSevChart(){
   if(srmFtSevChartInst){ srmFtSevChartInst.destroy(); srmFtSevChartInst = null; }
 }
@@ -2416,27 +2562,88 @@ function renderSrmFtSeverityChart(stats){
     plugins:[faultBarLabelPlugin]
   });
 }
+let srmOfcNodeDetailCollapsed = false;
+function toggleSrmOfcNodeDetailCollapse(){
+  srmOfcNodeDetailCollapsed = !srmOfcNodeDetailCollapsed;
+  const wrap = document.getElementById("srmFtOfcNodeDetailWrap");
+  const chevron = document.getElementById("srmFtOfcNodeDetailChevron");
+  wrap?.classList.toggle("srm-ft-ofcnode-detail-wrap-collapsed", srmOfcNodeDetailCollapsed);
+  chevron?.classList.toggle("collapsed", srmOfcNodeDetailCollapsed);
+}
+let srmOfcNodeExpandRc = null;
+function buildSrmOfcNodeRootCauseDetail(){
+  const tickets = getSrmFtCountableTickets();
+  const byRc = {};
+  tickets.forEach(r=>{
+    const rc = String(r?.root_cause || "").trim() || "(ไม่ระบุ Root Cause)";
+    const group = classifySrmRootCauseGroup(r);
+    if(!byRc[rc]) byRc[rc] = { rootCause: rc, group, count: 0 };
+    byRc[rc].count++;
+  });
+  return Object.values(byRc).sort((a,b)=> b.count - a.count || a.rootCause.localeCompare(b.rootCause));
+}
+function toggleSrmOfcNodeExpand(rc){
+  srmOfcNodeExpandRc = (srmOfcNodeExpandRc === rc) ? null : rc;
+  renderSrmFtOfcNodeDetailTable(buildSrmOfcNodeRootCauseDetail());
+}
+function onSrmFtOfcNodeDetailClick(e){
+  const row = e.target.closest(".srm-ofcnode-rc-row[data-rc]");
+  if(!row) return;
+  toggleSrmOfcNodeExpand(row.getAttribute("data-rc"));
+}
+function renderSrmFtOfcNodeDetailTable(detailRows){
+  const wrap = document.getElementById("srmFtOfcNodeDetailWrap");
+  if(!wrap) return;
+  wrap.classList.toggle("srm-ft-ofcnode-detail-wrap-collapsed", srmOfcNodeDetailCollapsed);
+  document.getElementById("srmFtOfcNodeDetailChevron")?.classList.toggle("collapsed", srmOfcNodeDetailCollapsed);
+  if(!detailRows.length){
+    wrap.innerHTML = `<div class="empty-hint" style="padding:16px;">ไม่มี TT ตรงเงื่อนไข</div>`;
+    return;
+  }
+  const groupBadge = g=> g === "OFC" ? `<span class="srm-ofcnode-group-badge ofc">OFC</span>`
+    : g === "NODE" ? `<span class="srm-ofcnode-group-badge node">NODE</span>`
+    : `<span class="srm-ofcnode-group-badge other">OTHER</span>`;
+  const tickets = getSrmFtCountableTickets();
+  wrap.innerHTML = `<table class="srm-ft-ofcnode-detail-table"><thead><tr>
+      <th>Root Cause</th><th>กลุ่ม</th><th>จำนวน TT</th>
+    </tr></thead><tbody>${detailRows.map(row=>{
+      const isOpen = srmOfcNodeExpandRc === row.rootCause;
+      const rcRows = isOpen ? tickets.filter(r=> (String(r?.root_cause||"").trim() || "(ไม่ระบุ Root Cause)") === row.rootCause) : [];
+      const expandHtml = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="3">${renderSrmFtTicketTableHtml(rcRows, { showPeaWorking:false })}</td></tr>` : "";
+      return `<tr class="srm-ofcnode-rc-row" data-rc="${esc(row.rootCause)}">
+        <td>${esc(row.rootCause)}</td>
+        <td>${groupBadge(row.group)}</td>
+        <td class="srm-ofcnode-rc-count">${row.count}</td>
+      </tr>${expandHtml}`;
+    }).join("")}</tbody></table>`;
+}
 function renderSrmFtSeverityPanel(){
   const cards = document.getElementById("srmFtSevCards");
   if(!cards) return;
   if(!srmFreeTextDbReady){
     cards.innerHTML = "";
     destroySrmFtSevChart();
+    destroySrmFtOfcNodeChart();
     return;
   }
   const stats = buildSrmFtSeverityStats();
   renderSrmFtSeverityCards(stats);
   renderSrmFtSeverityChart(stats);
+  const ofcNodeStats = buildSrmOfcNodeStats();
+  renderSrmFtOfcNodeChart(ofcNodeStats);
+  renderSrmFtOfcNodeDetailTable(buildSrmOfcNodeRootCauseDetail());
 }
 function buildSrmFreeTextSiteRows(){
   const tickets = srmMonthTickets.length ? srmMonthTickets.slice() : getSrmMonthTickets();
+  const latestCreatedAtDate = getLatestSrmCreatedAtDate();
   const bySite = {};
   tickets.forEach(r=>{
     const site = extractFaultPlkdSite(r);
     if(!site || site === "-") return;
-    if(!bySite[site]) bySite[site] = { site, saCount:0, nsaCount:0, saRows:[], nsaRows:[] };
+    if(!bySite[site]) bySite[site] = { site, saCount:0, nsaCount:0, saRows:[], nsaRows:[], hasNew:false };
     if(isFaultSaSeverity(r)){ bySite[site].saCount++; bySite[site].saRows.push(r); }
     else if(isFaultNsaSrmSeverity(r)){ bySite[site].nsaCount++; bySite[site].nsaRows.push(r); }
+    if(latestCreatedAtDate && String(r.created_at||"").slice(0,10) === latestCreatedAtDate) bySite[site].hasNew = true;
   });
   srmFtSiteIndex = bySite;
   return Object.values(bySite)
@@ -3852,7 +4059,7 @@ function renderSrmFtTableRowHtml(row){
   const saCls = row.saCount ? "srm-ft-count sa" : "srm-ft-count sa zero";
   const nsaCls = row.nsaCount ? "srm-ft-count nsa" : "srm-ft-count nsa zero";
   let html = `<tr class="srm-ft-row${isExpanded ? " expanded" : ""}" data-site="${esc(row.site)}">
-    <td><span class="srm-ft-site-link site-plkd-cell${expandAll ? " active" : ""}" data-site="${esc(row.site)}" role="button" tabindex="0" title="คลิกดู TT ทั้งหมดของ ${esc(row.site)}">${esc(row.site)}</span></td>
+    <td class="srm-ft-site-td">${row.hasNew ? `<span class="srm-ft-new-badge" title="มี TT ใหม่จากการอัปโหลดล่าสุด">NEW</span>` : ""}<span class="srm-ft-site-link site-plkd-cell${expandAll ? " active" : ""}" data-site="${esc(row.site)}" role="button" tabindex="0" title="คลิกดู TT ทั้งหมดของ ${esc(row.site)}">${esc(row.site)}</span></td>
     <td><span class="${saCls}${expandSa ? " active" : ""}" data-site="${esc(row.site)}" data-sev="sa" role="button" tabindex="0" title="คลิกยืด/ย่อ TT SA">${row.saCount || ""}</span></td>
     <td><span class="${nsaCls}${expandNsa ? " active" : ""}" data-site="${esc(row.site)}" data-sev="nsa" role="button" tabindex="0" title="คลิกยืด/ย่อ TT NSA">${row.nsaCount || ""}</span></td>
     ${SRM_FT_SLOTS.map(slot=>{
@@ -3935,27 +4142,56 @@ function renderSrmFtDetailAssignCellsHtml(r){
   const assign = getSrmFtSiteAssign(site);
   return SRM_FT_SLOTS.map(s=>`<td>${esc(assign[s]||"")}</td>`).join("");
 }
+function srmDateGroupLabel(dateStr, refDateStr){
+  if(!dateStr) return "ไม่ระบุวันที่";
+  const d = new Date(String(dateStr).slice(0,10)+"T00:00:00");
+  if(isNaN(d)) return "ไม่ระบุวันที่";
+  const dd = String(d.getDate()).padStart(2,"0");
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+function getLatestSrmCreatedAtDate(){
+  const tickets = srmMonthTickets.length ? srmMonthTickets : getSrmMonthTickets();
+  let latest = "";
+  tickets.forEach(r=>{
+    const d = String(r.created_at||"").slice(0,10);
+    if(d && d > latest) latest = d;
+  });
+  return latest;
+}
 function renderSrmFtTicketTableHtml(rows, opts){
   opts = opts || {};
   const peaTh = opts.showPeaWorking !== false ? `<th class="srm-pea-working-col">PEA Working</th>` : "";
   const hideTh = opts.showHideControl ? `<th class="srm-dash-hide-col" title="${opts.unhideMode ? "แสดง" : "ซ่อน"}">${opts.unhideMode ? "+" : "−"}</th>` : "";
   const detailTh = SRM_FT_SLOTS.map(s=>`<th>Detail ${s}</th>`).join("");
-  return `<div class="table-scroll"><table class="srm-ft-ticket-table"><thead><tr>
-    ${hideTh}<th>Site</th><th>Ticket ID</th>${detailTh}<th>Subject</th><th>Severity</th><th>Region</th><th>WO Creator</th>
-    <th>Create Time</th><th>Depart</th><th>Arrive</th><th>Closed</th><th>Downtime</th><th>Root Cause</th>
-    <th>Closed Description</th><th>Group Problem</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>${peaTh}
-  </tr></thead><tbody>${rows.map(row=>{
+  const colCount = (opts.showHideControl?1:0) + 1 + 1 + SRM_FT_SLOTS.length + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + (opts.showPeaWorking!==false?1:0);
+  const refDate = (document.getElementById("boardDate")||{}).value || new Date().toISOString().slice(0,10);
+  const sortedRows = opts.groupByDate === false ? rows : [...rows].sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")));
+  let lastGroup = null;
+  const latestCreatedAtDate = getLatestSrmCreatedAtDate();
+  const bodyHtml = sortedRows.map(row=>{
     const r = mergeFaultPlkdFieldsForSrmDisplay(row);
     const c = classifyFaultTicket(r);
     const site = extractFaultPlkdSite(r);
+    const isNewTt = latestCreatedAtDate && String(r.created_at||"").slice(0,10) === latestCreatedAtDate;
     const wo = r.work_order_id || "";
     const woAttr = esc(wo);
     const woKey = getSrmDashRowWoKey(r);
+    let groupRowHtml = "";
+    if(opts.groupByDate !== false){
+      const groupLabel = srmDateGroupLabel(r.closed_time, refDate);
+      if(groupLabel !== lastGroup){
+        lastGroup = groupLabel;
+        const groupCount = sortedRows.filter(x=> srmDateGroupLabel(x.closed_time, refDate) === groupLabel).length;
+        groupRowHtml = `<tr class="srm-ft-date-group-row"><td colspan="${colCount}">${esc(groupLabel)} (${groupCount})</td></tr>`;
+      }
+    }
     const hideTd = opts.showHideControl ? `<td class="srm-dash-hide-cell"><button type="button" class="${opts.unhideMode ? "srm-dash-tt-unhide-btn" : "srm-dash-tt-hide-btn"}" data-srm-dash-hide-wo="${esc(woKey)}" title="${opts.unhideMode ? "แสดง TT" : "ซ่อน TT"}">${opts.unhideMode ? "+" : "−"}</button></td>` : "";
     const peaTd = opts.showPeaWorking !== false ? `<td class="srm-pea-working-cell"><textarea class="srm-pea-working-ta" rows="2" data-wo-id="${woAttr}" data-srm-last-saved="${esc(r.pea_working||"")}" placeholder="PEA Working…" onchange="updateSrmFieldFromEl(this,'pea_working')" onblur="updateSrmFieldFromEl(this,'pea_working')">${esc(r.pea_working||"")}</textarea></td>` : "";
-    return `<tr>
+    return `${groupRowHtml}<tr>
       ${hideTd}
-      <td class="site-plkd-cell">${esc(site||"")}</td>
+      <td class="site-plkd-cell srm-ft-site-td">${isNewTt ? `<span class="srm-ft-new-badge" title="TT ใหม่จากการอัปโหลดล่าสุด">NEW</span>` : ""}${esc(site||"")}</td>
       ${renderSrmTicketIdCellHtml(r)}
       ${renderSrmFtDetailAssignCellsHtml(r)}
       <td class="subject-cell">${esc(extractFaultSubjectDetail(r) || r.subject || "")}</td>
@@ -3975,7 +4211,12 @@ function renderSrmFtTicketTableHtml(rows, opts){
       <td class="subject-cell">${esc(r.inoc_log||"")}</td>
       ${peaTd}
     </tr>`;
-  }).join("")}</tbody></table></div>`;
+  }).join("");
+  return `<div class="table-scroll"><table class="srm-ft-ticket-table"><thead><tr>
+    ${hideTh}<th>Site</th><th>Ticket ID</th>${detailTh}<th>Subject</th><th>Severity</th><th>Region</th><th>WO Creator</th>
+    <th>Create Time</th><th>Depart</th><th>Arrive</th><th>Closed</th><th>Downtime</th><th>Root Cause</th>
+    <th>Closed Description</th><th>Group Problem</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>${peaTh}
+  </tr></thead><tbody>${bodyHtml}</tbody></table></div>`;
 }
 function toggleSrmFtExpand(site, sevKind){
   site = String(site||"").trim().toUpperCase();
@@ -6472,7 +6713,7 @@ const faultBarLabelPlugin = {
     const chartId = chart.canvas?.id;
     const isLtr = chartId === "faultLtrSlaChart";
     const isOverview = chartId === "faultOverviewChart";
-    const isSrmFtSev = chartId === "srmFtSevChart";
+    const isSrmFtSev = chartId === "srmFtSevChart" || chartId === "srmFtOfcNodeChart";
     const useOverviewLabels = isOverview || isSrmFtSev;
     if(useOverviewLabels) chart._faultOverviewLabelBoxes = [];
     ctx.save();
