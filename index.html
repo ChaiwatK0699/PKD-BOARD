@@ -2312,36 +2312,32 @@ function getSrmFtCountableTickets(){
     return passesSrmFreeTextSiteFilters(site);
   });
 }
-/** SA ใน Severity Trend — ใช้ fault_ants_tickets + เงื่อนไขเดียวกับ Fault PLKD */
-function getFaultTicketsInSrmMonth(){
-  const { days } = getSrmMonthContext();
+/** SA ใน Severity Trend — ทุกวันที่มีข้อมูล (เงื่อนไขเดียวกับ Fault PLKD) */
+function getSrmFtTrendSaTickets(){
   return faultTickets.filter(r=>{
     if(!passesFaultPlkdFocus(r)) return false;
     if(!passesPkdTrackingStart(r)) return false;
-    if(!r?.closed_time) return false;
-    return days.includes(String(r.closed_time).slice(0, 10));
+    return !!r.closed_time;
   });
 }
-/** NSA ใน Severity Trend — จาก srm_tickets (Fault PLKD ไม่มี NSA) */
+/** NSA ใน Severity Trend — ทุกวันที่มีข้อมูล */
 function getSrmFtTrendNsaTickets(){
-  const { days } = getSrmMonthContext();
   return srmTickets.filter(r=>{
     if(!passesSrmTicketFocus(r)) return false;
     if(!isFaultNsaSrmSeverity(r)) return false;
     if(!passesPkdTrackingStart(r)) return false;
     if(!r?.closed_time) return false;
-    const day = String(r.closed_time).slice(0, 10);
-    if(!days.includes(day)) return false;
     const site = extractFaultPlkdSite(r);
     if(!site || !SITE_SET.has(site)) return false;
     return true;
   });
 }
 function fmtSrmTrendDayLabels(dayKeys){
-  return dayKeys.map(fmtFaultDayLabel);
+  const multiMonth = new Set(dayKeys.map(k=> k.slice(0, 7))).size > 1;
+  return dayKeys.map(iso=> multiMonth ? fmtSrmDayLabel(iso) : fmtFaultDayLabel(iso));
 }
 function buildSrmFtSeverityStats(){
-  const saTickets = getFaultTicketsInSrmMonth();
+  const saTickets = getSrmFtTrendSaTickets();
   const nsaTickets = getSrmFtTrendNsaTickets();
   const dayKeys = buildFaultDayLabelsFromRows([...saTickets, ...nsaTickets]);
   const labels = fmtSrmTrendDayLabels(dayKeys);
