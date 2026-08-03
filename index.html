@@ -1136,6 +1136,10 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <input type="file" id="fileInputSrm" accept=".csv,.xlsx,.xls" onchange="handleSrmUpload(event)">
       <button class="btn ghost sm" onclick="refreshSiteRepeatMapping()">↻ Refresh</button>
       <button class="btn ghost sm" onclick="clearSiteRepeatMappingData()">ล้างข้อมูล</button>
+      <div class="fgroup" style="margin-left:auto;">
+        <label class="flabel" for="srmMonthSelect">เดือน</label>
+        <select id="srmMonthSelect" class="sev-select" onchange="onSrmMonthChange(this.value)"></select>
+      </div>
       <span class="status-msg" id="statusMsgSrm"></span>
     </div>
     <div class="tabs" id="tabsSrmSub" style="margin-bottom:16px;">
@@ -1442,6 +1446,8 @@ let homeSevFilter = new Set(HOME_SEV_CODES); // all selected = show all
 let expandedTeams = new Set(); // empty = all teams start collapsed by default
 
 /* ---- Fault PLKD state ---- */
+/** วันเริ่มต้นนับข้อมูล PLKD — ตั้งแต่ 27/7/2025 */
+const PKD_TRACKING_START = "2025-07-27";
 const FAULT_REST = REST + "/fault_ants_tickets";
 const SRM_REST = REST + "/srm_tickets";
 const FAULT_BUCKET_COLORS = {"1-2 Hrs.":"#2f9e44","2-6 Hrs.":"#e6b800","6-12 Hrs.":"#e88b6a",">12 Hrs.":"#d94a35"};
@@ -1494,6 +1500,7 @@ let faultLtrSlaChartInst = null;
 let INOC_LOG_BY_TT = new Map();
 let srmCellTickets = {};
 let srmMonthTickets = [];
+let srmSelectedMonth = null;
 let srmSubTab = "mapping";
 const SRM_KEYWORDS = [
   { key:"main_ac_power_fail", label:"MAIN AC POWER FAIL", pattern:/main\s*ac\s*power\s*fail/i, color:"#0891b2", bg:"rgba(8,145,178,.2)" },
@@ -2305,20 +2312,46 @@ function getSrmFtCountableTickets(){
     return passesSrmFreeTextSiteFilters(site);
   });
 }
+/** SA ใน Severity Trend — ใช้ fault_ants_tickets + เงื่อนไขเดียวกับ Fault PLKD */
+function getFaultTicketsInSrmMonth(){
+  const { days } = getSrmMonthContext();
+  return faultTickets.filter(r=>{
+    if(!passesFaultPlkdFocus(r)) return false;
+    if(!passesPkdTrackingStart(r)) return false;
+    if(!r?.closed_time) return false;
+    return days.includes(String(r.closed_time).slice(0, 10));
+  });
+}
+/** NSA ใน Severity Trend — จาก srm_tickets (Fault PLKD ไม่มี NSA) */
+function getSrmFtTrendNsaTickets(){
+  const { days } = getSrmMonthContext();
+  return srmTickets.filter(r=>{
+    if(!passesSrmTicketFocus(r)) return false;
+    if(!isFaultNsaSrmSeverity(r)) return false;
+    if(!passesPkdTrackingStart(r)) return false;
+    if(!r?.closed_time) return false;
+    const day = String(r.closed_time).slice(0, 10);
+    if(!days.includes(day)) return false;
+    const site = extractFaultPlkdSite(r);
+    if(!site || !SITE_SET.has(site)) return false;
+    return true;
+  });
+}
+function fmtSrmTrendDayLabels(dayKeys){
+  return dayKeys.map(fmtFaultDayLabel);
+}
 function buildSrmFtSeverityStats(){
-  const tickets = getSrmFtCountableTickets();
-  const dayKeys = buildFaultDayLabelsFromRows(tickets);
-  const labels = dayKeys.map(fmtFaultDayLabel);
+  const saTickets = getFaultTicketsInSrmMonth();
+  const nsaTickets = getSrmFtTrendNsaTickets();
+  const dayKeys = buildFaultDayLabelsFromRows([...saTickets, ...nsaTickets]);
+  const labels = fmtSrmTrendDayLabels(dayKeys);
   const saCounts = [];
   const nsaCounts = [];
   const totals = [];
   dayKeys.forEach(day=>{
-    const dayRows = tickets.filter(r=> r.closed_time && String(r.closed_time).slice(0,10) === day);
-    let sa = 0, nsa = 0;
-    dayRows.forEach(r=>{
-      if(isFaultSaSeverity(r)) sa++;
-      else if(isFaultNsaSrmSeverity(r)) nsa++;
-    });
+    const d = String(day);
+    const sa = saTickets.filter(r=> String(r.closed_time).slice(0, 10) === d).length;
+    const nsa = nsaTickets.filter(r=> String(r.closed_time).slice(0, 10) === d).length;
     saCounts.push(sa);
     nsaCounts.push(nsa);
     totals.push(sa + nsa);
@@ -2772,15 +2805,64 @@ function formatSrmRefreshStatus(data, ctx){
   const sites = data?.sites?.length || 0;
   return `รีเฟรชแล้ว · เดือน ${ctx.monthLabel} · ${tt} TT · ${sites} Site`;
 }
+function buildSrmMonthOptionsFromTickets(){
+  const months = new Set();
+  srmTickets.forEach(r=>{
+    if(!passesSrmTicketFocus(r)) return;
+    if(!r?.closed_time) return;
+    months.add(String(r.closed_time).slice(0, 7));
+  });
+  return [...months].sort();
+}
+function ensureSrmSelectedMonth(){
+  const options = buildSrmMonthOptionsFromTickets();
+  if(srmSelectedMonth && options.includes(srmSelectedMonth)) return srmSelectedMonth;
+  const boardMonth = (document.getElementById("boardDate")?.value || "").slice(0, 7);
+  if(boardMonth && options.includes(boardMonth)){
+    srmSelectedMonth = boardMonth;
+    return srmSelectedMonth;
+  }
+  if(options.length){
+    srmSelectedMonth = options[options.length - 1];
+    return srmSelectedMonth;
+  }
+  srmSelectedMonth = boardMonth || fmtIsoLocalDate(new Date()).slice(0, 7);
+  return srmSelectedMonth;
+}
+function renderSrmMonthSelector(){
+  const el = document.getElementById("srmMonthSelect");
+  if(!el) return;
+  const options = buildSrmMonthOptionsFromTickets();
+  const selected = ensureSrmSelectedMonth();
+  if(!options.length){
+    el.innerHTML = `<option value="${esc(selected)}">${esc(fmtFaultMonthLabel(selected))} · ไม่มีข้อมูล</option>`;
+    el.value = selected;
+    el.disabled = true;
+    return;
+  }
+  el.disabled = false;
+  el.innerHTML = [...options].reverse().map(mk=>{
+    const label = fmtFaultMonthLabel(mk);
+    return `<option value="${esc(mk)}" ${mk===selected?"selected":""}>${esc(label)}</option>`;
+  }).join("");
+  el.value = selected;
+}
+function onSrmMonthChange(val){
+  if(!val || val === srmSelectedMonth) return;
+  srmSelectedMonth = val;
+  resetSrmPageState();
+  renderSiteRepeatMapping();
+  if(srmSubTab === "freetext" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+}
 function getSrmMonthContext(){
-  const boardDate = document.getElementById("boardDate").value;
-  const [y, m] = boardDate.split("-").map(Number);
+  const monthKey = ensureSrmSelectedMonth();
+  const [y, m] = monthKey.split("-").map(Number);
   const days = [];
   const lastDay = new Date(y, m, 0).getDate();
   for(let d = 1; d <= lastDay; d++){
     days.push(`${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`);
   }
-  return { year: y, month: m, days, monthLabel: `${m}/${y}` };
+  return { year: y, month: m, monthKey, days: filterDaysFromTrackingStart(days), monthLabel: `${m}/${y}` };
 }
 function buildSiteRepeatData(){
   const { days } = getSrmMonthContext();
@@ -2942,12 +3024,14 @@ function renderSrmKeywordPanel(data){
   }).join("");
 }
 function renderSiteRepeatMapping(){
+  renderSrmMonthSelector();
   const sub = document.getElementById("srmSubtitle");
   const countWrap = document.getElementById("srmCountWrap");
   const dtWrap = document.getElementById("srmDtWrap");
   if(!countWrap || !dtWrap) return;
   const ctx = getSrmMonthContext();
-  if(sub) sub.textContent = `SA1–SA6 · NSA1–NSA4 · WO Creator System · ไม่รวม Broadband · ไม่รวม MT · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}`;
+  const trackNote = PKD_TRACKING_START ? ` · ตั้งแต่ ${fmtSrmDayLabel(PKD_TRACKING_START)}` : "";
+  if(sub) sub.textContent = `SA1–SA6 · NSA1–NSA4 · WO Creator System · ไม่รวม Broadband · ไม่รวม MT · Closed 00:00–23:59 · เดือน ${ctx.monthLabel}${trackNote}`;
 
   if(!SITE_SET.size){
     const empty = `<div class="empty-hint" style="padding:24px;">ยังไม่มีรายชื่อ 168 Site — รอโหลด site codes</div>`;
@@ -5453,18 +5537,25 @@ function normalizeFaultControl(val){
   if(s.startsWith("out")) return "out";
   return "unspecified";
 }
+function bumpFaultRangeStart(start, end){
+  if(!PKD_TRACKING_START) return start;
+  const trackStart = new Date(PKD_TRACKING_START + "T00:00:00");
+  if(end < trackStart) return end;
+  return start < trackStart ? trackStart : start;
+}
 function getFaultDateRange(){
   const dateVal = document.getElementById("boardDate").value;
   if(!dateVal){
     const now = new Date();
-    return {start:new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0), end:now, dateVal:fmtIsoLocalDate(now)};
+    let start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+    start = bumpFaultRangeStart(start, now);
+    return {start, end:now, dateVal:fmtIsoLocalDate(now)};
   }
   const [y, m, d] = dateVal.split("-").map(Number);
-  return {
-    start: new Date(y, m - 1, 1, 0, 0, 0),
-    end: new Date(y, m - 1, d, 23, 59, 59),
-    dateVal
-  };
+  let start = new Date(y, m - 1, 1, 0, 0, 0);
+  const end = new Date(y, m - 1, d, 23, 59, 59);
+  start = bumpFaultRangeStart(start, end);
+  return { start, end, dateVal };
 }
 function faultTicketInRange(r, range){
   if(!r.closed_time) return false;
@@ -5499,6 +5590,14 @@ function getFilteredFaultTickets(){
     if(!passesFaultPlkdFocus(r)) return false;
     if(faultRegionFilter && (r.region||"") !== faultRegionFilter) return false;
     return faultTicketInRange(r, range);
+  }).map(r=>({...r, _fault: classifyFaultTicket(r)}));
+}
+/** ข้อมูลสำหรับกราฟ Fault trend PLKD — ทุกวันที่มีข้อมูล (ไม่จำกัดช่วง Date ด้านซ้าย) */
+function getFaultTicketsForTrendChart(){
+  return faultTickets.filter(r=>{
+    if(!passesFaultPlkdFocus(r)) return false;
+    if(faultRegionFilter && (r.region||"") !== faultRegionFilter) return false;
+    return passesPkdTrackingStart(r);
   }).map(r=>({...r, _fault: classifyFaultTicket(r)}));
 }
 function isFaultOverSlaTicket(r){
@@ -6524,6 +6623,25 @@ function calcFaultServiceAvailability(dateStr, rows){
   const percent = ((TOTAL_SITE_MINUTES - totalDowntime) / TOTAL_SITE_MINUTES) * 100;
   return Math.max(0, Math.min(100, percent));
 }
+function daysInFaultMonth(monthKey){
+  const [y, m] = String(monthKey).split("-").map(Number);
+  return new Date(y, m, 0).getDate();
+}
+function calcFaultServiceAvailabilityMonth(monthKey, rows){
+  const TOTAL_SITE_MINUTES = 168 * 24 * 60 * daysInFaultMonth(monthKey);
+  const monthRows = rows.filter(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    if(!c.closed) return false;
+    return String(r.closed_time).slice(0,7) === monthKey;
+  });
+  let totalDowntime = 0;
+  monthRows.forEach(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    if(c.downtimeMinutes !== null) totalDowntime += c.downtimeMinutes;
+  });
+  const percent = ((TOTAL_SITE_MINUTES - totalDowntime) / TOTAL_SITE_MINUTES) * 100;
+  return Math.max(0, Math.min(100, percent));
+}
 /** SA Avg. สะสมรายวัน: วันที่ N = (168×24×60×N − downtime สะสมวัน 1..N) / (168×24×60×N) */
 function calcFaultServiceAvailabilityCumulative(dayKeys, rows){
   const MINUTES_PER_DAY = 168 * 24 * 60;
@@ -6539,8 +6657,33 @@ function calcFaultServiceAvailabilityCumulative(dayKeys, rows){
     return Number(Math.max(0, Math.min(100, percent)).toFixed(2));
   });
 }
+/** SA Avg. สะสมรายเดือน: เดือนที่ N = (168×24×60×วันรวม 1..N − downtime สะสม) / (168×24×60×วันรวม) */
+function calcFaultServiceAvailabilityCumulativeMonths(monthKeys, rows){
+  const MINUTES_PER_DAY = 168 * 24 * 60;
+  let cumulativeDowntime = 0;
+  let cumulativeDays = 0;
+  return monthKeys.map(monthKey=>{
+    cumulativeDays += daysInFaultMonth(monthKey);
+    rows.forEach(r=>{
+      const c = r._fault || classifyFaultTicket(r);
+      if(!c.closed || String(r.closed_time).slice(0,7) !== monthKey) return;
+      if(c.downtimeMinutes !== null) cumulativeDowntime += c.downtimeMinutes;
+    });
+    const totalSiteMinutes = MINUTES_PER_DAY * cumulativeDays;
+    const percent = ((totalSiteMinutes - cumulativeDowntime) / totalSiteMinutes) * 100;
+    return Number(Math.max(0, Math.min(100, percent)).toFixed(2));
+  });
+}
 function fmtIsoLocalDate(d){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function passesPkdTrackingStart(r){
+  if(!PKD_TRACKING_START || !r?.closed_time) return false;
+  return String(r.closed_time).slice(0, 10) >= PKD_TRACKING_START;
+}
+function filterDaysFromTrackingStart(days){
+  if(!PKD_TRACKING_START) return days;
+  return days.filter(d=> d >= PKD_TRACKING_START);
 }
 function buildFaultDayLabels(range){
   const labels = [];
@@ -6560,9 +6703,23 @@ function buildFaultDayLabelsFromRows(rows){
   });
   return [...days].sort();
 }
+/** เดือนที่มี ticket (closed) ใน rows — เรียงจากเก่า → ใหม่ (YYYY-MM) */
+function buildFaultMonthLabelsFromRows(rows){
+  const months = new Set();
+  rows.forEach(r=>{
+    if(!r?.closed_time) return;
+    months.add(String(r.closed_time).slice(0, 7));
+  });
+  return [...months].sort();
+}
 function fmtFaultDayLabel(iso){
   const d = new Date(iso + "T00:00:00");
   return d.toLocaleDateString("en-GB",{day:"2-digit",month:"short"});
+}
+function fmtFaultMonthLabel(monthKey){
+  const [y, m] = String(monthKey).split("-").map(Number);
+  const d = new Date(y, m - 1, 1);
+  return d.toLocaleDateString("en-GB",{month:"short", year:"numeric"});
 }
 const FAULT_LABEL_FONT_LINE = "bold 18px JetBrains Mono, monospace";
 const FAULT_LABEL_FONT_PCT = "bold 12px JetBrains Mono, monospace";
@@ -7451,7 +7608,7 @@ function renderFault(){
   renderFaultRegionBar();
   const rows = getFilteredFaultTickets();
   if(faultSubTab === "overview"){
-    renderFaultOverviewChart(rows);
+    renderFaultOverviewChart(getFaultTicketsForTrendChart());
     renderFaultOverviewToolbar();
     const overviewRows = filterFaultOverviewRows(rows);
     document.getElementById("faultOverviewAllCount").textContent = overviewRows.length;
