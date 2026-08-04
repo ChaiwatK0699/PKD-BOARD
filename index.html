@@ -1240,9 +1240,8 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
   <div id="eecView" class="tab-view" style="display:none;">
     <div class="srm-head">
       <h2>EEC Site</h2>
-      <p>ชลบุรี · ระยอง · ฉะเชิงเทรา · Ticket จาก Upload Work Order · นับตามวันที่ในคอลัมน์ Closed (ตรง Excel)</p>
+      <p>ชลบุรี · ระยอง · ฉะเชิงเทรา · WO Creator System · Ticket จาก Upload Work Order · นับตามวันที่ Closed</p>
     </div>
-    <div class="filterbar" id="eecClosedBar"></div>
     <div class="toolbar" style="margin-bottom:14px;">
       <button class="btn primary" onclick="document.getElementById('fileInputEecWo').click()">⭱ Upload Work Order</button>
       <input type="file" id="fileInputEecWo" accept=".csv,.xlsx,.xls" onchange="handleEecWoUpload(event)" style="display:none;">
@@ -1251,6 +1250,12 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="btn ghost sm" onclick="loadEecSiteTickets(true)">↻ Refresh</button>
       <span class="status-msg" id="statusMsgEec"></span>
     </div>
+    <div class="tabs" id="tabsEecSub" style="margin-bottom:16px;">
+      <div class="tab-indicator" id="tabIndicatorEecSub"></div>
+      <button class="tab-btn active" id="eecSubChartsBtn" onclick="switchEecSubTab('charts')">Trend</button>
+      <button class="tab-btn" id="eecSubDetailBtn" onclick="switchEecSubTab('detail')">Show All Detail</button>
+    </div>
+    <div id="eecSubCharts">
     <div class="srm-ft-sev-cards" id="eecSevCards"></div>
     <div class="fault-chart-card srm-ft-sev-chart-card">
       <div class="fault-chart-title">Severity Trend · SA / NSA ตามวันที่ปิด (EEC)</div>
@@ -1258,21 +1263,31 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="fault-chart-wrap"><canvas id="eecSevChart"></canvas></div>
     </div>
     <div class="fault-chart-card srm-ft-sev-chart-card">
-      <div class="fault-chart-title">Trend ตามจังหวัด · EEC 3 จังหวัด (นับตามวันที่ Closed)</div>
+      <div class="fault-chart-title">Trend ตามจังหวัด · EEC 3 จังหวัด (PROVINCE_EN · นับตามวันที่ Closed)</div>
       <div class="srm-ft-ofcnode-filter" id="eecProvSevFilter"></div>
+      <div class="srm-ft-ofcnode-filter" id="eecProvinceFilter" style="margin-top:8px;"></div>
       <div class="fault-legend" id="eecProvLegend"></div>
       <div class="fault-chart-wrap"><canvas id="eecProvChart"></canvas></div>
     </div>
     <div class="fault-chart-card srm-ft-sev-chart-card">
-      <div class="fault-chart-title">Trend OFC / NODE · Root Cause (EEC) · นับตามวันที่ Closed</div>
+      <div class="fault-chart-title">Trend OFC / NODE · Root Cause (EEC) · นับตามวันที่ Closed · PROVINCE_EN</div>
       <div class="srm-ft-ofcnode-filter" id="eecOfcNodeFilter"></div>
-      <div class="srm-ft-ofcnode-filter" id="eecProvinceFilter" style="margin-top:8px;"></div>
       <div class="fault-legend" id="eecOfcNodeLegend"></div>
       <div class="fault-chart-wrap"><canvas id="eecOfcNodeChart"></canvas></div>
       <div class="srm-ft-ofcnode-detail-title" id="eecOfcNodeDetailToggle" role="button" tabindex="0" onclick="toggleEecOfcNodeDetailCollapse()">
         <span class="srm-ft-ofcnode-detail-chevron" id="eecOfcNodeDetailChevron">▾</span> Detail Root Cause
       </div>
       <div class="table-scroll" id="eecOfcNodeDetailWrap" onclick="onEecOfcNodeDetailClick(event)"></div>
+    </div>
+    </div>
+    <div id="eecSubDetail" style="display:none;">
+      <div class="fault-table-block">
+        <div class="fault-overview-toolbar">
+          <div class="fault-section-title" style="margin:0">All Tickets <span class="badge" id="eecDetailCount">0</span></div>
+          <div class="srm-ft-ofcnode-filter" id="eecDetailProvinceFilter" style="margin:0"></div>
+        </div>
+        <div class="table-scroll" id="eecDetailTableWrap"></div>
+      </div>
     </div>
   </div>
   <div id="faultView" class="tab-view" style="display:none;">
@@ -1611,6 +1626,7 @@ let srmDashTableExpand = null;
 let eecSiteTickets = [];
 let EEC_SITE_MAP = {};
 let EEC_SITE_SET = new Set();
+let EEC_WO_CREATOR_MAP = {};
 let EEC_SITE_REGEX = null;
 let eecProvinceFilter = "";
 let eecProvSevFilter = "all";
@@ -1620,6 +1636,8 @@ let eecOfcNodeExpandRc = null;
 let eecSevChartInst = null;
 let eecProvChartInst = null;
 let eecOfcNodeChartInst = null;
+let eecSubTab = "charts";
+let eecDetailProvinceFilter = "";
 const SRM_DASH_SLOT_COLORS = { A:"#2f80ed", B:"#1fa67a", C:"#d97706", D:"#7c3aed", E:"#e84a6a" };
 function resetSrmDashSelectedPath(){
   SRM_FT_SLOTS.forEach(s=>{ srmDashSelectedPath[s] = null; });
@@ -8441,7 +8459,7 @@ async function fetchEecSites(force){
     rows.forEach(r=>{
       const code = String(r.site_code || "").toUpperCase().trim();
       if(!code) return;
-      EEC_SITE_MAP[code] = String(r.province_en || "").trim();
+      EEC_SITE_MAP[code] = String(r.province_en || "").trim().toUpperCase();
       EEC_SITE_SET.add(code);
     });
   }catch(e){
@@ -8476,9 +8494,17 @@ function extractEecSite(r){
   if(site && EEC_SITE_SET.has(site)) return site;
   return findEecSiteInText(r?.subject) || null;
 }
+function passesEecSystemWoCreator(r){
+  return isFaultSystemWoCreator(r);
+}
+function getEecWoCreatorForTicket(r){
+  const id = String(r?.incident_id || "").trim();
+  return String(r?.wo_creator || (id ? EEC_WO_CREATOR_MAP[id] : "") || "").trim();
+}
 function getEecProvinceForTicket(r){
   const site = extractEecSite(r);
-  return r.province || (site ? EEC_SITE_MAP[site] : "") || "";
+  if(site && EEC_SITE_MAP[site]) return String(EEC_SITE_MAP[site]).trim().toUpperCase();
+  return String(r?.province || "").trim().toUpperCase();
 }
 function parseEecExcelDate(v){
   if(v == null || v === "") return null;
@@ -8526,7 +8552,8 @@ function normalizeEecDbTicket(r){
   return {
     ...r,
     site_id: site || r.site_id,
-    province: r.province || (site ? EEC_SITE_MAP[site] : "") || "",
+    province: getEecProvinceForTicket(r),
+    wo_creator: getEecWoCreatorForTicket(r) || r.wo_creator || "",
     root_cause: r.root_cause || r.cause || r.problem || ""
   };
 }
@@ -8577,18 +8604,14 @@ function isEecClosedTicket(r){
   return !!(site && EEC_SITE_SET.has(site));
 }
 function getEecAllTickets(){
-  return (eecSiteTickets || []).map(normalizeEecDbTicket).filter(isEecClosedTicket);
+  return (eecSiteTickets || []).map(normalizeEecDbTicket).filter(isEecClosedTicket).filter(passesEecSystemWoCreator);
 }
 function getEecBaseTickets(){
   return getEecAllTickets();
 }
 function getEecFilteredTickets(){
   return getEecBaseTickets().filter(r=>{
-    if(eecProvinceFilter){
-      const site = extractEecSite(r);
-      const prov = r.province || (site ? EEC_SITE_MAP[site] : "") || "";
-      if(prov !== eecProvinceFilter) return false;
-    }
+    if(eecProvinceFilter && getEecProvinceForTicket(r) !== eecProvinceFilter) return false;
     return true;
   });
 }
@@ -8616,33 +8639,41 @@ function buildEecSeverityStats(){
     nsaTotal: nsaCounts.reduce((a,n)=> a + n, 0)
   };
 }
+function getEecActiveProvinces(){
+  return eecProvinceFilter ? [eecProvinceFilter] : [...EEC_PROVINCES];
+}
+function getEecProvinceTrendTickets(){
+  return getEecBaseTickets().filter(eecTicketMatchesProvSev).filter(r=>{
+    if(!eecProvinceFilter) return true;
+    return getEecProvinceForTicket(r) === eecProvinceFilter;
+  });
+}
 function eecTicketMatchesProvSev(r){
   if(eecProvSevFilter === "sa") return isFaultSaSeverity(r);
   if(eecProvSevFilter === "nsa") return isFaultNsaSrmSeverity(r);
   return isFaultSaSeverity(r) || isFaultNsaSrmSeverity(r);
 }
 function buildEecProvinceStats(){
-  const tickets = getEecBaseTickets().filter(eecTicketMatchesProvSev);
+  const tickets = getEecProvinceTrendTickets();
+  const activeProvinces = getEecActiveProvinces();
   const dayKeys = buildEecDayLabelsFromRows(tickets);
   const labels = fmtEecTrendDayLabels(dayKeys);
   const provCounts = {};
-  EEC_PROVINCES.forEach(p=>{ provCounts[p] = []; });
+  activeProvinces.forEach(p=>{ provCounts[p] = []; });
   const provTotals = {};
-  EEC_PROVINCES.forEach(p=>{ provTotals[p] = 0; });
+  activeProvinces.forEach(p=>{ provTotals[p] = 0; });
   dayKeys.forEach(day=>{
     const d = String(day);
-    EEC_PROVINCES.forEach(prov=>{
-      const n = tickets.filter(r=>{
-        const site = extractEecSite(r);
-        const p = r.province || (site ? EEC_SITE_MAP[site] : "") || "";
-        return p === prov && getEecClosedDay(r) === d;
-      }).length;
+    activeProvinces.forEach(prov=>{
+      const n = tickets.filter(r=>
+        getEecProvinceForTicket(r) === prov && getEecClosedDay(r) === d
+      ).length;
       provCounts[prov].push(n);
       provTotals[prov] += n;
     });
   });
-  const totals = dayKeys.map((_, i)=> EEC_PROVINCES.reduce((s,p)=> s + provCounts[p][i], 0));
-  return { labels, dayKeys, provCounts, provTotals, totals };
+  const totals = dayKeys.map((_, i)=> activeProvinces.reduce((s,p)=> s + provCounts[p][i], 0));
+  return { labels, dayKeys, provCounts, provTotals, totals, activeProvinces };
 }
 function buildEecOfcNodeStats(group){
   const gFilter = group || eecOfcNodeTrendGroup;
@@ -8688,6 +8719,8 @@ function setEecProvinceFilter(prov){
   const next = (prov === eecProvinceFilter) ? "" : prov;
   if(next === eecProvinceFilter) return;
   eecProvinceFilter = next;
+  eecOfcNodeExpandRc = null;
+  renderEecProvincePanel();
   refreshEecOfcNodeTrendPanel();
   requestAnimationFrame(()=> flashEecProvSeg());
 }
@@ -8743,16 +8776,15 @@ function renderEecProvinceFilterButtons(){
   const counts = {};
   EEC_PROVINCES.forEach(p=>{ counts[p] = 0; });
   tickets.forEach(r=>{
-    const site = extractEecSite(r);
-    const p = r.province || (site ? EEC_SITE_MAP[site] : "") || "";
+    const p = getEecProvinceForTicket(r);
     if(counts[p] !== undefined) counts[p]++;
   });
   el.innerHTML = `
-    <span class="flabel">Province · Closed</span>
+    <span class="flabel">Province</span>
     <div class="srm-ft-ofcnode-seg eec-prov-seg" id="eecProvSeg">
       <div class="eec-prov-ind" id="eecProvInd" aria-hidden="true"></div>
       <button type="button" class="srm-ft-ofcnode-btn eec-prov-btn ${!eecProvinceFilter?"active":""}" data-prov="all" data-accent="#2dd4bf" onclick="setEecProvinceFilter('')">ทั้งหมด<span class="seg-count">${tickets.length}</span></button>
-      ${EEC_PROVINCES.map(p=> `<button type="button" class="srm-ft-ofcnode-btn eec-prov-btn ${eecProvinceFilter===p?"active":""}" data-prov="${esc(p)}" data-accent="${EEC_PROVINCE_COLORS[p]}" onclick="setEecProvinceFilter('${p}')">${EEC_PROVINCE_SHORT[p] || p}<span class="seg-count">${counts[p]||0}</span></button>`).join("")}
+      ${EEC_PROVINCES.map(p=> `<button type="button" class="srm-ft-ofcnode-btn eec-prov-btn ${eecProvinceFilter===p?"active":""}" data-prov="${esc(p)}" data-accent="${EEC_PROVINCE_COLORS[p]}" onclick="setEecProvinceFilter('${p}')">${esc(p)}<span class="seg-count">${counts[p]||0}</span></button>`).join("")}
     </div>`;
   requestAnimationFrame(()=> moveEecProvinceIndicator());
   setTimeout(moveEecProvinceIndicator, 320);
@@ -8864,10 +8896,11 @@ function renderEecProvinceChart(stats){
   const chartWrap = canvas?.closest(".fault-chart-wrap");
   if(!canvas || typeof Chart === "undefined") return;
   destroyEecProvChart();
+  const activeProvinces = stats.activeProvinces || EEC_PROVINCES;
   const totalAll = stats.totals.reduce((a,n)=> a + n, 0);
   if(legendEl){
-    legendEl.innerHTML = EEC_PROVINCES.map(p=>
-      `<span><i style="background:${EEC_PROVINCE_COLORS[p]}"></i>${EEC_PROVINCE_SHORT[p]} · ${stats.provTotals[p]||0} TT</span>`
+    legendEl.innerHTML = activeProvinces.map(p=>
+      `<span><i style="background:${EEC_PROVINCE_COLORS[p]}"></i>${p} · ${stats.provTotals[p]||0} TT</span>`
     ).join("") + `<span><i style="background:#7c4fd6"></i>Total · <strong>${totalAll}</strong></span>`;
   }
   if(!stats.labels.length){
@@ -8891,8 +8924,8 @@ function renderEecProvinceChart(stats){
   const countStep = faultCountAxisStep(countMax);
   const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
   const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
-  const datasets = EEC_PROVINCES.map(prov=>({
-    label: EEC_PROVINCE_SHORT[prov] || prov,
+  const datasets = activeProvinces.map(prov=>({
+    label: prov,
     data: stats.provCounts[prov],
     backgroundColor: EEC_PROVINCE_COLORS[prov],
     yAxisID:"yCount"
@@ -8918,12 +8951,12 @@ function renderEecProvinceChart(stats){
 }
 function renderEecProvincePanel(){
   renderEecProvSevFilterButtons();
+  renderEecProvinceFilterButtons();
   const stats = buildEecProvinceStats();
   renderEecProvinceChart(stats);
 }
 function refreshEecOfcNodeTrendPanel(){
   renderEecOfcNodeFilterButtons();
-  renderEecProvinceFilterButtons();
   const stats = buildEecOfcNodeStats();
   renderEecStackedSevChart("eecOfcNodeChart", "eecOfcNodeLegend", stats, "ofc");
   renderEecOfcNodeDetailTable(buildEecOfcNodeRootCauseDetail());
@@ -8977,49 +9010,122 @@ function renderEecOfcNodeDetailTable(detailRows){
       </tr>${expandHtml}`;
     }).join("")}</tbody></table>`;
 }
-function renderEecClosedBar(){
-  const el = document.getElementById("eecClosedBar");
+function getEecDetailTickets(){
+  return getEecBaseTickets().filter(r=>{
+    if(!eecDetailProvinceFilter) return true;
+    return getEecProvinceForTicket(r) === eecDetailProvinceFilter;
+  }).sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")) || String(a.incident_id||"").localeCompare(String(b.incident_id||"")));
+}
+function setEecDetailProvinceFilter(prov){
+  const next = (prov === eecDetailProvinceFilter) ? "" : prov;
+  if(next === eecDetailProvinceFilter) return;
+  eecDetailProvinceFilter = next;
+  renderEecDetailPanel();
+}
+function renderEecDetailProvinceButtons(){
+  const el = document.getElementById("eecDetailProvinceFilter");
   if(!el) return;
   const tickets = getEecBaseTickets();
-  if(!tickets.length){
-    el.innerHTML = `<span class="chip">นับตามวันที่ Closed · ไม่มีข้อมูล</span>`;
-    return;
+  const counts = {};
+  EEC_PROVINCES.forEach(p=>{ counts[p] = 0; });
+  tickets.forEach(r=>{
+    const p = getEecProvinceForTicket(r);
+    if(counts[p] !== undefined) counts[p]++;
+  });
+  const f = eecDetailProvinceFilter;
+  el.innerHTML = `
+    <span class="flabel">Province</span>
+    <div class="srm-ft-ofcnode-seg">
+      <button type="button" class="srm-ft-ofcnode-btn ${!f?"active":""}" onclick="setEecDetailProvinceFilter('')">ทั้งหมด<span class="seg-count">${tickets.length}</span></button>
+      ${EEC_PROVINCES.map(p=> `<button type="button" class="srm-ft-ofcnode-btn ${f===p?"active":""}" onclick="setEecDetailProvinceFilter('${p}')">${esc(p)}<span class="seg-count">${counts[p]||0}</span></button>`).join("")}
+    </div>`;
+}
+function renderEecDetailTableHtml(rows){
+  if(!rows.length){
+    return `<div class="empty-hint" style="padding:16px;">ไม่มี TT ตรงเงื่อนไข</div>`;
   }
-  const days = tickets.map(getEecClosedDay).filter(Boolean).sort();
-  const from = days[0];
-  const to = days[days.length - 1];
-  const sa = tickets.filter(isFaultSaSeverity).length;
-  const nsa = tickets.filter(isFaultNsaSrmSeverity).length;
-  const monthChips = buildEecMonthBreakdown(tickets).map(([mk, n])=>
-    `<span class="chip">${fmtFaultMonthLabel(mk)} · ${n} TT</span>`
-  ).join("");
-  const dayChips = buildEecDayBreakdown(tickets).map(([day, n])=>
-    `<span class="chip">${fmtFaultDayLabel(day)} · ${n}</span>`
-  ).join("");
-  el.innerHTML = `<span class="chip">นับตามวันที่ Closed (ตรง Excel)</span>
-    <span class="chip">${fmtFaultDayLabel(from)} → ${fmtFaultDayLabel(to)}</span>
-    ${monthChips}${dayChips}
-    <span class="chip">SA ${sa}</span><span class="chip">NSA ${nsa}</span><span class="chip">รวม ${tickets.length} TT</span>`;
+  const bodyHtml = rows.map(r=>{
+    const site = r.site_id || extractEecSite(r) || "";
+    const tt = r.source_ticket_id || "";
+    const wo = r.incident_id || "";
+    const ticketCell = tt && wo && tt !== wo ? `${esc(tt)}<br><span class="muted">${esc(wo)}</span>` : esc(wo || tt);
+    return `<tr>
+      <td class="site-plkd-cell">${esc(site)}</td>
+      <td>${ticketCell}</td>
+      <td>${esc(getEecProvinceForTicket(r))}</td>
+      <td class="subject-cell">${esc(r.subject||"")}</td>
+      <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
+      <td>${esc(r.status||"")}</td>
+      <td>${esc(r.wo_creator||"")}</td>
+      <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
+      <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
+      <td class="subject-cell">${esc(r.root_cause||"")}</td>
+      <td class="subject-cell">${esc(r.remedy||"")}</td>
+    </tr>`;
+  }).join("");
+  return `<table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
+    <th>Site</th><th>Ticket / WO</th><th>Province</th><th>Subject</th><th>Severity</th><th>Status</th>
+    <th>WO Creator</th><th>Created</th><th>Closed</th><th>Root Cause</th><th>Remedy</th>
+  </tr></thead><tbody>${bodyHtml}</tbody></table>`;
+}
+function renderEecDetailPanel(){
+  const all = getEecBaseTickets();
+  const rows = getEecDetailTickets();
+  const countEl = document.getElementById("eecDetailCount");
+  if(countEl){
+    countEl.textContent = eecDetailProvinceFilter ? `${rows.length} / ${all.length}` : String(rows.length);
+  }
+  renderEecDetailProvinceButtons();
+  const wrap = document.getElementById("eecDetailTableWrap");
+  if(wrap) wrap.innerHTML = renderEecDetailTableHtml(rows);
+}
+function switchEecSubTab(tab){
+  if(tab !== "charts" && tab !== "detail") return;
+  eecSubTab = tab;
+  document.getElementById("eecSubChartsBtn")?.classList.toggle("active", tab === "charts");
+  document.getElementById("eecSubDetailBtn")?.classList.toggle("active", tab === "detail");
+  const chartsEl = document.getElementById("eecSubCharts");
+  const detailEl = document.getElementById("eecSubDetail");
+  if(chartsEl) chartsEl.style.display = tab === "charts" ? "block" : "none";
+  if(detailEl) detailEl.style.display = tab === "detail" ? "block" : "none";
+  moveEecSubTabIndicator();
+  renderEecTab();
+}
+function moveEecSubTabIndicator(){
+  const activeBtn = document.querySelector("#tabsEecSub .tab-btn.active");
+  const ind = document.getElementById("tabIndicatorEecSub");
+  if(!activeBtn || !ind) return;
+  ind.style.width = activeBtn.offsetWidth + "px";
+  ind.style.left = activeBtn.offsetLeft + "px";
 }
 function renderEecTab(){
   if(currentTab !== "eec") return;
-  renderEecClosedBar();
-  renderEecSeverityPanel();
-  renderEecProvincePanel();
-  refreshEecOfcNodeTrendPanel();
+  if(eecSubTab === "detail"){
+    renderEecDetailPanel();
+  }else{
+    renderEecSeverityPanel();
+    renderEecProvincePanel();
+    refreshEecOfcNodeTrendPanel();
+  }
   const statusEl = document.getElementById("statusMsgEec");
   if(statusEl && !statusEl.textContent){
     const n = getEecBaseTickets().length;
     const sites = EEC_SITE_SET.size;
     statusEl.textContent = sites ? `${n} TT · ${sites} EEC Site` : "";
   }
+  requestAnimationFrame(()=> moveEecSubTabIndicator());
 }
 async function loadEecSiteTickets(showToast){
   try{
     await fetchEecSites();
-    eecSiteTickets = await fetchAllFromRest(
-      EEC_REST + "?select=incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,remedy,created_time,closed_time&order=closed_time.asc"
-    );
+    const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,remedy,created_time,closed_time,wo_creator";
+    eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + select + "&order=closed_time.asc");
+    const faultRows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,wo_creator");
+    EEC_WO_CREATOR_MAP = {};
+    faultRows.forEach(r=>{
+      const id = String(r.work_order_id || "").trim();
+      if(id) EEC_WO_CREATOR_MAP[id] = r.wo_creator || "";
+    });
     if(showToast) toast(`EEC: ${eecSiteTickets.length} tickets · ${EEC_SITE_SET.size} sites`);
     if(currentTab === "eec") renderEecTab();
   }catch(e){
@@ -9062,7 +9168,7 @@ function parseEecSitesSheetRows(sheet){
     if(!site || site === "SITENAME") continue;
     out.push({
       site_code: site,
-      province_en: prov || "",
+      province_en: (prov || "").trim().toUpperCase(),
       updated_at: new Date().toISOString()
     });
   }
@@ -9119,7 +9225,7 @@ function mapEecImportRow(r){
     severity: sevKey,
     subject: get("Subject"),
     site_id: site,
-    province: EEC_SITE_MAP[site] || "",
+    province: getEecProvinceForTicket({ site_id: site }),
     status: status || "",
     classification: get("Classification"),
     problem: problem || null,
@@ -9128,6 +9234,7 @@ function mapEecImportRow(r){
     remedy: get("Remedy") || null,
     created_time: parseEecExcelDate(r["Create Date"]),
     closed_time: closed,
+    wo_creator: getImportWoCreator(r) || null,
     updated_at: new Date().toISOString()
   };
 }
@@ -9135,7 +9242,6 @@ function passesEecWoTicketFocus(raw){
   if(!raw) return false;
   if(isSrmMaintenanceWo(raw)) return false;
   if(!isFaultSrmSeverity(raw)) return false;
-  if(isFaultBroadbandTicket(raw)) return false;
   if(!isFaultSystemWoCreator(raw)) return false;
   if(!hasFaultSourceTicketId(raw)) return false;
   return isEecClosedTicket(raw);
@@ -9143,7 +9249,6 @@ function passesEecWoTicketFocus(raw){
 function mapEecWoImportRow(r){
   if(isSrmMaintenanceWo({ work_order_id: String(r["Work Order ID"] || "").trim() })) return null;
   if(rowHasWoCreatorColumn(r) && !isSystemWoCreatorRow(r)) return null;
-  if(isBroadbandRow(r)) return null;
   const raw = mapFaultImportRow(r);
   if(!raw) return null;
   const closed = parseEecClosedFromImportRow(r, "wo");
@@ -9160,7 +9265,7 @@ function mapEecWoImportRow(r){
     severity: getSrmFtSeverityKey(raw),
     subject: raw.subject || "",
     site_id: site,
-    province: EEC_SITE_MAP[site] || raw.province || "",
+    province: getEecProvinceForTicket({ site_id: site }),
     status: raw.status || "",
     classification: raw.work_type || null,
     problem: null,
@@ -9169,6 +9274,7 @@ function mapEecWoImportRow(r){
     remedy: raw.close_description || raw.complete_solution || null,
     created_time: raw.created_time || null,
     closed_time: raw.closed_time,
+    wo_creator: raw.wo_creator || "System",
     updated_at: new Date().toISOString()
   };
 }
@@ -9194,8 +9300,8 @@ async function bulkInsertEecTickets(rows, opts){
   if(!payloads.length){
     const siteMsg = siteSynced ? ` · sites ${siteSynced}` : "";
     const hint = mapFn === mapEecWoImportRow
-      ? "EEC Site · SA/NSA · System · Closed · ไม่รวม Broadband/MT"
-      : "EEC Site · SA/NSA · Closed / Restoration Date";
+      ? "EEC Site · SA/NSA · WO Creator System · Closed · ไม่รวม MT"
+      : "EEC Site · SA/NSA · WO Creator System · Closed / Restoration Date";
     statusEl.textContent = `No valid ${label} rows (${hint}) · skipped ${skipped}${siteMsg}`;
     return;
   }
@@ -9221,9 +9327,7 @@ async function bulkInsertEecTickets(rows, opts){
     synced += chunk.length;
     statusEl.textContent = `Tickets… ${synced}/${uniquePayloads.length}`;
   }
-  eecSiteTickets = await fetchAllFromRest(
-    EEC_REST + "?select=incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,remedy,created_time,closed_time&order=closed_time.asc"
-  );
+  await loadEecSiteTickets();
   renderEecTab();
   const siteMsg = siteSynced ? ` · sites ${siteSynced}` : "";
   const dupMsg = dupInFile ? ` · ซ้ำในไฟล์ ${dupInFile}` : "";
