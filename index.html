@@ -1240,7 +1240,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
   <div id="eecView" class="tab-view" style="display:none;">
     <div class="srm-head">
       <h2>EEC Site</h2>
-      <p>ชลบุรี · ระยอง · ฉะเชิงเทรา · Site จาก EEC Site.xlsx · Ticket จาก Upload Work Order · นับตามวันที่ Closed</p>
+      <p>ชลบุรี · ระยอง · ฉะเชิงเทรา · Ticket จาก Upload Work Order · นับตามวันที่ในคอลัมน์ Closed (ตรง Excel)</p>
     </div>
     <div class="filterbar" id="eecClosedBar"></div>
     <div class="toolbar" style="margin-bottom:14px;">
@@ -1306,9 +1306,9 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
           <div class="fault-section-title" style="margin:0">All Tickets <span class="badge" id="faultOverviewAllCount">0</span></div>
           <div class="fault-overview-filters">
             <div class="fault-overview-day">
-              <label class="flabel" for="faultOverviewDay">วันที่ปิด</label>
-              <input type="date" id="faultOverviewDay" onchange="onFaultOverviewDayChange(this.value)">
-              <button type="button" class="btn sm ghost" onclick="clearFaultOverviewDay()">ทั้งหมด</button>
+              <label class="flabel" for="faultOverviewDay">วันที่ปิด (Closed)</label>
+              <input type="date" id="faultOverviewDay" onchange="onFaultOverviewDayChange(this.value)" oninput="onFaultOverviewDayChange(this.value)">
+              <button type="button" class="btn sm ghost" onclick="clearFaultOverviewDay()">แสดงทั้งหมด</button>
             </div>
             <div class="fault-ctrl-subtabs" style="margin:0">
               <button type="button" class="fault-ctrl-subtab active" id="faultOverviewFilterAllBtn" onclick="setFaultOverviewFilter(null)">All</button>
@@ -5832,10 +5832,18 @@ function isFaultLongTimeRepairTicket(r){
   const c = r._fault || classifyFaultTicket(r);
   return c.slaStatus === "Within SLA" && !!c.bucket;
 }
+function getFaultClosedDay(r){
+  if(!r?.closed_time) return "";
+  const m = String(r.closed_time).trim().match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : "";
+}
+function getFaultOverviewAllTickets(){
+  return getFaultTicketsForExport();
+}
 function filterFaultOverviewRows(rows){
   let out = rows;
   if(faultOverviewDayFilter){
-    out = out.filter(r=>String(r.closed_time||"").slice(0,10) === faultOverviewDayFilter);
+    out = out.filter(r=> getFaultClosedDay(r) === faultOverviewDayFilter);
   }
   if(faultOverviewStatusFilter === "over-sla"){
     out = out.filter(isFaultOverSlaTicket);
@@ -5846,17 +5854,52 @@ function filterFaultOverviewRows(rows){
 }
 function onFaultOverviewDayChange(val){
   faultOverviewDayFilter = val || null;
-  renderFault();
+  if(currentTab === "fault" && faultSubTab === "overview") renderFaultOverviewDetailOnly();
+  else renderFault();
 }
 function clearFaultOverviewDay(){
   faultOverviewDayFilter = null;
   const dayEl = document.getElementById("faultOverviewDay");
   if(dayEl) dayEl.value = "";
-  renderFault();
+  if(currentTab === "fault" && faultSubTab === "overview") renderFaultOverviewDetailOnly();
+  else renderFault();
 }
 function setFaultOverviewFilter(filter){
   faultOverviewStatusFilter = filter;
-  renderFault();
+  if(currentTab === "fault" && faultSubTab === "overview") renderFaultOverviewDetailOnly();
+  else renderFault();
+}
+function renderFaultOverviewAllTickets(){
+  const overviewAll = getFaultOverviewAllTickets();
+  const overviewRows = filterFaultOverviewRows(overviewAll);
+  const countEl = document.getElementById("faultOverviewAllCount");
+  if(countEl){
+    countEl.textContent = faultOverviewDayFilter || faultOverviewStatusFilter
+      ? `${overviewRows.length} / ${overviewAll.length}`
+      : String(overviewRows.length);
+  }
+  const tableEl = document.getElementById("faultOverviewAllTable");
+  if(!tableEl) return;
+  if(!overviewRows.length){
+    const hint = faultOverviewDayFilter
+      ? `ไม่มี TT วันที่ปิด ${fmtFaultDayLabel(faultOverviewDayFilter)}`
+      : faultOverviewStatusFilter === "over-sla" ? "ไม่มี TT Over SLA"
+      : faultOverviewStatusFilter === "ltr" ? "ไม่มี TT Long time Repair"
+      : "No tickets in this group.";
+    const colSpan = faultTableColSpan({ overviewReasonCols:true });
+    tableEl.querySelector("thead").innerHTML = faultTableHeadHtml({ overviewReasonCols:true });
+    tableEl.querySelector("tbody").innerHTML = `<tr><td colspan="${colSpan}" class="empty-hint">${esc(hint)}</td></tr>`;
+    return;
+  }
+  renderFaultTable(tableEl, overviewRows, "fault-overview-all", { overviewReasonCols:true });
+}
+function renderFaultOverviewPanel(){
+  renderFaultOverviewChart(getFaultTicketsForTrendChart());
+  renderFaultOverviewDetailOnly();
+}
+function renderFaultOverviewDetailOnly(){
+  renderFaultOverviewToolbar();
+  renderFaultOverviewAllTickets();
 }
 function renderFaultOverviewToolbar(){
   const dayEl = document.getElementById("faultOverviewDay");
@@ -6922,8 +6965,8 @@ function buildFaultDayLabels(range){
 function buildFaultDayLabelsFromRows(rows){
   const days = new Set();
   rows.forEach(r=>{
-    if(!r?.closed_time) return;
-    days.add(String(r.closed_time).slice(0, 10));
+    const d = getFaultClosedDay(r);
+    if(d) days.add(d);
   });
   return [...days].sort();
 }
@@ -7197,7 +7240,7 @@ function renderFaultOverviewChart(rows){
   const labels = dayKeys.map(fmtFaultDayLabel);
   const withinCounts = [], overCounts = [], totals = [], svcAva = [];
   dayKeys.forEach(day=>{
-    const dayRows = rows.filter(r=> r.closed_time && String(r.closed_time).slice(0,10) === day);
+    const dayRows = rows.filter(r=> getFaultClosedDay(r) === day);
     let w = 0, o = 0;
     dayRows.forEach(r=>{
       const c = r._fault || classifyFaultTicket(r);
@@ -7834,11 +7877,7 @@ function renderFault(){
   renderFaultRegionBar();
   const rows = getFilteredFaultTickets();
   if(faultSubTab === "overview"){
-    renderFaultOverviewChart(getFaultTicketsForTrendChart());
-    renderFaultOverviewToolbar();
-    const overviewRows = filterFaultOverviewRows(rows);
-    document.getElementById("faultOverviewAllCount").textContent = overviewRows.length;
-    renderFaultTable(document.getElementById("faultOverviewAllTable"), overviewRows, "fault-overview-all", { overviewReasonCols:true });
+    renderFaultOverviewPanel();
   } else if(faultSubTab === "over-sla"){
     const overRows = rows.filter(r=>(r._fault||classifyFaultTicket(r)).slaStatus === "Over SLA");
     document.getElementById("faultOverSlaCount").textContent = overRows.length;
@@ -8463,6 +8502,25 @@ function parseEecExcelDate(v){
   }
   return parseFaultWoDate(v);
 }
+/** วันที่ในคอลัมน์ Closed ของ Excel (YYYY-MM-DD) — ไม่แปลง timezone */
+function getEecClosedDay(r){
+  if(!r?.closed_time) return "";
+  const m = String(r.closed_time).trim().match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : "";
+}
+function parseEecClosedFromImportRow(r, mode){
+  const pick = keys=>{
+    for(const k of keys){
+      if(r[k] !== undefined && r[k] !== null && r[k] !== "") return r[k];
+    }
+    return null;
+  };
+  const v = mode === "wo"
+    ? pick(["Closed", "Close"])
+    : pick(["Closed", "Close", "Restoration Date"]);
+  if(v == null) return null;
+  return parseEecExcelDate(v);
+}
 function normalizeEecDbTicket(r){
   const site = extractEecSite(r);
   return {
@@ -8472,15 +8530,17 @@ function normalizeEecDbTicket(r){
     root_cause: r.root_cause || r.cause || r.problem || ""
   };
 }
-function getEecClosedDay(r){
-  if(!r?.closed_time) return "";
-  const d = parseFaultTs(r.closed_time);
-  if(d) return fmtIsoLocalDate(d);
-  const m = String(r.closed_time).trim().match(/^(\d{4}-\d{2}-\d{2})/);
-  return m ? m[1] : "";
-}
 function fmtEecTrendDayLabels(dayKeys){
   return dayKeys.map(fmtFaultDayLabel);
+}
+function buildEecDayBreakdown(tickets){
+  const byDay = {};
+  tickets.forEach(r=>{
+    const d = getEecClosedDay(r);
+    if(!d) return;
+    byDay[d] = (byDay[d] || 0) + 1;
+  });
+  return Object.entries(byDay).sort((a, b)=> a[0].localeCompare(b[0]));
 }
 function buildEecMonthBreakdown(tickets){
   const byMonth = {};
@@ -8499,18 +8559,6 @@ function buildEecDayLabelsFromRows(rows){
     if(d) days.add(d);
   });
   return [...days].sort();
-}
-function parseEecClosedFromImportRow(r, mode){
-  const pick = keys=>{
-    for(const k of keys){
-      if(r[k] !== undefined && r[k] !== null && r[k] !== "") return r[k];
-    }
-    return null;
-  };
-  const v = mode === "wo"
-    ? pick(["Closed", "Close"])
-    : pick(["Closed", "Close", "Restoration Date"]);
-  return v != null ? parseEecExcelDate(v) : null;
 }
 function isEecClosedStatus(r){
   const st = String(r?.status || "").trim();
@@ -8945,9 +8993,12 @@ function renderEecClosedBar(){
   const monthChips = buildEecMonthBreakdown(tickets).map(([mk, n])=>
     `<span class="chip">${fmtFaultMonthLabel(mk)} · ${n} TT</span>`
   ).join("");
-  el.innerHTML = `<span class="chip">นับตามวันที่ Closed (local)</span>
+  const dayChips = buildEecDayBreakdown(tickets).map(([day, n])=>
+    `<span class="chip">${fmtFaultDayLabel(day)} · ${n}</span>`
+  ).join("");
+  el.innerHTML = `<span class="chip">นับตามวันที่ Closed (ตรง Excel)</span>
     <span class="chip">${fmtFaultDayLabel(from)} → ${fmtFaultDayLabel(to)}</span>
-    ${monthChips}
+    ${monthChips}${dayChips}
     <span class="chip">SA ${sa}</span><span class="chip">NSA ${nsa}</span><span class="chip">รวม ${tickets.length} TT</span>`;
 }
 function renderEecTab(){
