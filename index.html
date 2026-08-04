@@ -5730,6 +5730,10 @@ function getFaultTicketsForTrendChart(){
     return passesPkdTrackingStart(r);
   }).map(r=>({...r, _fault: classifyFaultTicket(r)}));
 }
+/** ข้อมูล Long time Repair — ทุกวันที่มีข้อมูล (ไม่จำกัดช่วง boardDate) */
+function getFaultTicketsForLtr(){
+  return getFaultTicketsForTrendChart();
+}
 function isFaultOverSlaTicket(r){
   const c = r._fault || classifyFaultTicket(r);
   return c.slaStatus === "Over SLA";
@@ -7198,7 +7202,7 @@ function renderFaultLtrSlaChart(rows){
   if(!canvas || typeof Chart === "undefined") return;
   faultLtrSlaChartInst = destroyFaultChart(faultLtrSlaChartInst);
   const dayKeys = buildFaultDayLabelsFromRows(rows);
-  const labels = dayKeys.map(fmtFaultDayLabel);
+  const labels = fmtSrmTrendDayLabels(dayKeys);
   const buckets = ["1-2 Hrs.","2-6 Hrs.","6-12 Hrs.",">12 Hrs."];
   const rawByBucket = buckets.map(b=>
     dayKeys.map(day=> rows.filter(r=>{
@@ -7249,7 +7253,8 @@ function renderFaultLtrSlaChart(rows){
 function renderFaultRegionBar(){
   const el = document.getElementById("faultRegionBar");
   if(!el) return;
-  const rows = getFilteredFaultTickets();
+  const allDays = faultSubTab === "ltr-sla" || faultSubTab === "ltr";
+  const rows = allDays ? getFaultTicketsForLtr() : getFilteredFaultTickets();
   const dayKeys = buildFaultDayLabelsFromRows(rows);
   const regions = [...new Set(faultTickets.filter(r=>passesFaultPlkdFocus(r)).map(r=>r.region).filter(Boolean))].sort();
   const plkdCount = rows.length;
@@ -7750,12 +7755,13 @@ function renderFault(){
     const displayRows = filterFaultOverSlaByCause(overRows, faultOverSlaCauseFilter);
     renderFaultTable(document.getElementById("faultOverSlaTable"), displayRows, "fault-over-sla", { showCauseOver:true });
   } else if(faultSubTab === "ltr-sla"){
-    renderFaultLtrSlaChart(rows);
-    const ltrRows = rows.filter(isFaultLongTimeRepairTicket);
+    const ltrRowsAll = getFaultTicketsForLtr();
+    renderFaultLtrSlaChart(ltrRowsAll);
+    const ltrRows = ltrRowsAll.filter(isFaultLongTimeRepairTicket);
     renderFaultLtrReasonSummary(ltrRows);
     renderFaultLtrReasonDetail(ltrRows);
   } else if(faultSubTab === "ltr"){
-    renderFaultLtrDetailTables(rows);
+    renderFaultLtrDetailTables(getFaultTicketsForLtr());
   } else if(faultSubTab === "control"){
     const inCount = rows.filter(r=>normalizeFaultControl(r.control_status)==="in").length;
     const outCount = rows.filter(r=>normalizeFaultControl(r.control_status)==="out").length;
