@@ -610,13 +610,18 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-ft-hidden-hint{font-size:14px; color:var(--muted); margin:-6px 0 12px; line-height:1.45;}
 .srm-ft-sev-panel{margin-bottom:18px;}
 .srm-ft-sev-cards{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:14px;}
-@media(max-width:640px){ .srm-ft-sev-cards{grid-template-columns:1fr;} }
+.srm-ft-sev-cards.cols-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.srm-ft-sev-cards.cols-4{grid-template-columns:repeat(4,minmax(0,1fr));}
+@media(max-width:640px){ .srm-ft-sev-cards{grid-template-columns:1fr;} .srm-ft-sev-cards.cols-3{grid-template-columns:1fr;} .srm-ft-sev-cards.cols-4{grid-template-columns:1fr;} }
 .srm-ft-sev-card{
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
   border-radius:12px; padding:18px 20px; border:1px solid transparent; min-height:108px;
 }
 .srm-ft-sev-card.sa{background:var(--coral-dim); border-color:var(--coral); color:var(--coral);}
 .srm-ft-sev-card.nsa{background:var(--teal-dim); border-color:var(--teal); color:var(--teal);}
+.srm-ft-sev-card.over{background:#f3e8ff; border-color:#9333ea; color:#9333ea;}
+.srm-ft-sev-card.sa-over{background:#ffe3e3; border-color:#c92a2a; color:#c92a2a;}
+.srm-ft-sev-card.nsa-over{background:#d3f9d8; border-color:#087f5b; color:#087f5b;}
 .srm-ft-sev-card-lbl{font-family:'Barlow Condensed'; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase;}
 .srm-ft-sev-card-val{font-family:'JetBrains Mono'; font-weight:700; font-size:40px; line-height:1;}
 .srm-ft-sev-chart-card{margin-bottom:0;}
@@ -1253,24 +1258,25 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div class="tabs" id="tabsEecSub" style="margin-bottom:16px;">
       <div class="tab-indicator" id="tabIndicatorEecSub"></div>
       <button class="tab-btn active" id="eecSubChartsBtn" onclick="switchEecSubTab('charts')">Trend</button>
-      <button class="tab-btn" id="eecSubDetailBtn" onclick="switchEecSubTab('detail')">Show All Detail</button>
+      <button class="tab-btn" id="eecSubOverSlaBtn" onclick="switchEecSubTab('over-sla')">Over SLA</button>
+      <button class="tab-btn" id="eecSubLtrBtn" onclick="switchEecSubTab('ltr')">Long time Repair</button>
     </div>
     <div id="eecSubCharts">
     <div class="srm-ft-sev-cards" id="eecSevCards"></div>
     <div class="fault-chart-card srm-ft-sev-chart-card">
-      <div class="fault-chart-title">Severity Trend · SA / NSA ตามวันที่ปิด (EEC)</div>
+      <div class="fault-chart-title">Severity Trend · SA / NSA</div>
       <div class="fault-legend" id="eecSevLegend"></div>
       <div class="fault-chart-wrap"><canvas id="eecSevChart"></canvas></div>
     </div>
     <div class="fault-chart-card srm-ft-sev-chart-card">
-      <div class="fault-chart-title">Trend ตามจังหวัด · EEC 3 จังหวัด (PROVINCE_EN · นับตามวันที่ Closed)</div>
+      <div class="fault-chart-title">Trend Province · EEC</div>
       <div class="srm-ft-ofcnode-filter" id="eecProvSevFilter"></div>
       <div class="srm-ft-ofcnode-filter" id="eecProvinceFilter" style="margin-top:8px;"></div>
       <div class="fault-legend" id="eecProvLegend"></div>
       <div class="fault-chart-wrap"><canvas id="eecProvChart"></canvas></div>
     </div>
     <div class="fault-chart-card srm-ft-sev-chart-card">
-      <div class="fault-chart-title">Trend OFC / NODE · Root Cause (EEC) · นับตามวันที่ Closed · PROVINCE_EN</div>
+      <div class="fault-chart-title">Trend OFC / NODE · Root Cause (EEC)</div>
       <div class="srm-ft-ofcnode-filter" id="eecOfcNodeFilter"></div>
       <div class="fault-legend" id="eecOfcNodeLegend"></div>
       <div class="fault-chart-wrap"><canvas id="eecOfcNodeChart"></canvas></div>
@@ -1280,13 +1286,40 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="table-scroll" id="eecOfcNodeDetailWrap" onclick="onEecOfcNodeDetailClick(event)"></div>
     </div>
     </div>
-    <div id="eecSubDetail" style="display:none;">
+    <div id="eecSubOverSla" style="display:none;">
+      <div class="srm-ft-sev-cards" id="eecOverSlaCards"></div>
+      <div class="fault-chart-card srm-ft-sev-chart-card">
+        <div class="fault-chart-title">Over SLA · Trend · SA / NSA ตามวันที่ปิด (EEC)</div>
+        <div class="fault-legend" id="eecOverSlaLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="eecOverSlaChart"></canvas></div>
+      </div>
+    </div>
+    <div id="eecSubLtr" style="display:none;">
+      <div class="fault-overview-toolbar" style="margin-bottom:14px;">
+        <div class="fault-section-title" style="margin:0">Long time Repair · Within SLA</div>
+        <div class="srm-ft-ofcnode-filter" id="eecLtrSevFilter" style="margin:0"></div>
+      </div>
+      <div class="fault-chart-card">
+        <div class="fault-chart-title">Long time Repair · Trend</div>
+        <div class="fault-legend" id="eecLtrLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="eecLtrChart"></canvas></div>
+      </div>
+      <div id="eecLtrSummary"></div>
       <div class="fault-table-block">
-        <div class="fault-overview-toolbar">
-          <div class="fault-section-title" style="margin:0">All Tickets <span class="badge" id="eecDetailCount">0</span></div>
-          <div class="srm-ft-ofcnode-filter" id="eecDetailProvinceFilter" style="margin:0"></div>
-        </div>
-        <div class="table-scroll" id="eecDetailTableWrap"></div>
+        <div class="fault-section-title">&gt;12 Hrs. <span class="badge" id="eecGt12Count">0</span></div>
+        <div class="table-scroll" id="eecGt12TableWrap"></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">6-12 Hrs. <span class="badge" id="eec612Count">0</span></div>
+        <div class="table-scroll" id="eec612TableWrap"></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">2-6 Hrs. <span class="badge" id="eec26Count">0</span></div>
+        <div class="table-scroll" id="eec26TableWrap"></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">1-2 Hrs. <span class="badge" id="eec12Count">0</span></div>
+        <div class="table-scroll" id="eec12TableWrap"></div>
       </div>
     </div>
   </div>
@@ -1549,6 +1582,8 @@ const EEC_REST = REST + "/eec_site_tickets";
 const EEC_SITES_REST = REST + "/eec_sites";
 const EEC_PROVINCES = ["CHON BURI", "RAYONG", "CHACHOENGSAO"];
 const EEC_PROVINCE_COLORS = {"CHON BURI":"#2f80ed", "RAYONG":"#d97706", "CHACHOENGSAO":"#7c3aed"};
+const EEC_PROVINCE_SA_COLORS = {"CHON BURI":"#1c6ed4", "RAYONG":"#c45c00", "CHACHOENGSAO":"#6d28d9"};
+const EEC_PROVINCE_NSA_COLORS = {"CHON BURI":"#74b9ff", "RAYONG":"#fbbf24", "CHACHOENGSAO":"#c4b5fd"};
 const EEC_PROVINCE_SHORT = {"CHON BURI":"CBI", "RAYONG":"RYG", "CHACHOENGSAO":"CHS"};
 const FAULT_BUCKET_COLORS = {"1-2 Hrs.":"#2f9e44","2-6 Hrs.":"#e6b800","6-12 Hrs.":"#e88b6a",">12 Hrs.":"#d94a35"};
 const FAULT_LTR_BUCKETS = ["1-2 Hrs.","2-6 Hrs.","6-12 Hrs.",">12 Hrs."];
@@ -1627,13 +1662,17 @@ let eecSiteTickets = [];
 let EEC_SITE_MAP = {};
 let EEC_SITE_SET = new Set();
 let EEC_WO_CREATOR_MAP = {};
+let EEC_FAULT_FIELD_MAP = {};
 let EEC_SITE_REGEX = null;
 let eecProvinceFilter = "";
 let eecProvSevFilter = "all";
+let eecLtrSevFilter = "all";
 let eecOfcNodeTrendGroup = "OFC";
 let eecOfcNodeDetailCollapsed = false;
 let eecOfcNodeExpandRc = null;
 let eecSevChartInst = null;
+let eecOverSlaChartInst = null;
+let eecLtrChartInst = null;
 let eecProvChartInst = null;
 let eecOfcNodeChartInst = null;
 let eecSubTab = "charts";
@@ -6979,14 +7018,23 @@ function buildFaultDayLabels(range){
   }
   return labels;
 }
-/** วันที่มี ticket (closed) ใน rows ที่ filter แล้ว — เรียงจากเก่า → ใหม่ */
+/** เติมวันที่ว่างระหว่างวันแรก–วันสุดท้ายที่มีข้อมูล (รวมวัน count = 0) */
+function fillDayKeysRange(dayKeys){
+  if(!dayKeys.length) return [];
+  const sorted = [...dayKeys].sort();
+  return buildFaultDayLabels({
+    start: new Date(sorted[0] + "T00:00:00"),
+    end: new Date(sorted[sorted.length - 1] + "T00:00:00")
+  });
+}
+/** วันจากวันแรกถึงวันล่าสุดที่มี ticket (closed) — รวมวันไม่มีข้อมูล = 0 */
 function buildFaultDayLabelsFromRows(rows){
   const days = new Set();
   rows.forEach(r=>{
     const d = getFaultClosedDay(r);
     if(d) days.add(d);
   });
-  return [...days].sort();
+  return fillDayKeysRange([...days]);
 }
 /** เดือนที่มี ticket (closed) ใน rows — เรียงจากเก่า → ใหม่ (YYYY-MM) */
 function buildFaultMonthLabelsFromRows(rows){
@@ -7206,10 +7254,11 @@ const faultBarLabelPlugin = {
   afterDraw(chart){
     const ctx = chart.ctx;
     const chartId = chart.canvas?.id;
-    const isLtr = chartId === "faultLtrSlaChart";
+    const isLtr = chartId === "faultLtrSlaChart" || chartId === "eecLtrChart";
     const isOverview = chartId === "faultOverviewChart";
     const isSrmFtSev = chartId === "srmFtSevChart" || chartId === "srmFtOfcNodeChart"
-      || chartId === "eecSevChart" || chartId === "eecOfcNodeChart" || chartId === "eecProvChart";
+      || chartId === "eecSevChart" || chartId === "eecOfcNodeChart" || chartId === "eecProvChart"
+      || chartId === "eecOverSlaChart";
     const useOverviewLabels = isOverview || isSrmFtSev;
     if(useOverviewLabels) chart._faultOverviewLabelBoxes = [];
     ctx.save();
@@ -8549,13 +8598,76 @@ function parseEecClosedFromImportRow(r, mode){
 }
 function normalizeEecDbTicket(r){
   const site = extractEecSite(r);
+  const id = String(r?.incident_id || "").trim();
+  const fx = id ? (EEC_FAULT_FIELD_MAP[id] || {}) : {};
   return {
     ...r,
     site_id: site || r.site_id,
     province: getEecProvinceForTicket(r),
     wo_creator: getEecWoCreatorForTicket(r) || r.wo_creator || "",
+    created_time: r.created_time || fx.created_time || null,
+    require_finish_time: r.require_finish_time || fx.require_finish_time || null,
     root_cause: r.root_cause || r.cause || r.problem || ""
   };
+}
+function getEecClassifiedTickets(){
+  return getEecBaseTickets().map(r=>({ ...r, _fault: classifyFaultTicket(r) }));
+}
+function getEecOverTickets(){
+  return getEecClassifiedTickets()
+    .filter(r=>(r._fault||classifyFaultTicket(r)).slaStatus === "Over SLA")
+    .sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")) || String(a.incident_id||"").localeCompare(String(b.incident_id||"")));
+}
+function getEecLtrTickets(){
+  return getEecClassifiedTickets().filter(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    return c.slaStatus === "Within SLA" && !!c.bucket;
+  });
+}
+function eecLtrMatchesSev(r){
+  if(eecLtrSevFilter === "sa") return isFaultSaSeverity(r);
+  if(eecLtrSevFilter === "nsa") return isFaultNsaSrmSeverity(r);
+  return isFaultSaSeverity(r) || isFaultNsaSrmSeverity(r);
+}
+function getEecLtrFilteredTickets(){
+  return getEecLtrTickets().filter(eecLtrMatchesSev);
+}
+function setEecLtrSevFilter(mode){
+  if(!["all","sa","nsa"].includes(mode)) return;
+  if(eecLtrSevFilter === mode) return;
+  eecLtrSevFilter = mode;
+  renderEecLtrPanel();
+}
+function renderEecLtrSevFilterButtons(){
+  const el = document.getElementById("eecLtrSevFilter");
+  if(!el) return;
+  const rows = getEecLtrTickets();
+  let sa = 0, nsa = 0;
+  rows.forEach(r=>{
+    if(isFaultSaSeverity(r)) sa++;
+    else if(isFaultNsaSrmSeverity(r)) nsa++;
+  });
+  const f = eecLtrSevFilter;
+  el.innerHTML = `
+    <span class="flabel">Severity</span>
+    <div class="srm-ft-ofcnode-seg">
+      <button type="button" class="srm-ft-ofcnode-btn ${f==="all"?"active":""}" onclick="setEecLtrSevFilter('all')">SA + NSA<span class="seg-count">${rows.length}</span></button>
+      <button type="button" class="srm-ft-ofcnode-btn sa ${f==="sa"?"active":""}" onclick="setEecLtrSevFilter('sa')">SA<span class="seg-count">${sa}</span></button>
+      <button type="button" class="srm-ft-ofcnode-btn nsa ${f==="nsa"?"active":""}" onclick="setEecLtrSevFilter('nsa')">NSA<span class="seg-count">${nsa}</span></button>
+    </div>`;
+}
+function getEecLtrBucketTotals(rows){
+  const buckets = {};
+  FAULT_LTR_BUCKETS.forEach(b=>{ buckets[b] = 0; });
+  let total = 0;
+  rows.forEach(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    if(c.slaStatus === "Within SLA" && c.bucket){
+      buckets[c.bucket] = (buckets[c.bucket] || 0) + 1;
+      total++;
+    }
+  });
+  return { buckets, total };
 }
 function fmtEecTrendDayLabels(dayKeys){
   return dayKeys.map(fmtFaultDayLabel);
@@ -8585,7 +8697,7 @@ function buildEecDayLabelsFromRows(rows){
     const d = getEecClosedDay(r);
     if(d) days.add(d);
   });
-  return [...days].sort();
+  return fillDayKeysRange([...days]);
 }
 function isEecClosedStatus(r){
   const st = String(r?.status || "").trim();
@@ -8618,8 +8730,8 @@ function getEecFilteredTickets(){
 function getEecOfcNodeTrendTickets(){
   return getEecFilteredTickets();
 }
-function buildEecSeverityStats(){
-  const tickets = getEecBaseTickets();
+function buildEecOverSlaStats(){
+  const tickets = getEecOverTickets();
   const saTickets = tickets.filter(isFaultSaSeverity);
   const nsaTickets = tickets.filter(isFaultNsaSrmSeverity);
   const dayKeys = buildEecDayLabelsFromRows([...saTickets, ...nsaTickets]);
@@ -8639,6 +8751,41 @@ function buildEecSeverityStats(){
     nsaTotal: nsaCounts.reduce((a,n)=> a + n, 0)
   };
 }
+const EEC_SEV_SA_COLOR = "#d94a35";
+const EEC_SEV_NSA_COLOR = "#2f9e44";
+const EEC_SEV_SA_OVER_COLOR = "#c92a2a";
+const EEC_SEV_NSA_OVER_COLOR = "#087f5b";
+function buildEecSeverityStats(){
+  const allTickets = getEecBaseTickets();
+  const withinTickets = allTickets.filter(r=> classifyFaultTicket(r).slaStatus !== "Over SLA");
+  const overTickets = getEecOverTickets();
+  const saTickets = withinTickets.filter(isFaultSaSeverity);
+  const nsaTickets = withinTickets.filter(isFaultNsaSrmSeverity);
+  const saOverTickets = overTickets.filter(isFaultSaSeverity);
+  const nsaOverTickets = overTickets.filter(isFaultNsaSrmSeverity);
+  const dayKeys = buildEecDayLabelsFromRows([...saTickets, ...nsaTickets, ...saOverTickets, ...nsaOverTickets]);
+  const labels = fmtEecTrendDayLabels(dayKeys);
+  const saCounts = [], nsaCounts = [], saOverCounts = [], nsaOverCounts = [], totals = [];
+  dayKeys.forEach(day=>{
+    const d = String(day);
+    const sa = saTickets.filter(r=> getEecClosedDay(r) === d).length;
+    const nsa = nsaTickets.filter(r=> getEecClosedDay(r) === d).length;
+    const saOver = saOverTickets.filter(r=> getEecClosedDay(r) === d).length;
+    const nsaOver = nsaOverTickets.filter(r=> getEecClosedDay(r) === d).length;
+    saCounts.push(sa);
+    nsaCounts.push(nsa);
+    saOverCounts.push(saOver);
+    nsaOverCounts.push(nsaOver);
+    totals.push(sa + nsa + saOver + nsaOver);
+  });
+  return {
+    labels, dayKeys, saCounts, nsaCounts, saOverCounts, nsaOverCounts, totals,
+    saTotal: saCounts.reduce((a,n)=> a + n, 0),
+    nsaTotal: nsaCounts.reduce((a,n)=> a + n, 0),
+    saOverTotal: saOverCounts.reduce((a,n)=> a + n, 0),
+    nsaOverTotal: nsaOverCounts.reduce((a,n)=> a + n, 0)
+  };
+}
 function getEecActiveProvinces(){
   return eecProvinceFilter ? [eecProvinceFilter] : [...EEC_PROVINCES];
 }
@@ -8656,24 +8803,47 @@ function eecTicketMatchesProvSev(r){
 function buildEecProvinceStats(){
   const tickets = getEecProvinceTrendTickets();
   const activeProvinces = getEecActiveProvinces();
+  const splitSev = eecProvSevFilter === "all";
   const dayKeys = buildEecDayLabelsFromRows(tickets);
   const labels = fmtEecTrendDayLabels(dayKeys);
   const provCounts = {};
-  activeProvinces.forEach(p=>{ provCounts[p] = []; });
+  const provSaCounts = {};
+  const provNsaCounts = {};
   const provTotals = {};
-  activeProvinces.forEach(p=>{ provTotals[p] = 0; });
+  activeProvinces.forEach(p=>{
+    provCounts[p] = [];
+    provSaCounts[p] = [];
+    provNsaCounts[p] = [];
+    provTotals[p] = 0;
+  });
   dayKeys.forEach(day=>{
     const d = String(day);
     activeProvinces.forEach(prov=>{
-      const n = tickets.filter(r=>
+      const dayRows = tickets.filter(r=>
         getEecProvinceForTicket(r) === prov && getEecClosedDay(r) === d
-      ).length;
+      );
+      let sa = 0, nsa = 0;
+      dayRows.forEach(r=>{
+        if(isFaultSaSeverity(r)) sa++;
+        else if(isFaultNsaSrmSeverity(r)) nsa++;
+      });
+      provSaCounts[prov].push(sa);
+      provNsaCounts[prov].push(nsa);
+      const n = splitSev ? sa + nsa : dayRows.length;
       provCounts[prov].push(n);
       provTotals[prov] += n;
     });
   });
   const totals = dayKeys.map((_, i)=> activeProvinces.reduce((s,p)=> s + provCounts[p][i], 0));
-  return { labels, dayKeys, provCounts, provTotals, totals, activeProvinces };
+  let saTotal = 0, nsaTotal = 0;
+  activeProvinces.forEach(p=>{
+    saTotal += provSaCounts[p].reduce((a,n)=> a + n, 0);
+    nsaTotal += provNsaCounts[p].reduce((a,n)=> a + n, 0);
+  });
+  return {
+    labels, dayKeys, provCounts, provSaCounts, provNsaCounts, provTotals, totals,
+    activeProvinces, splitSev, saTotal, nsaTotal
+  };
 }
 function buildEecOfcNodeStats(group){
   const gFilter = group || eecOfcNodeTrendGroup;
@@ -8802,8 +8972,127 @@ function renderEecOfcNodeFilterButtons(){
     </div>`;
 }
 function destroyEecSevChart(){ if(eecSevChartInst){ eecSevChartInst.destroy(); eecSevChartInst = null; } }
+function destroyEecOverSlaChart(){ if(eecOverSlaChartInst){ eecOverSlaChartInst.destroy(); eecOverSlaChartInst = null; } }
 function destroyEecProvChart(){ if(eecProvChartInst){ eecProvChartInst.destroy(); eecProvChartInst = null; } }
 function destroyEecOfcNodeChart(){ if(eecOfcNodeChartInst){ eecOfcNodeChartInst.destroy(); eecOfcNodeChartInst = null; } }
+function destroyEecLtrChart(){ if(eecLtrChartInst){ eecLtrChartInst.destroy(); eecLtrChartInst = null; } }
+function renderEecLtrTrendChart(rows){
+  const canvas = document.getElementById("eecLtrChart");
+  if(!canvas || typeof Chart === "undefined") return;
+  eecLtrChartInst = destroyFaultChart(eecLtrChartInst);
+  const dayKeys = buildEecDayLabelsFromRows(rows);
+  const labels = fmtEecTrendDayLabels(dayKeys);
+  const buckets = FAULT_LTR_BUCKETS;
+  const rawByBucket = buckets.map(b=>
+    dayKeys.map(day=> rows.filter(r=>{
+      const c = r._fault || classifyFaultTicket(r);
+      return getEecClosedDay(r) === day && c.bucket === b;
+    }).length)
+  );
+  const dayTotals = dayKeys.map((_, di)=> rawByBucket.reduce((sum, arr)=> sum + arr[di], 0));
+  const countMax = faultCountAxisMax(dayTotals);
+  const countStep = faultCountAxisStep(countMax);
+  const datasets = buckets.map((b, bi)=>({
+    label:b, data:rawByBucket[bi], backgroundColor:FAULT_BUCKET_COLORS[b], stack:"downtime", order:2
+  }));
+  datasets.push({
+    label:"Total", data:dayTotals, type:"line", borderColor:"#7c4fd6", backgroundColor:"transparent",
+    tension:.3, pointRadius:5, pointBackgroundColor:"#7c4fd6", pointBorderColor:"#ffffff", pointBorderWidth:2,
+    borderWidth:2, order:1, clip:false
+  });
+  document.getElementById("eecLtrLegend").innerHTML = buckets.map(b=>
+    `<span><i style="background:${FAULT_BUCKET_COLORS[b]}"></i>${b}</span>`).join("") +
+    `<span><i style="background:#7c4fd6"></i>Total</span>`;
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  eecLtrChartInst = new Chart(canvas, {
+    type:"bar",
+    data:{labels, datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:14}},
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{stacked:true, ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor}},
+        y:{
+          stacked:true, position:"left", beginAtZero:true, min:0, max:countMax,
+          title:{display:true, text:"จำนวน Ticket", color:textColor, font:{size:13, weight:"bold"}},
+          ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}}, grid:{color:gridColor}
+        }
+      }
+    },
+    plugins:[faultBarLabelPlugin]
+  });
+}
+function renderEecSeverityTrendChart(stats){
+  const canvas = document.getElementById("eecSevChart");
+  const legendEl = document.getElementById("eecSevLegend");
+  const chartWrap = canvas?.closest(".fault-chart-wrap");
+  if(!canvas || typeof Chart === "undefined") return null;
+  destroyEecSevChart();
+  const totalAll = stats.totals.reduce((a,n)=> a + n, 0);
+  if(legendEl){
+    legendEl.innerHTML = `
+      <span><i style="background:${EEC_SEV_SA_COLOR}"></i>SA · ${stats.saTotal} TT</span>
+      <span><i style="background:${EEC_SEV_NSA_COLOR}"></i>NSA · ${stats.nsaTotal} TT</span>
+      <span><i style="background:${EEC_SEV_SA_OVER_COLOR}"></i>SA Over · ${stats.saOverTotal} TT</span>
+      <span><i style="background:${EEC_SEV_NSA_OVER_COLOR}"></i>NSA Over · ${stats.nsaOverTotal} TT</span>
+      <span><i style="background:#7c4fd6"></i>Total Ticket · <strong>${totalAll}</strong></span>`;
+  }
+  if(!stats.labels.length){
+    if(chartWrap){
+      let emptyEl = chartWrap.querySelector(".eec-chart-empty");
+      if(!emptyEl){
+        emptyEl = document.createElement("div");
+        emptyEl.className = "empty-hint eec-chart-empty";
+        emptyEl.style.padding = "48px 16px";
+        chartWrap.appendChild(emptyEl);
+      }
+      emptyEl.textContent = EEC_SITE_SET.size ? "ไม่มี TT ตรงเงื่อนไข" : "กำลังโหลดรายชื่อ EEC Site…";
+      emptyEl.style.display = "block";
+    }
+    canvas.style.display = "none";
+    return null;
+  }
+  chartWrap?.querySelector(".eec-chart-empty")?.remove();
+  canvas.style.display = "block";
+  const countMax = faultCountAxisMax(stats.totals);
+  const countStep = faultCountAxisStep(countMax);
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  eecSevChartInst = new Chart(canvas, {
+    type:"bar",
+    data:{
+      labels:stats.labels,
+      datasets:[
+        { label:"SA", data:stats.saCounts, backgroundColor:EEC_SEV_SA_COLOR, stack:"tickets", yAxisID:"yCount", order:2 },
+        { label:"NSA", data:stats.nsaCounts, backgroundColor:EEC_SEV_NSA_COLOR, stack:"tickets", yAxisID:"yCount", order:2 },
+        { label:"SA Over", data:stats.saOverCounts, backgroundColor:EEC_SEV_SA_OVER_COLOR, stack:"tickets", yAxisID:"yCount", order:2 },
+        { label:"NSA Over", data:stats.nsaOverCounts, backgroundColor:EEC_SEV_NSA_OVER_COLOR, stack:"tickets", yAxisID:"yCount", order:2 },
+        {
+          label:"Total Ticket", data:stats.totals, type:"line", borderColor:"#7c4fd6",
+          backgroundColor:"transparent", tension:.3, pointRadius:5, pointBackgroundColor:"#7c4fd6",
+          pointBorderColor:"#ffffff", pointBorderWidth:2, borderWidth:2.5, yAxisID:"yCount", order:1
+        }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:44, bottom:8, right:8}},
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label(ctx){ return ` ${ctx.dataset.label}: ${ctx.formattedValue} TT`; } } } },
+      scales:{
+        x:{ stacked:true, ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor} },
+        yCount:{
+          stacked:true, position:"left", beginAtZero:true, min:0, max:countMax,
+          title:{display:true, text:"จำนวน Ticket", color:textColor, font:{size:13, weight:"bold"}},
+          ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}}, grid:{color:gridColor}
+        }
+      }
+    },
+    plugins:[faultBarLabelPlugin]
+  });
+  return eecSevChartInst;
+}
 function renderEecStackedSevChart(canvasId, legendId, stats, instRef){
   const canvas = document.getElementById(canvasId);
   const legendEl = document.getElementById(legendId);
@@ -8811,6 +9100,7 @@ function renderEecStackedSevChart(canvasId, legendId, stats, instRef){
   if(!canvas || typeof Chart === "undefined") return null;
   if(instRef === "sev") destroyEecSevChart();
   else if(instRef === "ofc") destroyEecOfcNodeChart();
+  else if(instRef === "over-sla") destroyEecOverSlaChart();
   const saColor = "#d94a35";
   const nsaColor = "#2f9e44";
   const totalAll = stats.totals.reduce((a,n)=> a + n, 0);
@@ -8876,19 +9166,36 @@ function renderEecStackedSevChart(canvasId, legendId, stats, instRef){
   });
   if(instRef === "sev") eecSevChartInst = chart;
   else if(instRef === "ofc") eecOfcNodeChartInst = chart;
+  else if(instRef === "over-sla") eecOverSlaChartInst = chart;
   return chart;
 }
-function renderEecSeverityCards(stats){
-  const wrap = document.getElementById("eecSevCards");
+function renderEecOverSlaCards(stats){
+  const wrap = document.getElementById("eecOverSlaCards");
   if(!wrap) return;
   wrap.innerHTML = `
     <div class="srm-ft-sev-card sa"><span class="srm-ft-sev-card-lbl">SA</span><span class="srm-ft-sev-card-val">${stats.saTotal}</span></div>
     <div class="srm-ft-sev-card nsa"><span class="srm-ft-sev-card-lbl">NSA</span><span class="srm-ft-sev-card-val">${stats.nsaTotal}</span></div>`;
 }
+function renderEecOverSlaPanel(){
+  const stats = buildEecOverSlaStats();
+  renderEecOverSlaCards(stats);
+  renderEecStackedSevChart("eecOverSlaChart", "eecOverSlaLegend", stats, "over-sla");
+}
+function renderEecSeverityCards(stats){
+  const wrap = document.getElementById("eecSevCards");
+  if(!wrap) return;
+  wrap.classList.remove("cols-3");
+  wrap.classList.add("cols-4");
+  wrap.innerHTML = `
+    <div class="srm-ft-sev-card sa"><span class="srm-ft-sev-card-lbl">SA</span><span class="srm-ft-sev-card-val">${stats.saTotal}</span></div>
+    <div class="srm-ft-sev-card nsa"><span class="srm-ft-sev-card-lbl">NSA</span><span class="srm-ft-sev-card-val">${stats.nsaTotal}</span></div>
+    <div class="srm-ft-sev-card sa-over"><span class="srm-ft-sev-card-lbl">SA Over</span><span class="srm-ft-sev-card-val">${stats.saOverTotal}</span></div>
+    <div class="srm-ft-sev-card nsa-over"><span class="srm-ft-sev-card-lbl">NSA Over</span><span class="srm-ft-sev-card-val">${stats.nsaOverTotal}</span></div>`;
+}
 function renderEecSeverityPanel(){
   const stats = buildEecSeverityStats();
   renderEecSeverityCards(stats);
-  renderEecStackedSevChart("eecSevChart", "eecSevLegend", stats, "sev");
+  renderEecSeverityTrendChart(stats);
 }
 function renderEecProvinceChart(stats){
   const canvas = document.getElementById("eecProvChart");
@@ -8899,9 +9206,18 @@ function renderEecProvinceChart(stats){
   const activeProvinces = stats.activeProvinces || EEC_PROVINCES;
   const totalAll = stats.totals.reduce((a,n)=> a + n, 0);
   if(legendEl){
-    legendEl.innerHTML = activeProvinces.map(p=>
-      `<span><i style="background:${EEC_PROVINCE_COLORS[p]}"></i>${p} · ${stats.provTotals[p]||0} TT</span>`
-    ).join("") + `<span><i style="background:#7c4fd6"></i>Total · <strong>${totalAll}</strong></span>`;
+    legendEl.innerHTML = stats.splitSev
+      ? activeProvinces.flatMap(p=>{
+          const saN = (stats.provSaCounts[p] || []).reduce((a,n)=> a + n, 0);
+          const nsaN = (stats.provNsaCounts[p] || []).reduce((a,n)=> a + n, 0);
+          return [
+            `<span><i style="background:${EEC_PROVINCE_SA_COLORS[p]}"></i>${p} · SA · ${saN} TT</span>`,
+            `<span><i style="background:${EEC_PROVINCE_NSA_COLORS[p]}"></i>${p} · NSA · ${nsaN} TT</span>`
+          ];
+        }).join("") + `<span><i style="background:#7c4fd6"></i>Total · <strong>${totalAll}</strong></span>`
+      : activeProvinces.map(p=>
+          `<span><i style="background:${EEC_PROVINCE_COLORS[p]}"></i>${p} · ${stats.provTotals[p]||0} TT</span>`
+        ).join("") + `<span><i style="background:#7c4fd6"></i>Total · <strong>${totalAll}</strong></span>`;
   }
   if(!stats.labels.length){
     if(chartWrap){
@@ -8920,16 +9236,30 @@ function renderEecProvinceChart(stats){
   }
   chartWrap?.querySelector(".eec-chart-empty")?.remove();
   canvas.style.display = "block";
-  const countMax = faultCountAxisMax(stats.totals);
+  const stackMaxes = stats.labels.map((_, i)=>
+    Math.max(0, ...activeProvinces.map(p=>
+      (stats.provSaCounts[p][i] || 0) + (stats.provNsaCounts[p][i] || 0)
+    ))
+  );
+  const countMax = faultCountAxisMax(stats.splitSev ? stackMaxes : stats.totals);
   const countStep = faultCountAxisStep(countMax);
   const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
   const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
-  const datasets = activeProvinces.map(prov=>({
-    label: prov,
-    data: stats.provCounts[prov],
-    backgroundColor: EEC_PROVINCE_COLORS[prov],
-    yAxisID:"yCount"
-  }));
+  const datasets = stats.splitSev
+    ? activeProvinces.flatMap(prov=>[
+        {
+          label:`${prov} · SA`, data:stats.provSaCounts[prov],
+          backgroundColor:EEC_PROVINCE_SA_COLORS[prov], stack:prov, yAxisID:"yCount", order:2
+        },
+        {
+          label:`${prov} · NSA`, data:stats.provNsaCounts[prov],
+          backgroundColor:EEC_PROVINCE_NSA_COLORS[prov], stack:prov, yAxisID:"yCount", order:2
+        }
+      ])
+    : activeProvinces.map(prov=>({
+        label:prov, data:stats.provCounts[prov],
+        backgroundColor:EEC_PROVINCE_COLORS[prov], yAxisID:"yCount"
+      }));
   eecProvChartInst = new Chart(canvas, {
     type:"bar",
     data:{ labels:stats.labels, datasets },
@@ -8938,9 +9268,9 @@ function renderEecProvinceChart(stats){
       layout:{padding:{top:28, bottom:8, right:8}},
       plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label(ctx){ return ` ${ctx.dataset.label}: ${ctx.formattedValue} TT`; } } } },
       scales:{
-        x:{ ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor} },
+        x:{ stacked:!!stats.splitSev, ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor} },
         yCount:{
-          position:"left", beginAtZero:true, min:0, max:countMax,
+          stacked:!!stats.splitSev, position:"left", beginAtZero:true, min:0, max:countMax,
           title:{display:true, text:"จำนวน Ticket", color:textColor, font:{size:13, weight:"bold"}},
           ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}}, grid:{color:gridColor}
         }
@@ -9068,6 +9398,63 @@ function renderEecDetailTableHtml(rows){
     <th>WO Creator</th><th>Created</th><th>Closed</th><th>Root Cause</th><th>Remedy</th>
   </tr></thead><tbody>${bodyHtml}</tbody></table>`;
 }
+function renderEecSlaTableHtml(rows){
+  if(!rows.length){
+    return `<div class="empty-hint" style="padding:16px;">ไม่มี TT ตรงเงื่อนไข</div>`;
+  }
+  const bodyHtml = rows.map(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    const site = r.site_id || extractEecSite(r) || "";
+    const tt = r.source_ticket_id || "";
+    const wo = r.incident_id || "";
+    const ticketCell = tt && wo && tt !== wo ? `${esc(tt)}<br><span class="muted">${esc(wo)}</span>` : esc(wo || tt);
+    return `<tr>
+      <td class="site-plkd-cell">${esc(site)}</td>
+      <td>${ticketCell}</td>
+      <td>${esc(getEecProvinceForTicket(r))}</td>
+      <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
+      <td class="subject-cell">${esc(r.subject||"")}</td>
+      <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
+      <td class="dt-cell">${fmtFaultDT(r.require_finish_time)}</td>
+      <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
+      <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
+      <td class="subject-cell">${esc(r.root_cause||"")}</td>
+    </tr>`;
+  }).join("");
+  return `<table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
+    <th>Site</th><th>Ticket / WO</th><th>Province</th><th>Severity</th><th>Subject</th>
+    <th>Created</th><th>Require Finish</th><th>Closed</th><th>Downtime</th><th>Root Cause</th>
+  </tr></thead><tbody>${bodyHtml}</tbody></table>`;
+}
+function renderEecLtrPanel(){
+  renderEecLtrSevFilterButtons();
+  const rows = getEecLtrFilteredTickets();
+  renderEecLtrTrendChart(rows);
+  const { buckets, total } = getEecLtrBucketTotals(rows);
+  const summaryEl = document.getElementById("eecLtrSummary");
+  if(summaryEl){
+    const head = FAULT_LTR_BUCKETS.map(b=>`<th class="fault-ltr-bucket-th">${esc(b)}</th>`).join("");
+    const cells = FAULT_LTR_BUCKETS.map(b=>`<td>${faultLtrBucketPillHtml(buckets[b]||0)}</td>`).join("");
+    summaryEl.innerHTML = `<div class="table-scroll"><table class="svcava-table fault-data-table fault-ltr-summary-table">
+      <thead><tr><th style="text-align:left">Long time Repair</th>${head}<th>Total</th></tr></thead>
+      <tbody><tr><td class="fault-ltr-reason-name">Within SLA</td>${cells}<td class="fault-ltr-total">${total}</td></tr></tbody>
+    </table></div>`;
+  }
+  const bucketBlocks = [
+    { key:">12 Hrs.", wrap:"eecGt12TableWrap", cnt:"eecGt12Count" },
+    { key:"6-12 Hrs.", wrap:"eec612TableWrap", cnt:"eec612Count" },
+    { key:"2-6 Hrs.", wrap:"eec26TableWrap", cnt:"eec26Count" },
+    { key:"1-2 Hrs.", wrap:"eec12TableWrap", cnt:"eec12Count" }
+  ];
+  bucketBlocks.forEach(b=>{
+    const bRows = rows.filter(r=>(r._fault||classifyFaultTicket(r)).bucket === b.key)
+      .sort((a,c)=> String(c.closed_time||"").localeCompare(String(a.closed_time||"")));
+    const cntEl = document.getElementById(b.cnt);
+    if(cntEl) cntEl.textContent = String(bRows.length);
+    const wrap = document.getElementById(b.wrap);
+    if(wrap) wrap.innerHTML = renderEecSlaTableHtml(bRows);
+  });
+}
 function renderEecDetailPanel(){
   const all = getEecBaseTickets();
   const rows = getEecDetailTickets();
@@ -9080,14 +9467,17 @@ function renderEecDetailPanel(){
   if(wrap) wrap.innerHTML = renderEecDetailTableHtml(rows);
 }
 function switchEecSubTab(tab){
-  if(tab !== "charts" && tab !== "detail") return;
+  if(!["charts","over-sla","ltr"].includes(tab)) return;
   eecSubTab = tab;
   document.getElementById("eecSubChartsBtn")?.classList.toggle("active", tab === "charts");
-  document.getElementById("eecSubDetailBtn")?.classList.toggle("active", tab === "detail");
+  document.getElementById("eecSubOverSlaBtn")?.classList.toggle("active", tab === "over-sla");
+  document.getElementById("eecSubLtrBtn")?.classList.toggle("active", tab === "ltr");
   const chartsEl = document.getElementById("eecSubCharts");
-  const detailEl = document.getElementById("eecSubDetail");
+  const overSlaEl = document.getElementById("eecSubOverSla");
+  const ltrEl = document.getElementById("eecSubLtr");
   if(chartsEl) chartsEl.style.display = tab === "charts" ? "block" : "none";
-  if(detailEl) detailEl.style.display = tab === "detail" ? "block" : "none";
+  if(overSlaEl) overSlaEl.style.display = tab === "over-sla" ? "block" : "none";
+  if(ltrEl) ltrEl.style.display = tab === "ltr" ? "block" : "none";
   moveEecSubTabIndicator();
   renderEecTab();
 }
@@ -9100,9 +9490,9 @@ function moveEecSubTabIndicator(){
 }
 function renderEecTab(){
   if(currentTab !== "eec") return;
-  if(eecSubTab === "detail"){
-    renderEecDetailPanel();
-  }else{
+  if(eecSubTab === "ltr") renderEecLtrPanel();
+  else if(eecSubTab === "over-sla") renderEecOverSlaPanel();
+  else{
     renderEecSeverityPanel();
     renderEecProvincePanel();
     refreshEecOfcNodeTrendPanel();
@@ -9120,11 +9510,17 @@ async function loadEecSiteTickets(showToast){
     await fetchEecSites();
     const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,remedy,created_time,closed_time,wo_creator";
     eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + select + "&order=closed_time.asc");
-    const faultRows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,wo_creator");
+    const faultRows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,wo_creator,require_finish_time,created_time");
     EEC_WO_CREATOR_MAP = {};
+    EEC_FAULT_FIELD_MAP = {};
     faultRows.forEach(r=>{
       const id = String(r.work_order_id || "").trim();
-      if(id) EEC_WO_CREATOR_MAP[id] = r.wo_creator || "";
+      if(!id) return;
+      EEC_WO_CREATOR_MAP[id] = r.wo_creator || "";
+      EEC_FAULT_FIELD_MAP[id] = {
+        require_finish_time: r.require_finish_time || null,
+        created_time: r.created_time || null
+      };
     });
     if(showToast) toast(`EEC: ${eecSiteTickets.length} tickets · ${EEC_SITE_SET.size} sites`);
     if(currentTab === "eec") renderEecTab();
@@ -9273,6 +9669,7 @@ function mapEecWoImportRow(r){
     root_cause: raw.root_cause || null,
     remedy: raw.close_description || raw.complete_solution || null,
     created_time: raw.created_time || null,
+    require_finish_time: raw.require_finish_time || null,
     closed_time: raw.closed_time,
     wo_creator: raw.wo_creator || "System",
     updated_at: new Date().toISOString()
