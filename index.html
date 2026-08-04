@@ -1424,15 +1424,29 @@ function isCancelled(r){ return isCancelStatus(r?.wo_status); }
 
 let SITE_SET = new Set();
 let PLKD_REGEX = null;
-let TEAM_MAP = []; // [{team_key, match_key, raw_label, contact_name, phone, sort_order}]
+let TEAM_MAP = []; // [{team_key, match_key, alt_match_keys?, raw_label, contact_name, phone, sort_order}]
+const TEAM_ALT_MATCH_KEYS = {
+  NODE2: ["NOD-011"]
+};
+const TEAM_EXTRA_RAW_LABELS = {
+  NODE2: "SY-EA-RYG-NOD-011"
+};
+const RETIRED_TEAM_MATCH_KEYS = new Set(["MUF-010"]);
 const DEFAULT_TEAM_MAP = [
   {team_key:"NODE1", match_key:"NOD-001", raw_label:"SY-EA-RYG-NOD-001", contact_name:"Nitipong_NH_RYG", phone:"0615874153", sort_order:1},
-  {team_key:"NODE2", match_key:"MUF-010", raw_label:"SY-EA-RYG-MUF-010", contact_name:"Aet_NH_RYG_WW", phone:"0800715001", sort_order:2},
-  {team_key:"NODE3", match_key:"MUF-011", raw_label:"SY-EA-RYG-MUF-011", contact_name:"Sakorn_OF_RYG_M1_WW", phone:"0969299842", sort_order:3},
-  {team_key:"OFC1", match_key:"OFC-017", raw_label:"SY-EA-RYG-OFC-017", contact_name:"Jirayut_OF_RYG_WW", phone:"0918435580", sort_order:4},
-  {team_key:"OFC2", match_key:"OFC-001", raw_label:"EX-EA-RYG-OFC-001", contact_name:"Veerachai_OF_RYG_WW", phone:"0806372241", sort_order:5},
-  {team_key:"OFC3", match_key:"OFC-005", raw_label:"SY-EA-RYG-OFC-005", contact_name:"Thanakorn_OF_RYG_WW", phone:"0985231948", sort_order:6}
+  {team_key:"NODE2", match_key:"MUF-011", alt_match_keys:["NOD-011"], raw_label:"SY-EA-RYG-MUF-011 · SY-EA-RYG-NOD-011", contact_name:"Sakorn_OF_RYG_M1_WW", phone:"0969299842", sort_order:2},
+  {team_key:"OFC1", match_key:"OFC-017", raw_label:"SY-EA-RYG-OFC-017", contact_name:"Jirayut_OF_RYG_WW", phone:"0918435580", sort_order:3},
+  {team_key:"OFC2", match_key:"OFC-001", raw_label:"EX-EA-RYG-OFC-001", contact_name:"Veerachai_OF_RYG_WW", phone:"0806372241", sort_order:4},
+  {team_key:"OFC3", match_key:"OFC-005", raw_label:"SY-EA-RYG-OFC-005", contact_name:"Thanakorn_OF_RYG_WW", phone:"0985231948", sort_order:5}
 ];
+function normalizeTeamKey(team){
+  const t = String(team || "").trim().toUpperCase();
+  if(t === "NODE3") return "NODE2";
+  return t;
+}
+function ticketTeamMatches(r, team){
+  return normalizeTeamKey(r?.team) === normalizeTeamKey(team);
+}
 function getActiveTeamMap(){
   return (Array.isArray(TEAM_MAP) && TEAM_MAP.length) ? TEAM_MAP : DEFAULT_TEAM_MAP;
 }
@@ -1711,6 +1725,28 @@ function plkdMatchType(r){
   return null;
 }
 function isPlkdMatch(r){ return !!plkdMatchType(r); }
+function getTeamMatchKeys(tm){
+  const keys = [];
+  if(tm?.match_key) keys.push(tm.match_key);
+  (tm?.alt_match_keys || []).forEach(k=>{ if(k && !keys.includes(k)) keys.push(k); });
+  (TEAM_ALT_MATCH_KEYS[tm?.team_key] || []).forEach(k=>{ if(k && !keys.includes(k)) keys.push(k); });
+  return keys;
+}
+function enrichTeamMapEntry(tm){
+  const team_key = tm.team_key === "NODE3" ? "NODE2" : tm.team_key;
+  const extraLabel = TEAM_EXTRA_RAW_LABELS[team_key];
+  let raw_label = tm.raw_label || "";
+  if(extraLabel && !raw_label.includes(extraLabel)){
+    raw_label = raw_label ? `${raw_label} · ${extraLabel}` : extraLabel;
+  }
+  const alt = [...new Set([...(tm.alt_match_keys || []), ...(TEAM_ALT_MATCH_KEYS[team_key] || [])])];
+  return {...tm, team_key, raw_label, alt_match_keys: alt.length ? alt : tm.alt_match_keys};
+}
+function enrichTeamMap(){
+  TEAM_MAP = TEAM_MAP
+    .map(enrichTeamMapEntry)
+    .filter(tm=> !RETIRED_TEAM_MATCH_KEYS.has(tm.match_key));
+}
 async function fetchTeamMap(){
   try{
     const res = await fetch(REST + "/team_mapping?select=*&order=sort_order.asc", {headers:HEADERS});
@@ -1721,6 +1757,7 @@ async function fetchTeamMap(){
     console.warn("fetchTeamMap failed:", e);
     TEAM_MAP = DEFAULT_TEAM_MAP.slice();
   }
+  enrichTeamMap();
 }
 async function fetchTickets(group){
   try{
@@ -1739,7 +1776,10 @@ async function fetchAttendance(dateVal){
     if(!res.ok) throw new Error(await res.text());
     const rows = await res.json();
     ATTENDANCE = {};
-    (Array.isArray(rows) ? rows : []).forEach(r=> ATTENDANCE[r.team_key] = r);
+    (Array.isArray(rows) ? rows : []).forEach(r=>{
+      const key = normalizeTeamKey(r.team_key);
+      ATTENDANCE[key] = {...r, team_key: key};
+    });
   }catch(e){
     console.warn("fetchAttendance failed:", e);
     ATTENDANCE = {};
@@ -1918,7 +1958,7 @@ function renderTeams(group){
        {h:"Update Log Status", w:220, field:"evening_summary", editable:true, big:true}];
   getActiveTeamMap().forEach(tm=>{
     const team = tm.team_key;
-    const teamRows = rows.filter(r=>r.team===team);
+    const teamRows = rows.filter(r=>ticketTeamMatches(r, team));
     const block = document.createElement("div");
     block.className = "team-block";
     const tagClass = team.startsWith("NODE") ? "NODE":"OFC";
@@ -2026,7 +2066,7 @@ function statusTimeFor(r){
   return key ? r[key] : null;
 }
 function autoPlanText(team){
-  const rows = tickets.pending.filter(r=>r.team===team && isPlkdMatch(r) && !isCancelled(r));
+  const rows = tickets.pending.filter(r=>ticketTeamMatches(r, team) && isPlkdMatch(r) && !isCancelled(r));
   if(rows.length===0) return "";
   return rows.map((r,i)=>{
     const sevShort = (r.severity||"").split("-")[0] || "";
@@ -2298,6 +2338,16 @@ function getSrmFtFilteredTickets(){
     if(isSrmDashHidden(r)) return false;
     const site = extractFaultPlkdSite(r);
     if(!site || site === "-") return false;
+    return passesSrmFreeTextSiteFilters(site);
+  });
+}
+/** ข้อมูลสำหรับ Export Detail — ทุกวันที่มีข้อมูล · Site PLKD (ไม่จำกัดเดือนที่เลือก) */
+function getSrmFtTicketsForExport(){
+  return srmTickets.filter(r=>{
+    if(!passesSrmTicketFocus(r)) return false;
+    if(!r?.closed_time) return false;
+    const site = extractFaultPlkdSite(r);
+    if(!site || site === "-" || !SITE_SET.has(site)) return false;
     return passesSrmFreeTextSiteFilters(site);
   });
 }
@@ -4645,10 +4695,10 @@ function renderHome(){
     const team = tm.team_key;
     if(!team) return;
     const att = ATTENDANCE[team] || {};
-    const allPlanRows = pendingRows.filter(r=>r.team===team && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r))
+    const allPlanRows = pendingRows.filter(r=>ticketTeamMatches(r, team) && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r))
       .sort((a,b)=>(a.plan_order||9999)-(b.plan_order||9999));
     const pendingCount = allPlanRows.length;
-    const closedCount = closedRows.filter(r=>r.team===team && r.closed_time && String(r.closed_time).slice(0,10)===dateVal && isPlkdMatch(r) && !isCancelled(r)).length;
+    const closedCount = closedRows.filter(r=>ticketTeamMatches(r, team) && r.closed_time && String(r.closed_time).slice(0,10)===dateVal && isPlkdMatch(r) && !isCancelled(r)).length;
     const rowClass = team.startsWith("NODE") ? "home-row-node":"home-row-ofc";
     const collapsed = !expandedTeams.has(team);
     const planRows = collapsed ? allPlanRows.slice(0,1) : allPlanRows;
@@ -4736,7 +4786,7 @@ function renderHome(){
     return "var(--blue)";
   }
   function severityLines(teamList, groupName){
-    const rows = pendingRows.filter(r=>teamList.includes(r.team) && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r));
+    const rows = pendingRows.filter(r=>teamList.includes(normalizeTeamKey(r.team)) && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r));
     const tally = {};
     rows.forEach(r=>{
       const c = sevShort(r.severity);
@@ -4757,7 +4807,7 @@ function renderHome(){
   }
   window.SEV_GROUP_TEAMS = { node: nodeTeams, ofc: ofcTeams };
   function statusLines(teamList){
-    const rows = pendingRows.filter(r=>teamList.includes(r.team) && isPlkdMatch(r) && !isCancelled(r));
+    const rows = pendingRows.filter(r=>teamList.includes(normalizeTeamKey(r.team)) && isPlkdMatch(r) && !isCancelled(r));
     const tally = {};
     rows.forEach(r=>{ if(r.wo_status) tally[r.wo_status] = (tally[r.wo_status]||0)+1; });
     const keys = Object.keys(tally).sort();
@@ -4789,7 +4839,7 @@ function renderHome(){
 function showSevDetail(groupName, sevCode){
   const teamList = (window.SEV_GROUP_TEAMS && window.SEV_GROUP_TEAMS[groupName]) || [];
   const rows = tickets.pending.filter(r=>{
-    if(!teamList.includes(r.team)) return false;
+    if(!teamList.includes(normalizeTeamKey(r.team))) return false;
     if(!isPlkdMatch(r)) return false;
     if(!homeSevPass(r)) return false;
     const c = (r.severity||"").split("-")[0] || "";
@@ -4805,7 +4855,7 @@ function showSevDetail(groupName, sevCode){
   } else {
     body.innerHTML = `<div class="sev-ladder">${rows.map((r,i)=>{
       const ticketId = r.tt_number || r.work_order_id || '-';
-      const teamCode = teamCodeMap[r.team] || r.team || '-';
+      const teamCode = teamCodeMap[normalizeTeamKey(r.team)] || normalizeTeamKey(r.team) || '-';
       const plan = r.plan_today || r.subject || '-';
       return `<div class="sev-ladder-row" style="--step:${i}">
         <div class="sev-ladder-step">${i+1}</div>
@@ -5105,10 +5155,14 @@ async function addRowPrompt(group, team){
   toast("Ticket added");
 }
 
-/* ---- match raw "Team" field text to one of our 6 team_key buckets ---- */
+/* ---- match raw "Team" field text to one of our active team_key buckets ---- */
 function matchTeam(rawTeam){
   if(!rawTeam) return null;
-  for(const tm of getActiveTeamMap()){ if(rawTeam.includes(tm.match_key)) return tm.team_key; }
+  for(const tm of getActiveTeamMap()){
+    for(const key of getTeamMatchKeys(tm)){
+      if(rawTeam.includes(key)) return tm.team_key;
+    }
+  }
   return null;
 }
 function deriveStatusGroup(status, fallback){
@@ -5587,6 +5641,15 @@ function getFilteredFaultTickets(){
     if(faultRegionFilter && (r.region||"") !== faultRegionFilter) return false;
     return faultTicketInRange(r, range);
   }).map(r=>({...r, _fault: classifyFaultTicket(r)}));
+}
+/** ข้อมูลสำหรับ Export — ทุกใบที่มีข้อมูลในระบบ (ไม่จำกัดช่วงวันที่ boardDate) */
+function getFaultTicketsForExport(){
+  return faultTickets.filter(r=>{
+    if(!passesFaultPlkdFocus(r)) return false;
+    if(faultRegionFilter && (r.region||"") !== faultRegionFilter) return false;
+    return true;
+  }).map(r=>({...r, _fault: classifyFaultTicket(r)}))
+    .sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")) || String(a.work_order_id||"").localeCompare(String(b.work_order_id||"")));
 }
 /** ข้อมูลสำหรับกราฟ Fault trend PLKD — ทุกวันที่มีข้อมูล (ไม่จำกัดช่วง Date ด้านซ้าย) */
 function getFaultTicketsForTrendChart(){
@@ -8127,24 +8190,25 @@ async function bulkInsertFaultTickets(rows, statusElId = "statusMsgFault"){
   renderAll();
 }
 function exportFaultExcel(){
-  const rows = getFilteredFaultTickets();
+  const rows = getFaultTicketsForExport();
   if(rows.length===0){ toast("No rows to export"); return; }
-  const dateVal = document.getElementById("boardDate").value;
+  const dateVal = document.getElementById("boardDate").value || fmtIsoLocalDate(new Date());
   const cols = FAULT_EXPORT_COLS;
   const data = rows.map(r=>{ const obj={}; cols.forEach(c=>{ obj[c.h]=c.get(r); }); return obj; });
   const ws = XLSX.utils.json_to_sheet(data);
   ws["!cols"] = cols.map(c=>({ wch: Math.max(14, Math.min(36, c.h.length+2)) }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Fault PLKD");
-  XLSX.writeFile(wb, `PLKD-FaultPLKD-${dateVal}.xlsx`);
+  XLSX.writeFile(wb, `PLKD-FaultPLKD-All-${dateVal}.xlsx`);
+  toast(`Exported ${rows.length} row(s)`);
 }
 async function exportSrmDetailExcel(){
   await ensureFaultPlkdFieldIndex();
-  const rows = getSrmFtFilteredTickets()
+  const rows = getSrmFtTicketsForExport()
     .map(mergeFaultPlkdFieldsForSrmDisplay)
     .sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")) || String(extractFaultPlkdSite(a)).localeCompare(String(extractFaultPlkdSite(b))));
   if(!rows.length){ toast("No rows to export"); return; }
-  const dateVal = document.getElementById("boardDate").value;
+  const dateVal = document.getElementById("boardDate").value || fmtIsoLocalDate(new Date());
   const cols = SRM_DETAIL_EXPORT_COLS;
   const data = rows.map(r=>{ const obj={}; cols.forEach(c=>{ obj[c.h]=c.get(r); }); return obj; });
   const ws = XLSX.utils.json_to_sheet(data);
@@ -8156,7 +8220,7 @@ async function exportSrmDetailExcel(){
     return v ? `${s}=${v}` : null;
   }).filter(Boolean);
   const filterLabel = filterParts.length ? filterParts.join("_").replace(/[\\/?*[\]:]/g, "-").slice(0, 40) : "All";
-  XLSX.writeFile(wb, `PLKD-SRM-Detail-${dateVal}-${filterLabel}.xlsx`);
+  XLSX.writeFile(wb, `PLKD-SRM-Detail-All-${dateVal}-${filterLabel}.xlsx`);
   toast(`Exported ${rows.length} row(s)`);
 }
 
