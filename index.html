@@ -577,6 +577,10 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-ft-table-wrap{margin-top:8px;}
 .srm-ft-table{width:100%; border-collapse:collapse; font-size:14px;}
 .srm-ft-table thead th{font-family:'Barlow Condensed'; font-weight:700; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--border); text-align:left;}
+.srm-ft-table th.srm-ft-sort-th{cursor:pointer; user-select:none; white-space:nowrap; transition:color .12s;}
+.srm-ft-table th.srm-ft-sort-th:hover{color:var(--text);}
+.srm-ft-table th.srm-ft-sort-th.active{color:var(--blue);}
+.srm-ft-table th.srm-ft-sort-th .sort-arrow{font-size:10px; opacity:.85; margin-left:2px;}
 .srm-ft-table tbody td{padding:10px 12px; border-bottom:1px solid var(--border-soft); vertical-align:middle;}
 .srm-ft-table th:first-child,
 .srm-ft-table td:first-child{min-width:120px; width:120px;}
@@ -1195,7 +1199,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         </div>
       </div>
       <div class="srm-block">
-        <div class="srm-block-title">Site ในเดือน <span id="srmFtTicketCount">0</span></div>
+        <div class="srm-block-title">Site ทั้งหมด <span id="srmFtTicketCount">0</span></div>
         <div class="srm-ft-table-wrap table-scroll" id="srmFtTableWrap"></div>
       </div>
       <div class="srm-block srm-ft-hidden-block" id="srmFtHiddenBlock">
@@ -1528,6 +1532,7 @@ let srmFreeTextFilters = { A:"", B:"", C:"", D:"", E:"" };
 let srmFtManageSlot = "A";
 let srmFtSiteIndex = {};
 let srmFtExpand = null;
+let srmFtSiteSort = { col:"site", dir:"asc" };
 let srmFtSevChartInst = null;
 let srmOfcNodeTrendGroup = "OFC";
 let srmDashExpand = null;
@@ -2362,6 +2367,23 @@ function getSrmFtCountableTickets(){
     return passesSrmFreeTextSiteFilters(site);
   });
 }
+/** OFC/NODE Trend + Detail Root Cause — ทุกวันที่มีข้อมูล (ไม่จำกัดเดือนที่เลือก) */
+function getSrmOfcNodeTrendTickets(){
+  const filterSite = r=>{
+    const site = extractFaultPlkdSite(r);
+    if(!site || site === "-") return false;
+    return passesSrmFreeTextSiteFilters(site);
+  };
+  const saTickets = getSrmFtTrendSaTickets().filter(filterSite);
+  const nsaTickets = getSrmFtTrendNsaTickets().filter(filterSite);
+  const byWo = new Map();
+  [...saTickets, ...nsaTickets].forEach(r=>{
+    const wo = String(r.work_order_id || "").trim();
+    if(wo) byWo.set(wo, r);
+    else byWo.set(`__${byWo.size}`, r);
+  });
+  return [...byWo.values()];
+}
 /** SA ใน Severity Trend — ทุกวันที่มีข้อมูล (เงื่อนไขเดียวกับ Fault PLKD) */
 function getSrmFtTrendSaTickets(){
   return faultTickets.filter(r=>{
@@ -2414,7 +2436,7 @@ function classifySrmRootCauseGroup(r){
   return "OTHER";
 }
 function getSrmOfcNodeGroupTotals(){
-  const tickets = getSrmFtCountableTickets();
+  const tickets = getSrmOfcNodeTrendTickets();
   let ofcTotal = 0, nodeTotal = 0;
   tickets.forEach(r=>{
     const g = classifySrmRootCauseGroup(r);
@@ -2425,9 +2447,9 @@ function getSrmOfcNodeGroupTotals(){
 }
 function buildSrmOfcNodeStats(group){
   const gFilter = group || srmOfcNodeTrendGroup;
-  const tickets = getSrmFtCountableTickets().filter(r=> classifySrmRootCauseGroup(r) === gFilter);
+  const tickets = getSrmOfcNodeTrendTickets().filter(r=> classifySrmRootCauseGroup(r) === gFilter);
   const dayKeys = buildFaultDayLabelsFromRows(tickets);
-  const labels = dayKeys.map(fmtFaultDayLabel);
+  const labels = fmtSrmTrendDayLabels(dayKeys);
   const saCounts = [];
   const nsaCounts = [];
   const totals = [];
@@ -2704,7 +2726,7 @@ function toggleSrmOfcNodeDetailCollapse(){
 }
 let srmOfcNodeExpandRc = null;
 function buildSrmOfcNodeRootCauseDetail(){
-  const tickets = getSrmFtCountableTickets().filter(r=> classifySrmRootCauseGroup(r) === srmOfcNodeTrendGroup);
+  const tickets = getSrmOfcNodeTrendTickets().filter(r=> classifySrmRootCauseGroup(r) === srmOfcNodeTrendGroup);
   const byRc = {};
   tickets.forEach(r=>{
     const rc = String(r?.root_cause || "").trim() || "(ไม่ระบุ Root Cause)";
@@ -2735,7 +2757,7 @@ function renderSrmFtOfcNodeDetailTable(detailRows){
   const groupBadge = g=> g === "OFC" ? `<span class="srm-ofcnode-group-badge ofc">OFC</span>`
     : g === "NODE" ? `<span class="srm-ofcnode-group-badge node">NODE</span>`
     : `<span class="srm-ofcnode-group-badge other">OTHER</span>`;
-  const tickets = getSrmFtCountableTickets().filter(r=> classifySrmRootCauseGroup(r) === srmOfcNodeTrendGroup);
+  const tickets = getSrmOfcNodeTrendTickets().filter(r=> classifySrmRootCauseGroup(r) === srmOfcNodeTrendGroup);
   wrap.innerHTML = `<table class="srm-ft-ofcnode-detail-table"><thead><tr>
       <th>Root Cause</th><th>กลุ่ม</th><th>จำนวน TT</th>
     </tr></thead><tbody>${detailRows.map(row=>{
@@ -2766,8 +2788,8 @@ function renderSrmFtSeverityPanel(){
   refreshSrmOfcNodeTrendPanel();
 }
 function buildSrmFreeTextSiteRows(){
-  const tickets = srmMonthTickets.length ? srmMonthTickets.slice() : getSrmMonthTickets();
-  const latestCreatedAtDate = getLatestSrmCreatedAtDate();
+  const tickets = getSrmOfcNodeTrendTickets();
+  const latestUploadTs = getLatestSrmUploadTs();
   const bySite = {};
   tickets.forEach(r=>{
     const site = extractFaultPlkdSite(r);
@@ -2775,13 +2797,69 @@ function buildSrmFreeTextSiteRows(){
     if(!bySite[site]) bySite[site] = { site, saCount:0, nsaCount:0, saRows:[], nsaRows:[], hasNew:false };
     if(isFaultSaSeverity(r)){ bySite[site].saCount++; bySite[site].saRows.push(r); }
     else if(isFaultNsaSrmSeverity(r)){ bySite[site].nsaCount++; bySite[site].nsaRows.push(r); }
-    if(latestCreatedAtDate && String(r.created_at||"").slice(0,10) === latestCreatedAtDate) bySite[site].hasNew = true;
+    if(isSrmFtNewTicket(r, latestUploadTs)) bySite[site].hasNew = true;
   });
   srmFtSiteIndex = bySite;
   return Object.values(bySite)
     .filter(row=> row.saCount > 0 || row.nsaCount > 0)
-    .filter(row=> passesSrmFreeTextSiteFilters(row.site))
-    .sort((a,b)=> a.site.localeCompare(b.site));
+    .filter(row=> passesSrmFreeTextSiteFilters(row.site));
+}
+function getLatestSrmUploadTs(){
+  let latest = "";
+  const consider = r=>{
+    const t = String(r?.created_at || "").trim();
+    if(t && t > latest) latest = t;
+  };
+  (srmTickets||[]).forEach(consider);
+  (faultTickets||[]).forEach(consider);
+  return latest;
+}
+function isSrmFtNewTicket(r, latestTs){
+  if(!latestTs || !r) return false;
+  const t = String(r.created_at || "").trim();
+  if(!t) return false;
+  return t.slice(0, 10) === latestTs.slice(0, 10);
+}
+function sortSrmFtSiteRows(rows){
+  const { col, dir } = srmFtSiteSort;
+  const mul = dir === "desc" ? -1 : 1;
+  const tieSite = (a,b)=> String(a.site).localeCompare(String(b.site));
+  const cmpMain = (a,b)=>{
+    if(col === "site") return mul * tieSite(a,b);
+    if(col === "sa"){
+      const d = (a.saCount||0) - (b.saCount||0);
+      return mul * d || tieSite(a,b);
+    }
+    if(col === "nsa"){
+      const d = (a.nsaCount||0) - (b.nsaCount||0);
+      return mul * d || tieSite(a,b);
+    }
+    if(SRM_FT_SLOTS.includes(col)){
+      const va = getSrmFtSiteAssign(a.site)[col] || "";
+      const vb = getSrmFtSiteAssign(b.site)[col] || "";
+      return mul * String(va).localeCompare(String(vb), "th") || tieSite(a,b);
+    }
+    return tieSite(a,b);
+  };
+  return rows.slice().sort((a,b)=>{
+    const newPin = (b.hasNew ? 1 : 0) - (a.hasNew ? 1 : 0);
+    if(newPin) return newPin;
+    return cmpMain(a,b);
+  });
+}
+function srmFtSiteSortTh(label, col){
+  const active = srmFtSiteSort.col === col;
+  const arrow = active ? `<span class="sort-arrow">${srmFtSiteSort.dir === "asc" ? "▲" : "▼"}</span>` : "";
+  return `<th class="srm-ft-sort-th${active ? " active" : ""}" role="button" tabindex="0" title="คลิกเรียงลำดับ (Site NEW อยู่บนสุดเสมอ)" onclick="onSrmFtSiteSort('${col}')">${esc(label)}${arrow}</th>`;
+}
+function onSrmFtSiteSort(col){
+  if(srmFtSiteSort.col === col){
+    srmFtSiteSort.dir = srmFtSiteSort.dir === "asc" ? "desc" : "asc";
+  } else {
+    srmFtSiteSort.col = col;
+    srmFtSiteSort.dir = (col === "site") ? "asc" : "desc";
+  }
+  renderSrmFreeTextTab();
 }
 function getSrmFtAssign(woId){
   return getSrmFtSiteAssign(woId);
@@ -4185,7 +4263,7 @@ function renderSrmFreeTextTab(){
     </div>`;
   }).join("");
 
-  const siteRows = buildSrmFreeTextSiteRows();
+  const siteRows = sortSrmFtSiteRows(buildSrmFreeTextSiteRows());
   if(countEl) countEl.textContent = String(siteRows.length);
   renderSrmFtSeverityPanel();
 
@@ -4196,10 +4274,10 @@ function renderSrmFreeTextTab(){
   }
 
   wrap.innerHTML = `<table class="srm-ft-table"><thead><tr>
-    <th>Site</th>
-    <th>SA</th>
-    <th>NSA</th>
-    ${SRM_FT_SLOTS.map(s=>`<th title="Detail ${s}">Detail ${s}</th>`).join("")}
+    ${srmFtSiteSortTh("Site", "site")}
+    ${srmFtSiteSortTh("SA", "sa")}
+    ${srmFtSiteSortTh("NSA", "nsa")}
+    ${SRM_FT_SLOTS.map(s=> srmFtSiteSortTh(`Detail ${s}`, s)).join("")}
   </tr></thead><tbody>${siteRows.map(row=>renderSrmFtTableRowHtml(row)).join("")}</tbody></table>`;
   renderSrmFtHiddenSection();
 }
@@ -4335,13 +4413,8 @@ function srmDateGroupLabel(dateStr, refDateStr){
   return `${dd}/${mm}/${yyyy}`;
 }
 function getLatestSrmCreatedAtDate(){
-  const tickets = srmMonthTickets.length ? srmMonthTickets : getSrmMonthTickets();
-  let latest = "";
-  tickets.forEach(r=>{
-    const d = String(r.created_at||"").slice(0,10);
-    if(d && d > latest) latest = d;
-  });
-  return latest;
+  const ts = getLatestSrmUploadTs();
+  return ts ? ts.slice(0, 10) : "";
 }
 function renderSrmFtTicketTableHtml(rows, opts){
   opts = opts || {};
@@ -4352,12 +4425,11 @@ function renderSrmFtTicketTableHtml(rows, opts){
   const refDate = (document.getElementById("boardDate")||{}).value || new Date().toISOString().slice(0,10);
   const sortedRows = opts.groupByDate === false ? rows : [...rows].sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")));
   let lastGroup = null;
-  const latestCreatedAtDate = getLatestSrmCreatedAtDate();
   const bodyHtml = sortedRows.map(row=>{
     const r = mergeFaultPlkdFieldsForSrmDisplay(row);
     const c = classifyFaultTicket(r);
     const site = extractFaultPlkdSite(r);
-    const isNewTt = latestCreatedAtDate && String(r.created_at||"").slice(0,10) === latestCreatedAtDate;
+    const isNewTt = isSrmFtNewTicket(r, getLatestSrmUploadTs());
     const wo = r.work_order_id || "";
     const woAttr = esc(wo);
     const woKey = getSrmDashRowWoKey(r);
@@ -4454,7 +4526,6 @@ function onSrmFtFilterChange(slot, val){
 }
 function ensureSrmFtSiteIndex(){
   if(Object.keys(srmFtSiteIndex).length) return;
-  if(!srmMonthTickets.length) buildSiteRepeatData();
   buildSrmFreeTextSiteRows();
 }
 function resetSrmFtDropdowns(){
