@@ -186,6 +186,7 @@ input.search-box{background:var(--panel-2); border:1px solid var(--border); colo
 .team-tag{font-family:'Barlow Condensed'; font-weight:800; font-size:17px; letter-spacing:.05em; padding:2px 12px; border-radius:4px; text-transform:uppercase;}
 .team-tag.NODE{background:var(--blue-dim); color:var(--blue);}
 .team-tag.OFC{background:var(--amber-dim); color:var(--amber);}
+.team-tag.OTHER{background:rgba(134,142,150,.18); color:#868e96;}
 .team-contact{font-size:11.5px; color:var(--muted); font-family:'JetBrains Mono';}
 .team-head .add-row-btn{margin-left:auto;}
 .team-count{color:var(--muted); font-size:12.5px; font-family:'JetBrains Mono';}
@@ -299,6 +300,8 @@ table.home-table .locked-col.col-1starrive{left:250px; box-shadow:2px 0 4px rgba
 .plan-cell{display:flex; align-items:center; gap:6px; cursor:grab; justify-content:center;}
 .plan-cell .drag-handle{color:var(--muted-2); font-size:12.5px; user-select:none;}
 .plan-label{font-family:'Barlow Condensed'; font-weight:700; font-size:11.5px; color:var(--muted);}
+.home-code-team{margin-top:4px; font-size:10px; line-height:1.25; color:var(--muted-2); text-align:center;}
+.home-code-team-lbl{font-weight:600; color:var(--muted);}
 .site-plkd-cell{font-family:'JetBrains Mono'; font-weight:700; font-size:11.5px; color:var(--teal); text-align:center;}
 .status-cell{font-family:'JetBrains Mono'; font-size:10.5px; color:var(--muted); text-align:center;}
 .status-time{font-size:9px; color:var(--muted-2); font-family:'JetBrains Mono'; display:inline-block; margin-top:2px;}
@@ -306,6 +309,7 @@ tr.home-row-node td:first-child{border-left:4px solid var(--blue);}
 tr.home-row-ofc td:first-child{border-left:4px solid var(--amber);}
 .home-team-name{font-family:'Barlow Condensed'; font-weight:800; font-size:17px; letter-spacing:.04em;}
 .home-team-contact{font-size:11px; color:var(--muted); font-family:'JetBrains Mono'; line-height:1.4;}
+.home-row-other td{background:rgba(134,142,150,.05);}
 .home-input{width:100%; text-align:center; background:transparent; border:1px solid transparent; color:var(--text);
   font-family:'JetBrains Mono'; font-size:13.5px; padding:5px; border-radius:4px;}
 .home-input:hover{border-color:var(--border);}
@@ -642,6 +646,36 @@ body.screenshotting #srmFtManageModal{display:none !important;}
 .srm-ofcnode-group-badge.other{background:rgba(173,181,189,.2); color:#868e96;}
 .srm-ofcnode-rc-count{font-family:'JetBrains Mono', monospace; font-weight:700;}
 .srm-ofcnode-expand-row td{padding:0; border-bottom:1px solid var(--border-soft);}
+.eec-po-cat-row td{font-weight:600;}
+.eec-po-site-row td{font-weight:500;}
+.eec-po-site-row td:first-child{padding-left:28px !important;}
+.eec-po-chevron{display:inline-block; width:14px; font-size:11px; transition:transform .15s ease; color:var(--muted);}
+.eec-po-chevron.collapsed{transform:rotate(-90deg);}
+.eec-po-warn{display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; margin-left:8px; border-radius:999px; background:rgba(245,159,0,.18); color:#f59f00; font-size:12px; font-weight:700; vertical-align:middle;}
+.eec-po-proximity-note{margin:0 0 10px; padding:10px 12px; border-radius:8px; border:1px solid rgba(245,159,0,.35); background:rgba(245,159,0,.08); font-size:12px; line-height:1.45;}
+.eec-po-proximity-note strong{color:#f59f00; font-size:12px; letter-spacing:.02em;}
+.eec-po-proximity-note ul{margin:6px 0 0; padding-left:18px;}
+.eec-po-proximity-note li{margin:2px 0;}
+.eec-analysis-period{margin:0 0 14px; font-size:12px; color:var(--muted); line-height:1.5;}
+.eec-analysis-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:16px;}
+.eec-analysis-card{padding:12px 14px; border-radius:10px; border:1px solid var(--border); background:var(--panel-2);}
+.eec-analysis-card-lbl{font-family:'Barlow Condensed'; font-weight:700; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted);}
+.eec-analysis-card-val{font-family:'JetBrains Mono'; font-weight:700; font-size:28px; line-height:1.1; margin-top:4px;}
+.eec-analysis-card.active{border-color:#f59f00; background:rgba(245,159,0,.08);}
+.eec-analysis-card.repeat{border-color:#9333ea; background:rgba(147,51,234,.08);}
+.eec-analysis-card.easy{border-color:#087f5b; background:rgba(8,127,91,.08);}
+.eec-inoc-ease{display:inline-block; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:700; letter-spacing:.03em;}
+.eec-inoc-ease.e1,.eec-inoc-ease.e2{background:rgba(8,127,91,.15); color:#087f5b;}
+.eec-inoc-ease.e3{background:rgba(245,159,0,.15); color:#d97706;}
+.eec-inoc-ease.e4,.eec-inoc-ease.e5{background:rgba(217,74,53,.12); color:#d94a35;}
+.eec-inoc-tag{display:inline-block; padding:1px 7px; border-radius:999px; font-size:10px; font-weight:600; margin-right:4px;}
+.eec-inoc-tag.freq{background:rgba(28,126,214,.12); color:#1c7ed6;}
+.eec-inoc-tag.repeat{background:rgba(147,51,234,.12); color:#9333ea;}
+.eec-inoc-tag.active{background:rgba(245,159,0,.15); color:#d97706;}
+.eec-analysis-action{font-size:12px; color:var(--muted); line-height:1.45; max-width:420px;}
+.eec-analysis-issue-row{cursor:pointer;}
+.eec-analysis-issue-row:hover{background:var(--bg-soft, rgba(127,127,127,.06));}
+.eec-analysis-expand td{padding:0; border-bottom:1px solid var(--border-soft);}
 .srm-ft-ofcnode-filter{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 10px;}
 .srm-ft-ofcnode-filter .flabel{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-family:'Barlow Condensed'; font-weight:600;}
 .srm-ft-ofcnode-seg{display:flex; gap:4px; background:var(--panel-2); padding:4px; border-radius:8px; border:1px solid var(--border);}
@@ -1260,6 +1294,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn active" id="eecSubChartsBtn" onclick="switchEecSubTab('charts')">Trend</button>
       <button class="tab-btn" id="eecSubOverSlaBtn" onclick="switchEecSubTab('over-sla')">Over SLA</button>
       <button class="tab-btn" id="eecSubLtrBtn" onclick="switchEecSubTab('ltr')">Long time Repair</button>
+      <button class="tab-btn" id="eecSubAnalysisBtn" onclick="switchEecSubTab('analysis')">Analysis</button>
     </div>
     <div id="eecSubCharts">
     <div class="srm-ft-sev-cards" id="eecSevCards"></div>
@@ -1284,6 +1319,15 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <span class="srm-ft-ofcnode-detail-chevron" id="eecOfcNodeDetailChevron">▾</span> Detail Root Cause
       </div>
       <div class="table-scroll" id="eecOfcNodeDetailWrap" onclick="onEecOfcNodeDetailClick(event)"></div>
+    </div>
+    <div class="fault-chart-card srm-ft-sev-chart-card">
+      <div class="fault-chart-title">Closed Description · ไฟฟ้าดับ / ปิด</div>
+      <p class="status-msg" style="margin:0 0 12px;text-transform:none;font-size:12px;">จำแนกจาก Remedy / Closed Description · ไม่รวมงานไฟเบอร์ / OFC</p>
+      <div id="eecPowerOutageSummary"></div>
+      <div class="srm-ft-ofcnode-detail-title" id="eecPowerOutageDetailToggle" role="button" tabindex="0" onclick="toggleEecPowerOutageDetailCollapse()">
+        <span class="srm-ft-ofcnode-detail-chevron" id="eecPowerOutageDetailChevron">▾</span> Detail TT · ไฟฟ้าดับ / ปิด
+      </div>
+      <div class="table-scroll" id="eecPowerOutageDetailWrap" onclick="onEecPowerOutageDetailClick(event)"></div>
     </div>
     </div>
     <div id="eecSubOverSla" style="display:none;">
@@ -1322,6 +1366,23 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <div class="table-scroll" id="eec12TableWrap"></div>
       </div>
     </div>
+    <div id="eecSubAnalysis" style="display:none;">
+      <p class="status-msg eec-analysis-period" id="eecAnalysisPeriod"></p>
+      <div class="eec-analysis-cards" id="eecAnalysisCards"></div>
+      <div class="fault-overview-toolbar" style="margin-bottom:14px;">
+        <div class="fault-section-title" style="margin:0">INOC Analysis · Root Cause + Closed Description</div>
+        <div class="srm-ft-ofcnode-filter" id="eecAnalysisFilter" style="margin:0"></div>
+      </div>
+      <div class="fault-chart-card">
+        <div class="fault-chart-title">ลำดับความสำคัญ · แก้ง่าย → ยาก</div>
+        <p class="status-msg" style="margin:0 0 12px;text-transform:none;font-size:12px;">อ้างอิง INOC Skill · SA เท่านั้น (ไม่รวม NSA Closed) · เกิดบ่อย · Site ซ้ำ · ยังเกิดในช่วง 14 วันล่าสุด</p>
+        <div class="table-scroll" id="eecAnalysisTableWrap"></div>
+      </div>
+      <div class="fault-chart-card" style="margin-top:16px;">
+        <div class="fault-chart-title">Site เกิดซ้ำ (Top)</div>
+        <div class="table-scroll" id="eecAnalysisSiteWrap"></div>
+      </div>
+    </div>
   </div>
   <div id="faultView" class="tab-view" style="display:none;">
     <div class="toolbar">
@@ -1355,7 +1416,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
           <div class="fault-overview-filters">
             <div class="fault-overview-day">
               <label class="flabel" for="faultOverviewDay">วันที่ปิด (Closed)</label>
-              <input type="date" id="faultOverviewDay" onchange="onFaultOverviewDayChange(this.value)" oninput="onFaultOverviewDayChange(this.value)">
+              <input type="date" id="faultOverviewDay" onchange="onFaultOverviewDayChange(this.value)">
               <button type="button" class="btn sm ghost" onclick="clearFaultOverviewDay()">แสดงทั้งหมด</button>
             </div>
             <div class="fault-ctrl-subtabs" style="margin:0">
@@ -1553,6 +1614,40 @@ const DEFAULT_TEAM_MAP = [
   {team_key:"OFC2", match_key:"OFC-001", raw_label:"EX-EA-RYG-OFC-001", contact_name:"Veerachai_OF_RYG_WW", phone:"0806372241", sort_order:4},
   {team_key:"OFC3", match_key:"OFC-005", raw_label:"SY-EA-RYG-OFC-005", contact_name:"Thanakorn_OF_RYG_WW", phone:"0985231948", sort_order:5}
 ];
+const OTHER_TEAM_KEY = "OTHER";
+const OTHER_TEAM_META = {
+  team_key: OTHER_TEAM_KEY,
+  match_key: "",
+  raw_label: "รวมทีมอื่น · ไม่ได้อยู่ใน 6 Team",
+  contact_name: "จากคอลัมน์ Team ใน Work Order",
+  phone: "",
+  sort_order: 99
+};
+function getTrackedTeamKeys(){
+  const keys = new Set(getActiveTeamMap().map(tm=> normalizeTeamKey(tm.team_key)));
+  keys.delete(OTHER_TEAM_KEY);
+  return keys;
+}
+function isTrackedTeamKey(team){
+  const t = normalizeTeamKey(team);
+  return !!t && getTrackedTeamKeys().has(t);
+}
+function ticketBelongsToOtherTeam(r){
+  const t = normalizeTeamKey(r?.team);
+  if(!t || t === OTHER_TEAM_KEY) return true;
+  return !getTrackedTeamKeys().has(t);
+}
+function resolveImportTeam(rawTeam){
+  return matchTeam(rawTeam) || OTHER_TEAM_KEY;
+}
+function boardTeamRowFilter(r, teamKey){
+  return teamKey === OTHER_TEAM_KEY
+    ? ticketBelongsToOtherTeam(r)
+    : ticketTeamMatches(r, teamKey);
+}
+function getBoardTeamMap(){
+  return [...getActiveTeamMap(), OTHER_TEAM_META];
+}
 function normalizeTeamKey(team){
   const t = String(team || "").trim().toUpperCase();
   if(t === "NODE3") return "NODE2";
@@ -1659,6 +1754,13 @@ let srmDashOpenSlot = null;
 let srmDashSelectedPath = { A:null, B:null, C:null, D:null, E:null };
 let srmDashTableExpand = null;
 let eecSiteTickets = [];
+let eecBaseTicketsCache = null;
+let eecClassifiedCache = null;
+let faultFilteredCacheKey = null;
+let faultFilteredCache = null;
+let faultTrendChartCacheKey = null;
+let faultTrendChartCache = null;
+let faultRegionBarKey = null;
 let EEC_SITE_MAP = {};
 let EEC_SITE_SET = new Set();
 let EEC_WO_CREATOR_MAP = {};
@@ -1670,12 +1772,17 @@ let eecLtrSevFilter = "all";
 let eecOfcNodeTrendGroup = "OFC";
 let eecOfcNodeDetailCollapsed = false;
 let eecOfcNodeExpandRc = null;
+let eecPowerOutageDetailCollapsed = false;
+let eecPowerOutageExpandCat = null;
+let eecPowerOutageExpandSite = null;
 let eecSevChartInst = null;
 let eecOverSlaChartInst = null;
 let eecLtrChartInst = null;
 let eecProvChartInst = null;
 let eecOfcNodeChartInst = null;
 let eecSubTab = "charts";
+let eecAnalysisFilter = "all";
+let eecAnalysisExpandIssue = null;
 let eecDetailProvinceFilter = "";
 const SRM_DASH_SLOT_COLORS = { A:"#2f80ed", B:"#1fa67a", C:"#d97706", D:"#7c3aed", E:"#e84a6a" };
 function resetSrmDashSelectedPath(){
@@ -2108,18 +2215,20 @@ function renderTeams(group){
        {h:"Sub Root Cause", w:170, field:"sub_root_cause", editable:false},
        {h:"Close Description", w:200, field:"close_description", editable:false},
        {h:"Update Log Status", w:220, field:"evening_summary", editable:true, big:true}];
-  getActiveTeamMap().forEach(tm=>{
+  getBoardTeamMap().forEach(tm=>{
     const team = tm.team_key;
-    const teamRows = rows.filter(r=>ticketTeamMatches(r, team));
+    const teamRows = team === OTHER_TEAM_KEY
+      ? rows.filter(r=> ticketBelongsToOtherTeam(r))
+      : rows.filter(r=> ticketTeamMatches(r, team));
     const block = document.createElement("div");
     block.className = "team-block";
-    const tagClass = team.startsWith("NODE") ? "NODE":"OFC";
+    const tagClass = team === OTHER_TEAM_KEY ? "OTHER" : (team.startsWith("NODE") ? "NODE":"OFC");
     block.innerHTML = `
       <div class="team-head">
         <div class="team-tag ${tagClass}">${team}</div>
         <div class="team-contact">${esc(tm.raw_label||"")}<br>${esc(tm.contact_name||"")} ${esc(tm.phone||"")}</div>
         <div class="team-count">${teamRows.length} ticket(s)</div>
-        ${group==="manual" ? '' : `<button class="btn sm add-row-btn" onclick="addRowPrompt('${group}','${team}')">+ Add to ${team}</button>`}
+        ${group==="manual" ? '' : team === OTHER_TEAM_KEY ? '' : `<button class="btn sm add-row-btn" onclick="addRowPrompt('${group}','${team}')">+ Add to ${team}</button>`}
       </div>
       <div class="table-scroll"></div>`;
     container.appendChild(block);
@@ -2157,6 +2266,7 @@ function renderTeams(group){
           <input class="cell-input site-input ${inPlkd?'valid':'invalid'}" value="${esc(r.site_code||'')}"
             onchange="updateField('${r.id}','site_code', this.value)" placeholder="Site ID">
           ${inPlkd?`<span class="plkd-badge" title="${plkdType==='site'?'Matched by Site ID':'Matched by Subject/Close Description text'}">PLKD${plkdType==='subject'?'*':''}</span>`:''}
+          ${team===OTHER_TEAM_KEY && r.raw_team ? `<div class="ladder-time">WO Team: ${esc(r.raw_team)}</div>` : ''}
           <div class="ladder-time">${esc(r.province||'')} ${esc(r.region||'')}</div>
         </td>
         <td class="tt-line">${esc(r.tt_number||'-')}<span class="ext">${esc(r.work_order_id||'')}</span></td>
@@ -2910,7 +3020,15 @@ function renderSrmFtOfcNodeDetailTable(detailRows){
     </tr></thead><tbody>${detailRows.map(row=>{
       const isOpen = srmOfcNodeExpandRc === row.rootCause;
       const rcRows = isOpen ? tickets.filter(r=> (String(r?.root_cause||"").trim() || "(ไม่ระบุ Root Cause)") === row.rootCause) : [];
-      const expandHtml = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="3">${renderSrmFtTicketTableHtml(rcRows, { showPeaWorking:false })}</td></tr>` : "";
+      const expandHtml = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="3">${renderSrmFtTicketTableHtml(rcRows, {
+        showPeaWorking:false,
+        showWoCreator:false,
+        detailSlots:[],
+        showRegion:false,
+        showGroupProblem:false,
+        showCauseOver:false,
+        showLongTimeReason:false
+      })}</td></tr>` : "";
       return `<tr class="srm-ofcnode-rc-row" data-rc="${esc(row.rootCause)}">
         <td>${esc(row.rootCause)}</td>
         <td>${groupBadge(row.group)}</td>
@@ -4499,7 +4617,9 @@ function rebuildFaultPlkdFieldIndex(){
       group_problem_free_text: String(r.group_problem_free_text||"").trim(),
       cause_over: String(r.cause_over||"").trim(),
       long_time_reason: String(r.long_time_reason||"").trim(),
-      inoc_log: String(r.inoc_log||"").trim()
+      inoc_log: String(r.inoc_log||"").trim(),
+      departed_time: r.departed_time || null,
+      arrived_time: r.arrived_time || null
     });
   });
   faultPlkdFieldIndex = byWo;
@@ -4510,7 +4630,7 @@ async function ensureFaultPlkdFieldIndex(){
     rebuildFaultPlkdFieldIndex();
     return;
   }
-  const rows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,group_problem_free_text,cause_over,long_time_reason,inoc_log");
+  const rows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,group_problem_free_text,cause_over,long_time_reason,inoc_log,departed_time,arrived_time");
   const byWo = new Map();
   rows.forEach(r=>{
     const wo = String(r.work_order_id||"").trim();
@@ -4519,7 +4639,9 @@ async function ensureFaultPlkdFieldIndex(){
       group_problem_free_text: String(r.group_problem_free_text||"").trim(),
       cause_over: String(r.cause_over||"").trim(),
       long_time_reason: String(r.long_time_reason||"").trim(),
-      inoc_log: String(r.inoc_log||"").trim()
+      inoc_log: String(r.inoc_log||"").trim(),
+      departed_time: r.departed_time || null,
+      arrived_time: r.arrived_time || null
     });
   });
   faultPlkdFieldIndex = byWo;
@@ -4536,7 +4658,9 @@ function mergeFaultPlkdFieldsForSrmDisplay(r){
     group_problem_free_text: r.group_problem_free_text || hit.group_problem_free_text || "",
     cause_over: r.cause_over || hit.cause_over || "",
     long_time_reason: r.long_time_reason || hit.long_time_reason || "",
-    inoc_log: r.inoc_log || hit.inoc_log || ""
+    inoc_log: r.inoc_log || hit.inoc_log || "",
+    departed_time: r.departed_time || hit.departed_time || null,
+    arrived_time: r.arrived_time || hit.arrived_time || null
   };
 }
 function renderSrmTicketIdCellHtml(r){
@@ -4545,10 +4669,11 @@ function renderSrmTicketIdCellHtml(r){
   const woHtml = wo && wo !== tt ? `<span class="tt-id-wo">${esc(wo)}</span>` : "";
   return `<td class="tt-line tt-line-stack"><span class="tt-id-top">${esc(tt)}</span>${woHtml}</td>`;
 }
-function renderSrmFtDetailAssignCellsHtml(r){
+function renderSrmFtDetailAssignCellsHtml(r, slots){
   const site = extractFaultPlkdSite(r);
   const assign = getSrmFtSiteAssign(site);
-  return SRM_FT_SLOTS.map(s=>`<td>${esc(assign[s]||"")}</td>`).join("");
+  const useSlots = slots || SRM_FT_SLOTS;
+  return useSlots.map(s=>`<td>${esc(assign[s]||"")}</td>`).join("");
 }
 function srmDateGroupLabel(dateStr, refDateStr){
   if(!dateStr) return "ไม่ระบุวันที่";
@@ -4565,10 +4690,23 @@ function getLatestSrmCreatedAtDate(){
 }
 function renderSrmFtTicketTableHtml(rows, opts){
   opts = opts || {};
+  const detailSlots = opts.detailSlots != null ? opts.detailSlots : SRM_FT_SLOTS;
+  const showWoCreator = opts.showWoCreator !== false;
+  const showRegion = opts.showRegion !== false;
+  const showGroupProblem = opts.showGroupProblem !== false;
+  const showCauseOver = opts.showCauseOver !== false;
+  const showLongTimeReason = opts.showLongTimeReason !== false;
   const peaTh = opts.showPeaWorking !== false ? `<th class="srm-pea-working-col">PEA Working</th>` : "";
   const hideTh = opts.showHideControl ? `<th class="srm-dash-hide-col" title="${opts.unhideMode ? "แสดง" : "ซ่อน"}">${opts.unhideMode ? "+" : "−"}</th>` : "";
-  const detailTh = SRM_FT_SLOTS.map(s=>`<th>Detail ${s}</th>`).join("");
-  const colCount = (opts.showHideControl?1:0) + 1 + 1 + SRM_FT_SLOTS.length + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + (opts.showPeaWorking!==false?1:0);
+  const detailTh = detailSlots.map(s=>`<th>Detail ${s}</th>`).join("");
+  const woTh = showWoCreator ? `<th>WO Creator</th>` : "";
+  const regionTh = showRegion ? `<th>Region</th>` : "";
+  const groupProblemTh = showGroupProblem ? `<th>Group Problem</th>` : "";
+  const causeOverTh = showCauseOver ? `<th>Cause Over</th>` : "";
+  const longTimeTh = showLongTimeReason ? `<th>Long time Reason</th>` : "";
+  const colCount = (opts.showHideControl?1:0) + 2 + detailSlots.length + 3 + (showWoCreator?1:0) + 5 + 2
+    + (showGroupProblem?1:0) + (showCauseOver?1:0) + (showLongTimeReason?1:0) + 1 + (opts.showPeaWorking!==false?1:0)
+    - (showRegion?0:1);
   const refDate = (document.getElementById("boardDate")||{}).value || new Date().toISOString().slice(0,10);
   const sortedRows = opts.groupByDate === false ? rows : [...rows].sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")));
   let lastGroup = null;
@@ -4591,15 +4729,20 @@ function renderSrmFtTicketTableHtml(rows, opts){
     }
     const hideTd = opts.showHideControl ? `<td class="srm-dash-hide-cell"><button type="button" class="${opts.unhideMode ? "srm-dash-tt-unhide-btn" : "srm-dash-tt-hide-btn"}" data-srm-dash-hide-wo="${esc(woKey)}" title="${opts.unhideMode ? "แสดง TT" : "ซ่อน TT"}">${opts.unhideMode ? "+" : "−"}</button></td>` : "";
     const peaTd = opts.showPeaWorking !== false ? `<td class="srm-pea-working-cell"><textarea class="srm-pea-working-ta" rows="2" data-wo-id="${woAttr}" data-srm-last-saved="${esc(r.pea_working||"")}" placeholder="PEA Working…" onchange="updateSrmFieldFromEl(this,'pea_working')" onblur="updateSrmFieldFromEl(this,'pea_working')">${esc(r.pea_working||"")}</textarea></td>` : "";
+    const woTd = showWoCreator ? `<td>${esc(r.wo_creator||"")}</td>` : "";
+    const regionTd = showRegion ? `<td>${esc(r.region||"")}</td>` : "";
+    const groupProblemTd = showGroupProblem ? `<td>${esc(r.group_problem_free_text||"")}</td>` : "";
+    const causeOverTd = showCauseOver ? `<td>${esc(r.cause_over||"")}</td>` : "";
+    const longTimeTd = showLongTimeReason ? `<td>${esc(r.long_time_reason||"")}</td>` : "";
     return `${groupRowHtml}<tr>
       ${hideTd}
       <td class="site-plkd-cell srm-ft-site-td">${isNewTt ? `<span class="srm-ft-new-badge" title="TT ใหม่จากการอัปโหลดล่าสุด">NEW</span>` : ""}${esc(site||"")}</td>
       ${renderSrmTicketIdCellHtml(r)}
-      ${renderSrmFtDetailAssignCellsHtml(r)}
+      ${renderSrmFtDetailAssignCellsHtml(r, detailSlots)}
       <td class="subject-cell">${esc(extractFaultSubjectDetail(r) || r.subject || "")}</td>
       <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
-      <td>${esc(r.region||"")}</td>
-      <td>${esc(r.wo_creator||"")}</td>
+      ${regionTd}
+      ${woTd}
       <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
       <td class="dt-cell">${fmtFaultDT(r.departed_time)}</td>
       <td class="dt-cell">${fmtFaultDT(r.arrived_time)}</td>
@@ -4607,17 +4750,17 @@ function renderSrmFtTicketTableHtml(rows, opts){
       <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
       <td class="subject-cell">${esc(r.root_cause||"")}</td>
       <td class="subject-cell">${esc(r.close_description||"")}</td>
-      <td>${esc(r.group_problem_free_text||"")}</td>
-      <td>${esc(r.cause_over||"")}</td>
-      <td>${esc(r.long_time_reason||"")}</td>
+      ${groupProblemTd}
+      ${causeOverTd}
+      ${longTimeTd}
       <td class="subject-cell">${esc(r.inoc_log||"")}</td>
       ${peaTd}
     </tr>`;
   }).join("");
   return `<div class="table-scroll"><table class="srm-ft-ticket-table"><thead><tr>
-    ${hideTh}<th>Site</th><th>Ticket ID</th>${detailTh}<th>Subject</th><th>Severity</th><th>Region</th><th>WO Creator</th>
-    <th>Create Time</th><th>Depart</th><th>Arrive</th><th>Closed</th><th>Downtime</th><th>Root Cause</th>
-    <th>Closed Description</th><th>Group Problem</th><th>Cause Over</th><th>Long time Reason</th><th>INOC Log</th>${peaTh}
+    ${hideTh}<th>Site</th><th>Ticket ID</th>${detailTh}<th>Subject</th><th>Severity</th>${regionTh}${woTh}
+    <th>Create Time</th><th>Departed</th><th>Arrived</th><th>Closed</th><th>Downtime</th><th>Root Cause</th>
+    <th>Closed Description</th>${groupProblemTh}${causeOverTh}${longTimeTh}<th>INOC Log</th>${peaTh}
   </tr></thead><tbody>${bodyHtml}</tbody></table></div>`;
 }
 function toggleSrmFtExpand(site, sevKind){
@@ -4907,17 +5050,17 @@ function renderHome(){
   tbody.innerHTML = "";
   const pendingRows = Array.isArray(tickets.pending) ? tickets.pending : [];
   const closedRows = Array.isArray(tickets.closed) ? tickets.closed : [];
-  const teamMap = getActiveTeamMap();
+  const teamMap = getBoardTeamMap();
 
   teamMap.forEach(tm=>{
     const team = tm.team_key;
     if(!team) return;
     const att = ATTENDANCE[team] || {};
-    const allPlanRows = pendingRows.filter(r=>ticketTeamMatches(r, team) && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r))
+    const allPlanRows = pendingRows.filter(r=> boardTeamRowFilter(r, team) && isPlkdMatch(r) && homeSevPass(r) && !isCancelled(r))
       .sort((a,b)=>(a.plan_order||9999)-(b.plan_order||9999));
     const pendingCount = allPlanRows.length;
-    const closedCount = closedRows.filter(r=>ticketTeamMatches(r, team) && r.closed_time && String(r.closed_time).slice(0,10)===dateVal && isPlkdMatch(r) && !isCancelled(r)).length;
-    const rowClass = team.startsWith("NODE") ? "home-row-node":"home-row-ofc";
+    const closedCount = closedRows.filter(r=> boardTeamRowFilter(r, team) && r.closed_time && String(r.closed_time).slice(0,10)===dateVal && isPlkdMatch(r) && !isCancelled(r)).length;
+    const rowClass = team === OTHER_TEAM_KEY ? "home-row-other" : (team.startsWith("NODE") ? "home-row-node":"home-row-ofc");
     const collapsed = !expandedTeams.has(team);
     const planRows = collapsed ? allPlanRows.slice(0,1) : allPlanRows;
     const n = Math.max(planRows.length, 1);
@@ -4934,7 +5077,7 @@ function renderHome(){
         </td>
         <td class="locked-col col-clockin"><input class="home-input" value="${esc(att.clock_in||'')}" placeholder="เวลา" onchange="updateAttendance('${team}','clock_in', this.value)"></td>
         <td class="locked-col col-1starrive"><input class="home-input" value="${esc(att.first_arrive||'')}" placeholder="เวลา" onchange="updateAttendance('${team}','first_arrive', this.value)"></td>
-        <td colspan="7"><span class="muted-dash">No PLKD-matched pending tickets</span></td>
+        <td colspan="7"><span class="muted-dash">${team===OTHER_TEAM_KEY ? "No PLKD-matched pending (other teams)" : "No PLKD-matched pending tickets"}</span></td>
         <td><span class="home-count-badge" style="color:var(--teal)">${closedCount}</span></td>
         <td><span class="home-count-badge" style="color:var(--amber)">0</span></td>`;
       tbody.appendChild(tr);
@@ -4965,7 +5108,7 @@ function renderHome(){
         <td class="locked-col col-1starrive" rowspan="${n}"><input class="home-input" value="${esc(att.first_arrive||'')}" placeholder="เวลา" onchange="updateAttendance('${team}','first_arrive', this.value)"></td>`;
       }
       cells += `
-        <td><div class="plan-cell" draggable="true"><span class="drag-handle">⠿</span><span class="plan-label">Plan ${i+1}</span></div></td>
+        <td><div class="plan-cell" draggable="true"><span class="drag-handle">⠿</span><span class="plan-label">Plan ${i+1}</span></div>${team===OTHER_TEAM_KEY && r.raw_team ? `<div class="home-code-team"><span class="home-code-team-lbl">Code_Team</span> ${esc(r.raw_team)}</div>` : ''}</td>
         <td class="site-plkd-cell">${esc(site)}${plkdType==='subject'?'*':''}</td>
         <td class="tt-line">${esc(r.tt_number||r.work_order_id||'-')}<div class="tt-subject">${esc(r.plan_today || r.subject || '')}</div></td>
         <td><span class="sev-badge">${esc(sevShort)}</span></td>
@@ -5598,8 +5741,8 @@ async function bulkInsertWorkOrders(rows, groupBtn){
     if(!isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
     if(isBroadbandRow(r)){ broadbandSkipped++; return; }
     const rawTeam = get("Team");
-    const teamKey = matchTeam(rawTeam);
-    if(!teamKey){ skipped++; return; }
+    const teamKey = resolveImportTeam(rawTeam);
+    if(!rawTeam && teamKey === OTHER_TEAM_KEY){ skipped++; return; }
     const status = get("Status");
     if(isCancelStatus(status)){ cancelSkipped++; return; }
     matched++;
@@ -5652,7 +5795,7 @@ async function bulkInsertWorkOrders(rows, groupBtn){
     const cancelMsg = cancelSkipped ? ` (${cancelSkipped} Cancel skipped)` : "";
     const woMsg = woCreatorSkipped ? ` (${woCreatorSkipped} non-System WO Creator skipped)` : "";
     const bbMsg = broadbandSkipped ? ` (${broadbandSkipped} Broadband skipped)` : "";
-    statusEl.textContent = `No rows matched the 6 tracked teams (skipped ${skipped}${cancelMsg}${woMsg}${bbMsg}).`;
+    statusEl.textContent = `No valid rows (need Team column${cancelMsg}${woMsg}${bbMsg}).`;
     return;
   }
   const pendingIdsBefore = new Set(tickets.pending.map(r=>r.work_order_id).filter(Boolean));
@@ -5702,7 +5845,10 @@ async function bulkInsertWorkOrders(rows, groupBtn){
     const cancelMsg = cancelSkipped>0 ? ` — ${cancelSkipped} Cancel row(s) ignored` : "";
     const woMsg = woCreatorSkipped>0 ? ` — ${woCreatorSkipped} non-System WO Creator skipped` : "";
     const bbMsg = broadbandSkipped>0 ? ` — ${broadbandSkipped} Broadband row(s) skipped` : "";
-    statusEl.textContent = `Synced ${matched} matched rows (updated existing / added new, skipped ${skipped} non-team rows)${movedMsg}${reconMsg}${cancelMsg}${woMsg}${bbMsg} ✓`;
+    const otherCount = payloads.filter(p=> p.team === OTHER_TEAM_KEY).length;
+    const otherMsg = otherCount>0 ? ` — ${otherCount} other-team row(s) → ${OTHER_TEAM_KEY}` : "";
+    const skipMsg = skipped>0 ? ` — skipped ${skipped} row(s) without Team` : "";
+    statusEl.textContent = `Synced ${matched} row(s)${otherMsg}${skipMsg}${movedMsg}${reconMsg}${cancelMsg}${woMsg}${bbMsg} ✓`;
     await loadAll();
   } else {
     statusEl.textContent = "Import failed — see console.";
@@ -5852,13 +5998,24 @@ function passesFaultPlkdFocus(r){
   if(!hasFaultSourceTicketId(r)) return false;
   return true;
 }
+function invalidateFaultTicketCache(){
+  faultFilteredCacheKey = null;
+  faultFilteredCache = null;
+  faultTrendChartCacheKey = null;
+  faultTrendChartCache = null;
+  faultRegionBarKey = null;
+}
 function getFilteredFaultTickets(){
   const range = getFaultDateRange();
-  return faultTickets.filter(r=>{
+  const key = `${faultRegionFilter}|${range.start?.getTime?.()||""}|${range.end?.getTime?.()||""}|${range.dateVal||""}`;
+  if(faultFilteredCacheKey === key && faultFilteredCache) return faultFilteredCache;
+  faultFilteredCache = faultTickets.filter(r=>{
     if(!passesFaultPlkdFocus(r)) return false;
     if(faultRegionFilter && (r.region||"") !== faultRegionFilter) return false;
     return faultTicketInRange(r, range);
   }).map(r=>({...r, _fault: classifyFaultTicket(r)}));
+  faultFilteredCacheKey = key;
+  return faultFilteredCache;
 }
 /** ข้อมูลสำหรับ Export — ทุกใบที่มีข้อมูลในระบบ (ไม่จำกัดช่วงวันที่ boardDate) */
 function getFaultTicketsForExport(){
@@ -5871,11 +6028,15 @@ function getFaultTicketsForExport(){
 }
 /** ข้อมูลสำหรับกราฟ Fault trend PLKD — ทุกวันที่มีข้อมูล (ไม่จำกัดช่วง Date ด้านซ้าย) */
 function getFaultTicketsForTrendChart(){
-  return faultTickets.filter(r=>{
+  const key = `${faultRegionFilter}|${PKD_TRACKING_START||""}`;
+  if(faultTrendChartCacheKey === key && faultTrendChartCache) return faultTrendChartCache;
+  faultTrendChartCache = faultTickets.filter(r=>{
     if(!passesFaultPlkdFocus(r)) return false;
     if(faultRegionFilter && (r.region||"") !== faultRegionFilter) return false;
     return passesPkdTrackingStart(r);
   }).map(r=>({...r, _fault: classifyFaultTicket(r)}));
+  faultTrendChartCacheKey = key;
+  return faultTrendChartCache;
 }
 /** ข้อมูล Long time Repair — ทุกวันที่มีข้อมูล (ไม่จำกัดช่วง boardDate) */
 function getFaultTicketsForLtr(){
@@ -5989,8 +6150,8 @@ const FAULT_EXPORT_COLS = [
   {h:"WO Creator", get:r=>r.wo_creator||""},
   {h:"Ticket Open", get:r=>fmtFaultRawDT(r.created_time)},
   {h:"Require Finish", get:r=>fmtFaultRawDT(r.require_finish_time)},
-  {h:"Depart", get:r=>fmtFaultRawDT(r.departed_time)},
-  {h:"Arrive", get:r=>fmtFaultRawDT(r.arrived_time)},
+  {h:"Departed", get:r=>fmtFaultRawDT(r.departed_time)},
+  {h:"Arrived", get:r=>fmtFaultRawDT(r.arrived_time)},
   {h:"Completed", get:r=>fmtFaultRawDT(r.completed_time)},
   {h:"Close", get:r=>fmtFaultRawDT(r.closed_time)},
   {h:"Downtime", get:r=>{ const c=r._fault||classifyFaultTicket(r); return c.downtimeMinutes!=null?fmtHMText(c.downtimeMinutes):""; }},
@@ -6019,8 +6180,8 @@ const SRM_DETAIL_EXPORT_COLS = [
   {h:"Region", get:r=>r.region||""},
   {h:"WO Creator", get:r=>r.wo_creator||""},
   {h:"Create Time", get:r=>fmtFaultRawDT(r.created_time)},
-  {h:"Depart", get:r=>fmtFaultRawDT(r.departed_time)},
-  {h:"Arrive", get:r=>fmtFaultRawDT(r.arrived_time)},
+  {h:"Departed", get:r=>fmtFaultRawDT(r.departed_time)},
+  {h:"Arrived", get:r=>fmtFaultRawDT(r.arrived_time)},
   {h:"Closed", get:r=>fmtFaultRawDT(r.closed_time)},
   {h:"Downtime", get:r=>{ const c=classifyFaultTicket(r); return c.downtimeMinutes!=null?fmtHMText(c.downtimeMinutes):""; }},
   {h:"Root Cause", get:r=>r.root_cause||""},
@@ -6981,6 +7142,37 @@ function calcFaultServiceAvailabilityCumulative(dayKeys, rows){
     return Number(Math.max(0, Math.min(100, percent)).toFixed(2));
   });
 }
+/** สรุป Within/Over + SA ต่อวัน — single pass */
+function buildFaultOverviewDayStats(rows, dayKeys){
+  const MINUTES_PER_DAY = 168 * 24 * 60;
+  const byDay = new Map();
+  dayKeys.forEach(d=> byDay.set(d, { w:0, o:0, downtime:0 }));
+  rows.forEach(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    if(!c.closed) return;
+    const d = getFaultClosedDay(r);
+    const slot = byDay.get(d);
+    if(!slot) return;
+    if(c.slaStatus === "Within SLA") slot.w++;
+    else if(c.slaStatus === "Over SLA") slot.o++;
+    if(c.downtimeMinutes !== null) slot.downtime += c.downtimeMinutes;
+  });
+  let cumulativeDowntime = 0;
+  const withinCounts = [], overCounts = [], totals = [], svcAva = [], svcAvaCumulative = [];
+  dayKeys.forEach((day, i)=>{
+    const b = byDay.get(day) || { w:0, o:0, downtime:0 };
+    withinCounts.push(b.w);
+    overCounts.push(b.o);
+    totals.push(b.w + b.o);
+    const dailyPct = ((MINUTES_PER_DAY - b.downtime) / MINUTES_PER_DAY) * 100;
+    svcAva.push(Number(Math.max(0, Math.min(100, dailyPct)).toFixed(2)));
+    cumulativeDowntime += b.downtime;
+    const totalSiteMinutes = MINUTES_PER_DAY * (i + 1);
+    const cumPct = ((totalSiteMinutes - cumulativeDowntime) / totalSiteMinutes) * 100;
+    svcAvaCumulative.push(Number(Math.max(0, Math.min(100, cumPct)).toFixed(2)));
+  });
+  return { withinCounts, overCounts, totals, svcAva, svcAvaCumulative };
+}
 /** SA Avg. สะสมรายเดือน: เดือนที่ N = (168×24×60×วันรวม 1..N − downtime สะสม) / (168×24×60×วันรวม) */
 function calcFaultServiceAvailabilityCumulativeMonths(monthKeys, rows){
   const MINUTES_PER_DAY = 168 * 24 * 60;
@@ -7305,21 +7497,8 @@ function renderFaultOverviewChart(rows){
   faultOverviewChartInst = destroyFaultChart(faultOverviewChartInst);
   const dayKeys = buildFaultDayLabelsFromRows(rows);
   const labels = dayKeys.map(fmtFaultDayLabel);
-  const withinCounts = [], overCounts = [], totals = [], svcAva = [];
-  dayKeys.forEach(day=>{
-    const dayRows = rows.filter(r=> getFaultClosedDay(r) === day);
-    let w = 0, o = 0;
-    dayRows.forEach(r=>{
-      const c = r._fault || classifyFaultTicket(r);
-      if(c.slaStatus === "Within SLA") w++;
-      else if(c.slaStatus === "Over SLA") o++;
-    });
-    withinCounts.push(w);
-    overCounts.push(o);
-    totals.push(w + o); // Total Ticket = Within + Over (same left axis as bars)
-    svcAva.push(Number(calcFaultServiceAvailability(day, rows).toFixed(2)));
-  });
-  const svcAvaCumulative = calcFaultServiceAvailabilityCumulative(dayKeys, rows);
+  const dayStats = buildFaultOverviewDayStats(rows, dayKeys);
+  const { withinCounts, overCounts, totals, svcAva, svcAvaCumulative } = dayStats;
   const svcAvaCumulativeLast = svcAvaCumulative.length ? svcAvaCumulative[svcAvaCumulative.length - 1] : 0;
   const countMax = faultCountAxisMax(totals);
   const countStep = faultCountAxisStep(countMax);
@@ -7405,13 +7584,14 @@ function renderFaultLtrSlaChart(rows){
   const dayKeys = buildFaultDayLabelsFromRows(rows);
   const labels = fmtSrmTrendDayLabels(dayKeys);
   const buckets = ["1-2 Hrs.","2-6 Hrs.","6-12 Hrs.",">12 Hrs."];
-  const rawByBucket = buckets.map(b=>
-    dayKeys.map(day=> rows.filter(r=>{
-      const c = r._fault || classifyFaultTicket(r);
-      if(c.slaStatus !== "Within SLA" || !c.closed) return false;
-      return String(r.closed_time).slice(0,10) === day && c.bucket === b;
-    }).length)
-  );
+  const byDayBucket = new Map();
+  rows.forEach(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    if(c.slaStatus !== "Within SLA" || !c.closed || !c.bucket) return;
+    const day = String(r.closed_time).slice(0,10);
+    byDayBucket.set(`${day}|${c.bucket}`, (byDayBucket.get(`${day}|${c.bucket}`) || 0) + 1);
+  });
+  const rawByBucket = buckets.map(b=> dayKeys.map(day=> byDayBucket.get(`${day}|${b}`) || 0));
   const dayTotals = dayKeys.map((_, di)=> rawByBucket.reduce((sum, arr)=> sum + arr[di], 0));
   const countMax = faultCountAxisMax(dayTotals);
   const countStep = faultCountAxisStep(countMax);
@@ -7463,6 +7643,9 @@ function renderFaultRegionBar(){
   const dateMsg = dayKeys.length
     ? `${esc(dayKeys[0])} → ${esc(dayKeys[dayKeys.length - 1])} · ${dayKeys.length} วันมีข้อมูล · ${plkdCount} ticket(s)`
     : `${esc(fmtIsoLocalDate(range.start))} → ${esc(range.dateVal)} · ไม่มีข้อมูล`;
+  const barKey = `${faultSubTab}|${faultRegionFilter}|${plkdCount}|${dayKeys.length}|${dateMsg}|${regions.join(",")}`;
+  if(faultRegionBarKey === barKey) return;
+  faultRegionBarKey = barKey;
   el.innerHTML = `
     <div class="fgroup"><label class="flabel">Region</label>
       <select class="sev-select" onchange="onFaultRegionChange(this.value)">
@@ -7477,7 +7660,7 @@ function renderFaultRegionBar(){
       <span class="status-msg">${dateMsg}</span>
     </div>`;
 }
-function onFaultRegionChange(val){ faultRegionFilter = val; renderFault(); }
+function onFaultRegionChange(val){ faultRegionFilter = val; invalidateFaultTicketCache(); renderFault(); }
 function getFaultGroupProblemStats(rows){
   const groups = new Map();
   rows.forEach(r=>{
@@ -7983,11 +8166,17 @@ async function loadFaultTickets(showToast){
   try{
     faultTickets = await fetchAllFromRest(FAULT_REST + "?select=*&order=created_time.asc");
     rebuildFaultPlkdFieldIndex();
+    invalidateFaultTicketCache();
+    try{
+      await migrateLegacyFaultSkills();
+      await migrateGroupProblemLabels();
+    }catch(e){ console.warn("fault ticket migrate:", e); }
+    if(eecSiteTickets?.length){
+      syncEecFaultFieldMapFromFaultTickets();
+      invalidateEecCache();
+    }
     if(currentTab==="fault") renderFault();
     if(showToast) toast(`Fault data loaded (${faultTickets.length} rows)`);
-    migrateLegacyFaultSkills().then(()=> migrateGroupProblemLabels()).then(()=>{
-      if(currentTab==="fault") renderFault();
-    }).catch(e=> console.warn("fault ticket migrate:", e));
   }catch(e){
     console.warn("loadFaultTickets failed:", e);
     faultTickets = faultTickets || [];
@@ -8094,8 +8283,8 @@ function mapFaultExportImportRow(r){
     subject: get("Subject"),
     severity: get("SEVERITY") || get("Severity"),
     created_time: parseFaultWoDate(get("Ticket Open") || get("Created Time")),
-    departed_time: parseFaultWoDate(get("Depart")),
-    arrived_time: parseFaultWoDate(get("Arrive")),
+    departed_time: parseFaultWoDate(get("Departed") || get("Depart")),
+    arrived_time: parseFaultWoDate(get("Arrived") || get("Arrive")),
     closed_time: parseFaultWoDate(get("Close")),
     close_description: get("Close Description"),
     skill: normalizeFaultSkill(skillRaw) || skillRaw,
@@ -8307,7 +8496,7 @@ async function clearSiteRepeatMappingData(){
   const ctx = getSrmMonthContext();
   if(!srmTickets.length){
     try{
-      srmTickets = await fetchAllFromRest(SRM_REST + "?select=work_order_id,closed_time,severity,site_id,wo_creator,source_ticket_id,subject,work_type,close_description,root_cause&order=created_time.asc");
+      srmTickets = await fetchAllFromRest(SRM_REST + "?select=work_order_id,closed_time,severity,site_id,wo_creator,source_ticket_id,subject,work_type,close_description,root_cause,created_time,departed_time,arrived_time&order=created_time.asc");
     }catch(e){
       console.error(e);
       toast("โหลดข้อมูลไม่สำเร็จ");
@@ -8607,15 +8796,109 @@ function normalizeEecDbTicket(r){
     wo_creator: getEecWoCreatorForTicket(r) || r.wo_creator || "",
     created_time: r.created_time || fx.created_time || null,
     require_finish_time: r.require_finish_time || fx.require_finish_time || null,
-    root_cause: r.root_cause || r.cause || r.problem || ""
+    departed_time: r.departed_time || null,
+    arrived_time: r.arrived_time || null,
+    root_cause: r.root_cause || r.cause || r.problem || "",
+    close_description: String(r.remedy || fx.close_description || r.close_description || "").trim()
   };
 }
+function getEecClosedDescription(r){
+  return String(r?.close_description || r?.remedy || "").trim();
+}
+function isEecFiberWorkClosedDesc(text){
+  const t = String(text || "");
+  if(/ขนาดไฟเบอร์|type\s*fiber|กองงาน\s*adss|sy-ea-cbr|inventory\s*:/i.test(t)) return true;
+  if(/(?:วอร์?m\s*สาย|คร่อม|ตัดต่อ(?:หัว|เข้าหัว)|ปลดลู).*?(?:\d+\s*c|adss)/i.test(t)) return true;
+  if(/^สาเหต[ุ]?[\s:]/i.test(t) && /(?:สาย|fiber|ofc)/i.test(t) && !/ไฟ(?:ฟ้า)?\s*ดับ|power\s*fail|main\s*power|การไฟฟ้า/i.test(t)) return true;
+  return false;
+}
+const EEC_POWER_OUTAGE_CATEGORIES = [
+  { id:"outage", label:"ไฟดับ / ไฟฟ้าดับ", color:"#d94a35" },
+  { id:"utility", label:"การไฟฟ้า (PEA/MEA)", color:"#d97706" },
+  { id:"fault", label:"ไฟฟ้าขัดข้อง", color:"#9333ea" },
+  { id:"alarm", label:"Main Power Failure Alarm", color:"#1c6ed4" },
+  { id:"breaker_ac", label:"Breaker / AC Trip", color:"#087f5b" },
+  { id:"voltage", label:"ไฟลง", color:"#e67700" },
+  { id:"gen", label:"ใช้ Generator", color:"#7c3aed" },
+  { id:"other_power", label:"ระบบไฟ / Power อื่นๆ", color:"#5b636b" }
+];
+function classifyEecPowerOutage(desc){
+  const text = String(desc || "").trim();
+  if(!text) return { match:false, category:null, label:null };
+  if(isEecFiberWorkClosedDesc(text)) return { match:false, category:null, label:null };
+  if(/^เปลี่ยน\s*\(\s*replaced\s*\)$/i.test(text)) return { match:false, category:null, label:null };
+  if(/main\s*power\s*fail|main\s*ac\s*power\s*fail|huawei\s+main\s+power|site\s+down\s+main\s+ac/i.test(text))
+    return { match:true, category:"alarm", label:"Main Power Failure Alarm" };
+  if(/ไฟดับ|ไฟฟ้าดับ|มีไฟดับ|การไฟฟ้าดับ|เอฟเฟคจากไฟดับ/i.test(text))
+    return { match:true, category:"outage", label:"ไฟดับ / ไฟฟ้าดับ" };
+  if(/pea\s*\/\s*mea\s*power|การไฟฟ้าจ่ายไฟ/i.test(text))
+    return { match:true, category:"utility", label:"การไฟฟ้า (PEA/MEA)" };
+  if(/ไฟฟ้าขัดข้อง|ระบบไฟฟ้าขัด|การไฟฟ้าขัด/i.test(text))
+    return { match:true, category:"fault", label:"ไฟฟ้าขัดข้อง" };
+  if(/breaker\s*(?:ac|naim)?\s*trip|สายไฟ\s*ac\s*ไหม้|breaker\s+naim/i.test(text))
+    return { match:true, category:"breaker_ac", label:"Breaker / AC Trip" };
+  if(/ไฟลง/i.test(text))
+    return { match:true, category:"voltage", label:"ไฟลง" };
+  if(/(?:gen|generator)\s*(?:เข้า|ปั่น)|นำ\s*gen\s*เข้า/i.test(text))
+    return { match:true, category:"gen", label:"ใช้ Generator" };
+  if(/(?:ระบบไฟ|check\s+power|power\s+dc|rectifier).*(?:ดับ|ขัด|fail|trip|ไม่นิ่ง|ช็อต)/i.test(text))
+    return { match:true, category:"other_power", label:"ระบบไฟ / Power อื่นๆ" };
+  if(/(?:จ่ายไฟ(?:แล้ว|ปกติ)|ไฟมาปกติ|ไฟทำงาน)/i.test(text) && /(?:ดับ|ขัด|fail|การไฟฟ้า)/i.test(text))
+    return { match:true, category:"other_power", label:"ระบบไฟ / Power อื่นๆ" };
+  if(/ไฟฟ้า\s*(?:ดับ|ขัด|ล่ม|หาย|ตก|ปิด)|power\s*(?:fail|failure|down|restored?)/i.test(text))
+    return { match:true, category:"other_power", label:"ไฟฟ้า / Power (อื่นๆ)" };
+  return { match:false, category:null, label:null };
+}
+function getEecPowerOutageTickets(){
+  return getEecBaseTickets().map(r=>{
+    const desc = getEecClosedDescription(r);
+    const cls = classifyEecPowerOutage(desc);
+    return { ...r, _powerOutage: cls.match ? cls : null, _closedDesc: desc };
+  }).filter(r=> r._powerOutage);
+}
+function buildEecPowerOutageStats(){
+  const tickets = getEecPowerOutageTickets();
+  const byCategory = {};
+  EEC_POWER_OUTAGE_CATEGORIES.forEach(c=>{ byCategory[c.id] = []; });
+  tickets.forEach(r=>{
+    const cat = r._powerOutage?.category;
+    if(cat && byCategory[cat]) byCategory[cat].push(r);
+  });
+  const categoryStats = EEC_POWER_OUTAGE_CATEGORIES.map(c=>({
+    ...c,
+    count: (byCategory[c.id] || []).length
+  })).filter(c=> c.count > 0);
+  return { tickets, categoryStats, total: tickets.length, allTotal: getEecBaseTickets().length };
+}
+function invalidateEecCache(){
+  eecBaseTicketsCache = null;
+  eecClassifiedCache = null;
+}
+function syncEecFaultFieldMapFromFaultTickets(){
+  if(!faultTickets?.length) return false;
+  EEC_WO_CREATOR_MAP = EEC_WO_CREATOR_MAP || {};
+  EEC_FAULT_FIELD_MAP = EEC_FAULT_FIELD_MAP || {};
+  faultTickets.forEach(r=>{
+    const id = String(r.work_order_id || "").trim();
+    if(!id) return;
+    EEC_WO_CREATOR_MAP[id] = r.wo_creator || "";
+    EEC_FAULT_FIELD_MAP[id] = {
+      require_finish_time: r.require_finish_time || null,
+      created_time: r.created_time || null,
+      close_description: r.close_description || null
+    };
+  });
+  return true;
+}
 function getEecClassifiedTickets(){
-  return getEecBaseTickets().map(r=>({ ...r, _fault: classifyFaultTicket(r) }));
+  if(!eecClassifiedCache){
+    eecClassifiedCache = getEecAllTickets().map(r=>({ ...r, _fault: classifyFaultTicket(r) }));
+  }
+  return eecClassifiedCache;
 }
 function getEecOverTickets(){
   return getEecClassifiedTickets()
-    .filter(r=>(r._fault||classifyFaultTicket(r)).slaStatus === "Over SLA")
+    .filter(r=> r._fault.slaStatus === "Over SLA")
     .sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")) || String(a.incident_id||"").localeCompare(String(b.incident_id||"")));
 }
 function getEecLtrTickets(){
@@ -8716,7 +8999,10 @@ function isEecClosedTicket(r){
   return !!(site && EEC_SITE_SET.has(site));
 }
 function getEecAllTickets(){
-  return (eecSiteTickets || []).map(normalizeEecDbTicket).filter(isEecClosedTicket).filter(passesEecSystemWoCreator);
+  if(!eecBaseTicketsCache){
+    eecBaseTicketsCache = (eecSiteTickets || []).map(normalizeEecDbTicket).filter(isEecClosedTicket).filter(passesEecSystemWoCreator);
+  }
+  return eecBaseTicketsCache;
 }
 function getEecBaseTickets(){
   return getEecAllTickets();
@@ -8732,18 +9018,25 @@ function getEecOfcNodeTrendTickets(){
 }
 function buildEecOverSlaStats(){
   const tickets = getEecOverTickets();
-  const saTickets = tickets.filter(isFaultSaSeverity);
-  const nsaTickets = tickets.filter(isFaultNsaSrmSeverity);
-  const dayKeys = buildEecDayLabelsFromRows([...saTickets, ...nsaTickets]);
+  const daysSet = new Set();
+  const byDay = new Map();
+  tickets.forEach(r=>{
+    const d = getEecClosedDay(r);
+    if(!d) return;
+    daysSet.add(d);
+    if(!byDay.has(d)) byDay.set(d, { sa:0, nsa:0 });
+    const slot = byDay.get(d);
+    if(isFaultSaSeverity(r)) slot.sa++;
+    else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
+  });
+  const dayKeys = fillDayKeysRange([...daysSet]);
   const labels = fmtEecTrendDayLabels(dayKeys);
   const saCounts = [], nsaCounts = [], totals = [];
   dayKeys.forEach(day=>{
-    const d = String(day);
-    const sa = saTickets.filter(r=> getEecClosedDay(r) === d).length;
-    const nsa = nsaTickets.filter(r=> getEecClosedDay(r) === d).length;
-    saCounts.push(sa);
-    nsaCounts.push(nsa);
-    totals.push(sa + nsa);
+    const slot = byDay.get(day) || { sa:0, nsa:0 };
+    saCounts.push(slot.sa);
+    nsaCounts.push(slot.nsa);
+    totals.push(slot.sa + slot.nsa);
   });
   return {
     labels, dayKeys, saCounts, nsaCounts, totals,
@@ -8756,27 +9049,32 @@ const EEC_SEV_NSA_COLOR = "#2f9e44";
 const EEC_SEV_SA_OVER_COLOR = "#c92a2a";
 const EEC_SEV_NSA_OVER_COLOR = "#087f5b";
 function buildEecSeverityStats(){
-  const allTickets = getEecBaseTickets();
-  const withinTickets = allTickets.filter(r=> classifyFaultTicket(r).slaStatus !== "Over SLA");
-  const overTickets = getEecOverTickets();
-  const saTickets = withinTickets.filter(isFaultSaSeverity);
-  const nsaTickets = withinTickets.filter(isFaultNsaSrmSeverity);
-  const saOverTickets = overTickets.filter(isFaultSaSeverity);
-  const nsaOverTickets = overTickets.filter(isFaultNsaSrmSeverity);
-  const dayKeys = buildEecDayLabelsFromRows([...saTickets, ...nsaTickets, ...saOverTickets, ...nsaOverTickets]);
+  const daysSet = new Set();
+  const byDay = new Map();
+  getEecClassifiedTickets().forEach(r=>{
+    const d = getEecClosedDay(r);
+    if(!d) return;
+    daysSet.add(d);
+    if(!byDay.has(d)) byDay.set(d, { sa:0, nsa:0, saOver:0, nsaOver:0 });
+    const slot = byDay.get(d);
+    const c = r._fault;
+    const isOver = c.slaStatus === "Over SLA";
+    if(isFaultSaSeverity(r)){
+      if(isOver) slot.saOver++; else slot.sa++;
+    } else if(isFaultNsaSrmSeverity(r)){
+      if(isOver) slot.nsaOver++; else slot.nsa++;
+    }
+  });
+  const dayKeys = fillDayKeysRange([...daysSet]);
   const labels = fmtEecTrendDayLabels(dayKeys);
   const saCounts = [], nsaCounts = [], saOverCounts = [], nsaOverCounts = [], totals = [];
   dayKeys.forEach(day=>{
-    const d = String(day);
-    const sa = saTickets.filter(r=> getEecClosedDay(r) === d).length;
-    const nsa = nsaTickets.filter(r=> getEecClosedDay(r) === d).length;
-    const saOver = saOverTickets.filter(r=> getEecClosedDay(r) === d).length;
-    const nsaOver = nsaOverTickets.filter(r=> getEecClosedDay(r) === d).length;
-    saCounts.push(sa);
-    nsaCounts.push(nsa);
-    saOverCounts.push(saOver);
-    nsaOverCounts.push(nsaOver);
-    totals.push(sa + nsa + saOver + nsaOver);
+    const slot = byDay.get(day) || { sa:0, nsa:0, saOver:0, nsaOver:0 };
+    saCounts.push(slot.sa);
+    nsaCounts.push(slot.nsa);
+    saOverCounts.push(slot.saOver);
+    nsaOverCounts.push(slot.nsaOver);
+    totals.push(slot.sa + slot.nsa + slot.saOver + slot.nsaOver);
   });
   return {
     labels, dayKeys, saCounts, nsaCounts, saOverCounts, nsaOverCounts, totals,
@@ -8804,7 +9102,20 @@ function buildEecProvinceStats(){
   const tickets = getEecProvinceTrendTickets();
   const activeProvinces = getEecActiveProvinces();
   const splitSev = eecProvSevFilter === "all";
-  const dayKeys = buildEecDayLabelsFromRows(tickets);
+  const daysSet = new Set();
+  const byDayProv = new Map();
+  tickets.forEach(r=>{
+    const d = getEecClosedDay(r);
+    const prov = getEecProvinceForTicket(r);
+    if(!d || !activeProvinces.includes(prov)) return;
+    daysSet.add(d);
+    const key = `${d}|${prov}`;
+    if(!byDayProv.has(key)) byDayProv.set(key, { sa:0, nsa:0 });
+    const slot = byDayProv.get(key);
+    if(isFaultSaSeverity(r)) slot.sa++;
+    else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
+  });
+  const dayKeys = fillDayKeysRange([...daysSet]);
   const labels = fmtEecTrendDayLabels(dayKeys);
   const provCounts = {};
   const provSaCounts = {};
@@ -8817,19 +9128,11 @@ function buildEecProvinceStats(){
     provTotals[p] = 0;
   });
   dayKeys.forEach(day=>{
-    const d = String(day);
     activeProvinces.forEach(prov=>{
-      const dayRows = tickets.filter(r=>
-        getEecProvinceForTicket(r) === prov && getEecClosedDay(r) === d
-      );
-      let sa = 0, nsa = 0;
-      dayRows.forEach(r=>{
-        if(isFaultSaSeverity(r)) sa++;
-        else if(isFaultNsaSrmSeverity(r)) nsa++;
-      });
-      provSaCounts[prov].push(sa);
-      provNsaCounts[prov].push(nsa);
-      const n = splitSev ? sa + nsa : dayRows.length;
+      const slot = byDayProv.get(`${day}|${prov}`) || { sa:0, nsa:0 };
+      provSaCounts[prov].push(slot.sa);
+      provNsaCounts[prov].push(slot.nsa);
+      const n = splitSev ? slot.sa + slot.nsa : (eecProvSevFilter === "sa" ? slot.sa : slot.nsa);
       provCounts[prov].push(n);
       provTotals[prov] += n;
     });
@@ -8848,19 +9151,25 @@ function buildEecProvinceStats(){
 function buildEecOfcNodeStats(group){
   const gFilter = group || eecOfcNodeTrendGroup;
   const tickets = getEecOfcNodeTrendTickets().filter(r=> classifySrmRootCauseGroup(r) === gFilter);
-  const dayKeys = buildEecDayLabelsFromRows(tickets);
+  const daysSet = new Set();
+  const byDay = new Map();
+  tickets.forEach(r=>{
+    const d = getEecClosedDay(r);
+    if(!d) return;
+    daysSet.add(d);
+    if(!byDay.has(d)) byDay.set(d, { sa:0, nsa:0 });
+    const slot = byDay.get(d);
+    if(isFaultSaSeverity(r)) slot.sa++;
+    else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
+  });
+  const dayKeys = fillDayKeysRange([...daysSet]);
   const labels = fmtEecTrendDayLabels(dayKeys);
   const saCounts = [], nsaCounts = [], totals = [];
   dayKeys.forEach(day=>{
-    const dayRows = tickets.filter(r=> getEecClosedDay(r) === day);
-    let sa = 0, nsa = 0;
-    dayRows.forEach(r=>{
-      if(isFaultSaSeverity(r)) sa++;
-      else if(isFaultNsaSrmSeverity(r)) nsa++;
-    });
-    saCounts.push(sa);
-    nsaCounts.push(nsa);
-    totals.push(sa + nsa);
+    const slot = byDay.get(day) || { sa:0, nsa:0 };
+    saCounts.push(slot.sa);
+    nsaCounts.push(slot.nsa);
+    totals.push(slot.sa + slot.nsa);
   });
   return {
     labels, dayKeys, saCounts, nsaCounts, totals,
@@ -8983,12 +9292,14 @@ function renderEecLtrTrendChart(rows){
   const dayKeys = buildEecDayLabelsFromRows(rows);
   const labels = fmtEecTrendDayLabels(dayKeys);
   const buckets = FAULT_LTR_BUCKETS;
-  const rawByBucket = buckets.map(b=>
-    dayKeys.map(day=> rows.filter(r=>{
-      const c = r._fault || classifyFaultTicket(r);
-      return getEecClosedDay(r) === day && c.bucket === b;
-    }).length)
-  );
+  const byDayBucket = new Map();
+  rows.forEach(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    const day = getEecClosedDay(r);
+    if(!day || !c.bucket) return;
+    byDayBucket.set(`${day}|${c.bucket}`, (byDayBucket.get(`${day}|${c.bucket}`) || 0) + 1);
+  });
+  const rawByBucket = buckets.map(b=> dayKeys.map(day=> byDayBucket.get(`${day}|${b}`) || 0));
   const dayTotals = dayKeys.map((_, di)=> rawByBucket.reduce((sum, arr)=> sum + arr[di], 0));
   const countMax = faultCountAxisMax(dayTotals);
   const countStep = faultCountAxisStep(countMax);
@@ -9291,16 +9602,48 @@ function refreshEecOfcNodeTrendPanel(){
   renderEecStackedSevChart("eecOfcNodeChart", "eecOfcNodeLegend", stats, "ofc");
   renderEecOfcNodeDetailTable(buildEecOfcNodeRootCauseDetail());
 }
+function normalizeEecRootCauseKey(rc){
+  const text = String(rc || "").trim();
+  if(!text) return "(ไม่ระบุ Root Cause)";
+  const parens = [...text.matchAll(/\(([^)]+)\)/g)].map(m => m[1].trim()).filter(Boolean);
+  const network = parens.find(p => /^(?:Network|NW)\s*-/i.test(p));
+  if(network) return network;
+  const english = parens.find(p => /^[A-Za-z]/.test(p));
+  if(english) return english;
+  if(/^(?:Network|NW)\s*-/i.test(text)) return text;
+  if(/^[A-Za-z]/.test(text)) return text;
+  return text;
+}
+function pickEecRootCauseDisplayLabel(canonicalKey, variants){
+  const sorted = [...variants].sort((a,b)=> b.count - a.count);
+  const bilingual = sorted.find(v => /[\u0E00-\u0E7F]/.test(v.label) && /\([^)]+\)/.test(v.label));
+  if(bilingual) return bilingual.label;
+  const withParens = sorted.find(v => v.label.includes("("));
+  if(withParens) return withParens.label;
+  return canonicalKey;
+}
+function eecRootCauseMatches(rawRc, canonicalKey){
+  return normalizeEecRootCauseKey(rawRc) === canonicalKey;
+}
 function buildEecOfcNodeRootCauseDetail(){
   const tickets = getEecOfcNodeTrendTickets().filter(r=> classifySrmRootCauseGroup(r) === eecOfcNodeTrendGroup);
-  const byRc = {};
+  const byKey = {};
   tickets.forEach(r=>{
-    const rc = String(r?.root_cause || "").trim() || "(ไม่ระบุ Root Cause)";
+    const raw = String(r?.root_cause || "").trim() || "(ไม่ระบุ Root Cause)";
+    const key = normalizeEecRootCauseKey(raw);
     const group = classifySrmRootCauseGroup(r);
-    if(!byRc[rc]) byRc[rc] = { rootCause: rc, group, count: 0 };
-    byRc[rc].count++;
+    if(!byKey[key]) byKey[key] = { rootCause: key, group, count: 0, variants: {} };
+    byKey[key].count++;
+    byKey[key].variants[raw] = (byKey[key].variants[raw] || 0) + 1;
   });
-  return Object.values(byRc).sort((a,b)=> b.count - a.count || a.rootCause.localeCompare(b.rootCause));
+  return Object.values(byKey).map(row=>{
+    const variantList = Object.entries(row.variants).map(([label, count])=> ({ label, count }));
+    return {
+      ...row,
+      displayLabel: pickEecRootCauseDisplayLabel(row.rootCause, variantList),
+      variantCount: variantList.length
+    };
+  }).sort((a,b)=> b.count - a.count || a.displayLabel.localeCompare(b.displayLabel));
 }
 function toggleEecOfcNodeDetailCollapse(){
   eecOfcNodeDetailCollapsed = !eecOfcNodeDetailCollapsed;
@@ -9315,6 +9658,266 @@ function onEecOfcNodeDetailClick(e){
   const row = e.target.closest(".srm-ofcnode-rc-row[data-rc]");
   if(!row) return;
   toggleEecOfcNodeExpand(row.getAttribute("data-rc"));
+}
+function getEecCreatedDayKey(r){
+  const d = parseFaultTs(r.created_time);
+  if(!d) return null;
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${mo}-${day}`;
+}
+function eecCreatedDaysApart(dayA, dayB){
+  if(!dayA || !dayB) return null;
+  const a = new Date(`${dayA}T00:00:00`);
+  const b = new Date(`${dayB}T00:00:00`);
+  if(isNaN(a) || isNaN(b)) return null;
+  return Math.round(Math.abs(a - b) / 86400000);
+}
+function getEecTicketLabel(r){
+  const wo = String(r.incident_id || "").trim();
+  const tt = String(r.source_ticket_id || "").trim();
+  if(wo && tt && wo !== tt) return `${tt} / ${wo}`;
+  return wo || tt || "(ไม่ระบุ)";
+}
+function getEecTicketRowKey(r){
+  return String(r.incident_id || r.source_ticket_id || r.id || "").trim() || getEecTicketLabel(r);
+}
+function analyzeEecPowerOutageProximity(tickets){
+  const items = tickets.map(r=>({
+    r,
+    key: getEecTicketRowKey(r),
+    label: getEecTicketLabel(r),
+    day: getEecCreatedDayKey(r)
+  }));
+  const remarks = {};
+  tickets.forEach(r=> { remarks[getEecTicketRowKey(r)] = []; });
+  const pairs = [];
+  for(let i = 0; i < items.length; i++){
+    for(let j = i + 1; j < items.length; j++){
+      const a = items[i], b = items[j];
+      if(!a.day || !b.day) continue;
+      const diff = eecCreatedDaysApart(a.day, b.day);
+      if(diff === 0){
+        pairs.push({ a, b, type:"same", label:"วันเดียวกัน" });
+        remarks[a.key].push({ other:b.label, type:"same", day:a.day });
+        remarks[b.key].push({ other:a.label, type:"same", day:b.day });
+      } else if(diff === 1){
+        pairs.push({ a, b, type:"adjacent", label:"วันติดกัน" });
+        remarks[a.key].push({ other:b.label, type:"adjacent", day:a.day, otherDay:b.day });
+        remarks[b.key].push({ other:a.label, type:"adjacent", day:b.day, otherDay:a.day });
+      }
+    }
+  }
+  const formatRemark = key=>{
+    const list = remarks[key] || [];
+    if(!list.length) return "";
+    return list.map(x=> x.type === "same"
+      ? `ใกล้ ${x.other} (${x.day}, วันเดียวกัน)`
+      : `ใกล้ ${x.other} (${x.day} ↔ ${x.otherDay}, วันติดกัน)`
+    ).join(" · ");
+  };
+  return { hasWarning: pairs.length > 0, pairs, formatRemark };
+}
+function renderEecPowerOutageProximityNote(proximity){
+  if(!proximity?.pairs?.length) return "";
+  const lines = proximity.pairs.map(p=>{
+    const dayText = p.type === "adjacent" ? `${p.a.day} / ${p.b.day}` : p.a.day;
+    return `<li>${esc(p.a.label)} ↔ ${esc(p.b.label)} · ${esc(p.label)} (${esc(dayText)})</li>`;
+  }).join("");
+  return `<div class="eec-po-proximity-note"><strong>⚠ Created Time ใกล้กัน</strong><ul>${lines}</ul></div>`;
+}
+function getEecPowerOutageSiteKey(r){
+  return (extractEecSite(r) || String(r?.site_id || "").trim() || "(ไม่ระบุ Site)").toUpperCase();
+}
+function getEecPowerOutageSiteLabel(r){
+  return extractEecSite(r) || String(r?.site_id || "").trim() || "(ไม่ระบุ Site)";
+}
+function buildEecPowerOutageDetailGroups(stats){
+  const byCat = {};
+  stats.tickets.forEach(r=>{
+    const catId = r._powerOutage?.category || "other_power";
+    const siteKey = getEecPowerOutageSiteKey(r);
+    const siteLabel = getEecPowerOutageSiteLabel(r);
+    if(!byCat[catId]) byCat[catId] = { catId, sites: {}, count: 0 };
+    byCat[catId].count++;
+    if(!byCat[catId].sites[siteKey]) byCat[catId].sites[siteKey] = { siteKey, siteLabel, tickets: [], count: 0, provinces: new Set() };
+    const slot = byCat[catId].sites[siteKey];
+    slot.count++;
+    slot.tickets.push(r);
+    const prov = getEecProvinceForTicket(r);
+    if(prov) slot.provinces.add(prov);
+  });
+  return EEC_POWER_OUTAGE_CATEGORIES.map(c=>{
+    const slot = byCat[c.id];
+    if(!slot) return null;
+    const sites = Object.values(slot.sites).map(s=>{
+      const proximity = analyzeEecPowerOutageProximity(s.tickets);
+      return {
+        ...s,
+        provinces: [...s.provinces].sort(),
+        proximity,
+        hasProximityWarning: proximity.hasWarning
+      };
+    }).sort((a,b)=> b.count - a.count || a.siteLabel.localeCompare(b.siteLabel));
+    return { ...c, count: slot.count, sites };
+  }).filter(Boolean);
+}
+function renderEecPowerOutageTicketRows(tickets, proximity){
+  const rows = [...tickets].sort((a,b)=>
+    String(a.created_time||"").localeCompare(String(b.created_time||"")) ||
+    String(b.closed_time||"").localeCompare(String(a.closed_time||""))
+  );
+  const note = renderEecPowerOutageProximityNote(proximity);
+  return `${note}<table class="svcava-table fault-data-table eec-detail-table" style="margin:0"><thead><tr>
+    <th>Ticket / WO</th><th>Province</th><th>Severity</th><th>Created</th><th>Closed</th><th>Subject</th><th>Closed Description</th><th>Root Cause</th>
+  </tr></thead><tbody>${rows.map(r=>{
+    const tt = r.source_ticket_id || "";
+    const wo = r.incident_id || "";
+    const ticketCell = tt && wo && tt !== wo ? `${esc(tt)}<br><span class="muted">${esc(wo)}</span>` : esc(wo || tt);
+    const subject = extractFaultSubjectDetail(r) || r.subject || "";
+    return `<tr>
+      <td>${ticketCell}</td>
+      <td>${esc(getEecProvinceForTicket(r))}</td>
+      <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
+      <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
+      <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
+      <td class="subject-cell">${esc(subject)}</td>
+      <td class="subject-cell">${esc(r._closedDesc || "")}</td>
+      <td class="subject-cell">${esc(r.root_cause||"")}</td>
+    </tr>`;
+  }).join("")}</tbody></table>`;
+}
+function toggleEecPowerOutageCatExpand(catId){
+  if(eecPowerOutageExpandCat === catId){
+    eecPowerOutageExpandCat = null;
+    eecPowerOutageExpandSite = null;
+  } else {
+    eecPowerOutageExpandCat = catId;
+    eecPowerOutageExpandSite = null;
+  }
+  renderEecPowerOutageDetailTable(buildEecPowerOutageStats());
+}
+function toggleEecPowerOutageSiteExpand(catId, siteKey){
+  const key = `${catId}|${siteKey}`;
+  eecPowerOutageExpandSite = (eecPowerOutageExpandSite === key) ? null : key;
+  renderEecPowerOutageDetailTable(buildEecPowerOutageStats());
+}
+function onEecPowerOutageDetailClick(e){
+  const siteRow = e.target.closest(".eec-po-site-row[data-cat][data-site]");
+  if(siteRow){
+    toggleEecPowerOutageSiteExpand(siteRow.getAttribute("data-cat"), siteRow.getAttribute("data-site"));
+    return;
+  }
+  const catRow = e.target.closest(".eec-po-cat-row[data-cat]");
+  if(catRow) toggleEecPowerOutageCatExpand(catRow.getAttribute("data-cat"));
+}
+function toggleEecPowerOutageDetailCollapse(){
+  eecPowerOutageDetailCollapsed = !eecPowerOutageDetailCollapsed;
+  document.getElementById("eecPowerOutageDetailWrap")?.classList.toggle("srm-ft-ofcnode-detail-wrap-collapsed", eecPowerOutageDetailCollapsed);
+  document.getElementById("eecPowerOutageDetailChevron")?.classList.toggle("collapsed", eecPowerOutageDetailCollapsed);
+}
+function renderEecPowerOutageSummary(stats){
+  const el = document.getElementById("eecPowerOutageSummary");
+  if(!el) return;
+  if(!stats.total){
+    el.innerHTML = `<div class="empty-hint" style="padding:16px;">ไม่พบ Closed Description ที่เกี่ยวกับไฟฟ้าดับ / ปิด</div>`;
+    return;
+  }
+  const pct = stats.allTotal ? ((stats.total / stats.allTotal) * 100).toFixed(1) : "0";
+  el.innerHTML = `
+    <div class="srm-ft-sev-cards cols-3" style="margin-bottom:12px;">
+      <div class="srm-ft-sev-card sa"><span class="srm-ft-sev-card-lbl">ไฟฟ้าดับ / ปิด</span><span class="srm-ft-sev-card-val">${stats.total}</span></div>
+      <div class="srm-ft-sev-card nsa"><span class="srm-ft-sev-card-lbl">TT ทั้งหมด</span><span class="srm-ft-sev-card-val">${stats.allTotal}</span></div>
+      <div class="srm-ft-sev-card over"><span class="srm-ft-sev-card-lbl">สัดส่วน</span><span class="srm-ft-sev-card-val" style="font-size:32px">${pct}%</span></div>
+    </div>
+    <div class="table-scroll"><table class="svcava-table fault-data-table fault-ltr-summary-table">
+      <thead><tr><th style="text-align:left">หมวด</th><th>จำนวน TT</th><th>%</th></tr></thead>
+      <tbody>${stats.categoryStats.map(c=>{
+        const p = stats.total ? ((c.count / stats.total) * 100).toFixed(1) : "0";
+        return `<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${c.color};margin-right:8px"></span>${esc(c.label)}</td><td>${c.count}</td><td>${p}%</td></tr>`;
+      }).join("")}<tr><td class="fault-ltr-reason-name"><strong>รวม</strong></td><td class="fault-ltr-total"><strong>${stats.total}</strong></td><td><strong>100%</strong></td></tr></tbody>
+    </table></div>`;
+}
+function renderEecPowerOutageDetailTable(stats){
+  const wrap = document.getElementById("eecPowerOutageDetailWrap");
+  if(!wrap) return;
+  wrap.classList.toggle("srm-ft-ofcnode-detail-wrap-collapsed", eecPowerOutageDetailCollapsed);
+  document.getElementById("eecPowerOutageDetailChevron")?.classList.toggle("collapsed", eecPowerOutageDetailCollapsed);
+  if(!stats.total){
+    wrap.innerHTML = "";
+    return;
+  }
+  const groups = buildEecPowerOutageDetailGroups(stats);
+  const catBadge = c=> `<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:${c.color}22;color:${c.color};font-size:11px;font-weight:600;margin-right:8px">${esc(c.label)}</span>`;
+  const bodyRows = groups.flatMap(cat=>{
+    const catOpen = eecPowerOutageExpandCat === cat.id;
+    const catChevron = `<span class="eec-po-chevron ${catOpen ? "" : "collapsed"}">▾</span>`;
+    const catRow = `<tr class="eec-po-cat-row srm-ofcnode-rc-row" data-cat="${esc(cat.id)}">
+      <td>${catChevron}${catBadge(cat)}</td>
+      <td class="muted">${cat.sites.length} Site</td>
+      <td class="srm-ofcnode-rc-count">${cat.count}</td>
+    </tr>`;
+    if(!catOpen) return [catRow];
+    const siteRows = cat.sites.flatMap(site=>{
+      const siteKey = `${cat.id}|${site.siteKey}`;
+      const siteOpen = eecPowerOutageExpandSite === siteKey;
+      const siteChevron = `<span class="eec-po-chevron ${siteOpen ? "" : "collapsed"}">▾</span>`;
+      const provText = site.provinces.length ? site.provinces.join(", ") : "-";
+      const warnIcon = site.hasProximityWarning
+        ? `<span class="eec-po-warn" title="Created Time วันเดียวกันหรือวันติดกัน">⚠</span>` : "";
+      const siteRow = `<tr class="eec-po-site-row srm-ofcnode-rc-row" data-cat="${esc(cat.id)}" data-site="${esc(site.siteKey)}">
+        <td>${siteChevron}<span class="site-plkd-cell">${esc(site.siteLabel)}</span>${warnIcon}</td>
+        <td>${esc(provText)}</td>
+        <td class="srm-ofcnode-rc-count">${site.count}</td>
+      </tr>`;
+      const expandRow = siteOpen
+        ? `<tr class="srm-ofcnode-expand-row"><td colspan="3">${renderEecPowerOutageTicketRows(site.tickets, site.proximity)}</td></tr>`
+        : "";
+      return [siteRow, expandRow].filter(Boolean);
+    });
+    return [catRow, ...siteRows];
+  });
+  wrap.innerHTML = `<table class="srm-ft-ofcnode-detail-table"><thead><tr>
+    <th>หมวด / Site</th><th>Province</th><th>จำนวน TT</th>
+  </tr></thead><tbody>${bodyRows.join("")}</tbody></table>`;
+}
+function renderEecPowerOutagePanel(){
+  const stats = buildEecPowerOutageStats();
+  renderEecPowerOutageSummary(stats);
+  renderEecPowerOutageDetailTable(stats);
+}
+function renderEecRootCauseTicketTableHtml(rows){
+  if(!rows.length){
+    return `<div class="empty-hint" style="padding:16px;">ไม่มี TT ตรงเงื่อนไข</div>`;
+  }
+  const sortedRows = [...rows].sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")));
+  const bodyHtml = sortedRows.map(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    const site = r.site_id || extractEecSite(r) || "";
+    const tt = r.source_ticket_id || "";
+    const wo = r.incident_id || "";
+    const ticketCell = tt && wo && tt !== wo ? `${esc(tt)}<br><span class="muted">${esc(wo)}</span>` : esc(wo || tt);
+    const subject = extractFaultSubjectDetail(r) || r.subject || "";
+    const closedDesc = getEecClosedDescription(r);
+    return `<tr>
+      <td class="site-plkd-cell">${esc(site)}</td>
+      <td>${ticketCell}</td>
+      <td class="subject-cell">${esc(subject)}</td>
+      <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
+      <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
+      <td class="dt-cell">${fmtFaultDT(r.departed_time)}</td>
+      <td class="dt-cell">${fmtFaultDT(r.arrived_time)}</td>
+      <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
+      <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
+      <td class="subject-cell">${esc(r.root_cause||"")}</td>
+      <td class="subject-cell">${esc(closedDesc)}</td>
+    </tr>`;
+  }).join("");
+  return `<div class="table-scroll"><table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
+    <th>Site</th><th>Ticket / WO</th><th>Subject</th><th>Severity</th><th>Created</th>
+    <th>Departed</th><th>Arrived</th><th>Closed</th><th>Downtime</th><th>Root Cause</th><th>Closed Description</th>
+  </tr></thead><tbody>${bodyHtml}</tbody></table></div>`;
 }
 function renderEecOfcNodeDetailTable(detailRows){
   const wrap = document.getElementById("eecOfcNodeDetailWrap");
@@ -9333,10 +9936,15 @@ function renderEecOfcNodeDetailTable(detailRows){
       <th>Root Cause</th><th>กลุ่ม</th><th>จำนวน TT</th>
     </tr></thead><tbody>${detailRows.map(row=>{
       const isOpen = eecOfcNodeExpandRc === row.rootCause;
-      const rcRows = isOpen ? tickets.filter(r=> (String(r?.root_cause||"").trim() || "(ไม่ระบุ Root Cause)") === row.rootCause) : [];
-      const expandHtml = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="3">${renderSrmFtTicketTableHtml(rcRows, { showPeaWorking:false })}</td></tr>` : "";
+      const rcRows = isOpen ? tickets.filter(r=>{
+        const raw = String(r?.root_cause || "").trim() || "(ไม่ระบุ Root Cause)";
+        return eecRootCauseMatches(raw, row.rootCause);
+      }) : [];
+      const variantHint = row.variantCount > 1
+        ? `<br><span class="muted" style="font-size:11px">รวม ${row.variantCount} รูปแบบ</span>` : "";
+      const expandHtml = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="3">${renderEecRootCauseTicketTableHtml(rcRows)}</td></tr>` : "";
       return `<tr class="srm-ofcnode-rc-row" data-rc="${esc(row.rootCause)}">
-        <td>${esc(row.rootCause)}</td><td>${groupBadge(row.group)}</td><td class="srm-ofcnode-rc-count">${row.count}</td>
+        <td>${esc(row.displayLabel)}${variantHint}</td><td>${groupBadge(row.group)}</td><td class="srm-ofcnode-rc-count">${row.count}</td>
       </tr>${expandHtml}`;
     }).join("")}</tbody></table>`;
 }
@@ -9446,8 +10054,14 @@ function renderEecLtrPanel(){
     { key:"2-6 Hrs.", wrap:"eec26TableWrap", cnt:"eec26Count" },
     { key:"1-2 Hrs.", wrap:"eec12TableWrap", cnt:"eec12Count" }
   ];
+  const byBucket = {};
+  FAULT_LTR_BUCKETS.forEach(b=>{ byBucket[b] = []; });
+  rows.forEach(r=>{
+    const bucket = (r._fault || classifyFaultTicket(r)).bucket;
+    if(bucket && byBucket[bucket]) byBucket[bucket].push(r);
+  });
   bucketBlocks.forEach(b=>{
-    const bRows = rows.filter(r=>(r._fault||classifyFaultTicket(r)).bucket === b.key)
+    const bRows = (byBucket[b.key] || [])
       .sort((a,c)=> String(c.closed_time||"").localeCompare(String(a.closed_time||"")));
     const cntEl = document.getElementById(b.cnt);
     if(cntEl) cntEl.textContent = String(bRows.length);
@@ -9466,18 +10080,304 @@ function renderEecDetailPanel(){
   const wrap = document.getElementById("eecDetailTableWrap");
   if(wrap) wrap.innerHTML = renderEecDetailTableHtml(rows);
 }
+function addIsoDays(isoDay, n){
+  if(!isoDay) return null;
+  const d = new Date(`${isoDay}T00:00:00`);
+  if(isNaN(d)) return null;
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+/** INOC Analysis rules — อ้างอิง skills/INOC/SKILL.md */
+const EEC_INOC_ISSUE_RULES = [
+  { id:"automation", label:"Automation / Self-heal", fixEase:1, easeLabel:"ง่าย",
+    match:(rc,desc)=> /resolved by automation|แก้ไขเองโดยระบบอัตโนมัติ/i.test(`${rc} ${desc}`),
+    action:"ทบทวน alarm rule / threshold · suppress false positive · ตรวจ correlation" },
+  { id:"main_power_alarm", label:"Main Power Failure Alarm", fixEase:1, easeLabel:"ง่าย",
+    match:(rc,desc)=> /main\s*power\s*fail|main\s*ac\s*power/i.test(`${rc} ${desc}`),
+    action:"Remote ตรวจ AC input · breaker · rectifier · แจ้ง site ตรวจ power feed" },
+  { id:"breaker_ac", label:"Breaker / AC Trip", fixEase:2, easeLabel:"ง่าย",
+    match:(rc,desc)=> /breaker\s*(?:ac|naim)?\s*trip|สายไฟ\s*ac/i.test(desc),
+    action:"แนะนำ site reset breaker · ตรวจสาย AC · ติดตาม repeat" },
+  { id:"utility_restore", label:"การไฟฟ้า PEA/MEA", fixEase:2, easeLabel:"ง่าย",
+    match:(rc,desc)=> /pea\s*\/\s*mea|การไฟฟ้าจ่ายไฟ/i.test(desc),
+    action:"ยืนยันไฟกลับปกติ · ปิด loop · บันทึก outage reference" },
+  { id:"power_outage", label:"ไฟดับ / Power Outage", fixEase:3, easeLabel:"ปานกลาง",
+    match:(rc,desc)=> classifyEecPowerOutage(desc).match || /power system|ระบบไฟฟ้า/i.test(rc),
+    action:"ประสานการไฟฟ้า · แจ้ง gen procedure · ติดตาม site repeat" },
+  { id:"voltage", label:"ไฟลง / Voltage", fixEase:3, easeLabel:"ปานกลาง",
+    match:(rc,desc)=> /ไฟลง/i.test(desc),
+    action:"ตรวจ rectifier load · แบต · สายไฟ" },
+  { id:"site_facility", label:"Site Facility", fixEase:3, easeLabel:"ปานกลาง",
+    match:(rc,desc)=> /site facility/i.test(rc),
+    action:"ประสาน facility · ตรวจ access / สิ่งแวดล้อม / อุปกรณ์ site" },
+  { id:"inside_fiber", label:"ไฟเบอร์ภายในไซต์", fixEase:4, easeLabel:"ยาก",
+    match:(rc,desc)=> /inside plant fiber|ไฟเบอร์ภายใน/i.test(rc),
+    action:"ประสาน OFC / field · ตรวจ patch / connector ใน site" },
+  { id:"outside_fiber", label:"ไฟเบอร์ตอนนอก / OFC", fixEase:5, easeLabel:"ยาก",
+    match:(rc,desc)=> /outside plant fiber|ไฟเบอร์ตอนนอก|proactive.*outside/i.test(rc),
+    action:"ประสาน field · ติดตามสาย / splice · proactive sweep" },
+  { id:"ran_node", label:"RAN / Node / IPRAN", fixEase:5, easeLabel:"ยาก",
+    match:(rc,desc)=> /\bRAN\b|NodeB|gNodeB|IPRAN|Transmission/i.test(rc),
+    action:"ประสาน RF / transmission · ตรวจ node alarm correlate" },
+  { id:"other", label:"อื่นๆ / Other", fixEase:4, easeLabel:"ยาก",
+    match:()=> true,
+    action:"วิเคราะห์ราย case · ตรวจ Root Cause vs Closed Description ให้สอดคล้อง" }
+];
+function classifyEecInocIssue(r){
+  const rc = String(r?.root_cause || "").trim();
+  const desc = getEecClosedDescription(r);
+  for(const rule of EEC_INOC_ISSUE_RULES){
+    if(rule.id === "other") continue;
+    if(rule.match(rc, desc)) return { ...rule, rcKey: normalizeEecRootCauseKey(rc || "(ไม่ระบุ Root Cause)") };
+  }
+  const other = EEC_INOC_ISSUE_RULES.find(x=> x.id === "other");
+  return { ...other, rcKey: normalizeEecRootCauseKey(rc || "(ไม่ระบุ Root Cause)") };
+}
+function getEecAnalysisTickets(){
+  return getEecBaseTickets().filter(r=> isFaultSaSeverity(r));
+}
+function getEecAnalysisPeriod(){
+  const days = getEecAnalysisTickets().map(r=> getEecClosedDay(r)).filter(Boolean).sort();
+  if(!days.length) return { start:null, end:null, recent30:null, active14:null };
+  const end = days[days.length - 1];
+  const start = days[0];
+  return { start, end, recent30: addIsoDays(end, -30), active14: addIsoDays(end, -14) };
+}
+function buildEecInocAnalysisStats(){
+  const period = getEecAnalysisPeriod();
+  const tickets = getEecAnalysisTickets();
+  const byIssue = {};
+  const bySite = {};
+  tickets.forEach(r=>{
+    const issue = classifyEecInocIssue(r);
+    const key = issue.id;
+    const site = getEecPowerOutageSiteKey(r);
+    const closedDay = getEecClosedDay(r);
+    const desc = getEecClosedDescription(r);
+    if(!byIssue[key]){
+      byIssue[key] = {
+        ...issue,
+        count:0, recent30:0, active14:0,
+        sites:new Set(), siteCounts:{},
+        descCounts:{}, tickets:[], lastClosed:""
+      };
+    }
+    const slot = byIssue[key];
+    slot.count++;
+    slot.tickets.push(r);
+    slot.sites.add(site);
+    slot.siteCounts[site] = (slot.siteCounts[site] || 0) + 1;
+    if(desc){
+      const dk = desc.length > 80 ? desc.slice(0, 80) + "…" : desc;
+      slot.descCounts[dk] = (slot.descCounts[dk] || 0) + 1;
+    }
+    if(closedDay){
+      if(closedDay > slot.lastClosed) slot.lastClosed = closedDay;
+      if(period.recent30 && closedDay >= period.recent30) slot.recent30++;
+      if(period.active14 && closedDay >= period.active14) slot.active14++;
+    }
+    if(!bySite[site]) bySite[site] = { site, count:0, issues:{}, tickets:[], lastClosed:"", provinces:new Set() };
+    const ss = bySite[site];
+    ss.count++;
+    ss.tickets.push(r);
+    ss.issues[key] = (ss.issues[key] || 0) + 1;
+    const prov = getEecProvinceForTicket(r);
+    if(prov) ss.provinces.add(prov);
+    if(closedDay && closedDay > ss.lastClosed) ss.lastClosed = closedDay;
+  });
+  const issues = Object.values(byIssue).map(row=>{
+    const repeatSites = Object.values(row.siteCounts).filter(n=> n >= 2).length;
+    const topSites = Object.entries(row.siteCounts).sort((a,b)=> b[1]-a[1]).slice(0, 8);
+    const topDescs = Object.entries(row.descCounts).sort((a,b)=> b[1]-a[1]).slice(0, 5);
+    const isFrequent = row.count >= Math.max(5, Math.ceil(tickets.length * 0.02));
+    return {
+      ...row,
+      siteCount: row.sites.size,
+      repeatSites,
+      topSites,
+      topDescs,
+      isFrequent,
+      isRepeat: repeatSites > 0,
+      isActive: row.active14 > 0,
+      priority: row.fixEase * 1000 - row.active14 * 50 - repeatSites * 30 - row.count
+    };
+  }).sort((a,b)=> a.fixEase - b.fixEase || b.active14 - a.active14 || b.repeatSites - a.repeatSites || b.count - a.count);
+  const siteRepeats = Object.values(bySite)
+    .filter(s=> s.count >= 2)
+    .map(s=>({
+      ...s,
+      provinces:[...s.provinces].sort(),
+      topIssues: Object.entries(s.issues).sort((a,b)=> b[1]-a[1]).slice(0, 3).map(([id,n])=>{
+        const rule = EEC_INOC_ISSUE_RULES.find(x=> x.id === id);
+        return { id, label: rule?.label || id, count:n };
+      }),
+      active14: s.tickets.filter(t=>{
+        const d = getEecClosedDay(t);
+        return d && period.active14 && d >= period.active14;
+      }).length
+    }))
+    .sort((a,b)=> b.count - a.count || b.active14 - a.active14)
+    .slice(0, 30);
+  const summary = {
+    totalIssues: issues.length,
+    activeIssues: issues.filter(i=> i.isActive).length,
+    repeatSites: siteRepeats.length,
+    easyFixActive: issues.filter(i=> i.fixEase <= 2 && i.isActive).length
+  };
+  return { period, issues, siteRepeats, summary, totalTickets: tickets.length };
+}
+function setEecAnalysisFilter(mode){
+  if(!["all","active","repeat","easy"].includes(mode)) return;
+  if(eecAnalysisFilter === mode) return;
+  eecAnalysisFilter = mode;
+  eecAnalysisExpandIssue = null;
+  renderEecAnalysisPanel();
+}
+function renderEecAnalysisFilterButtons(summary){
+  const el = document.getElementById("eecAnalysisFilter");
+  if(!el) return;
+  const f = eecAnalysisFilter;
+  el.innerHTML = `
+    <span class="flabel">แสดง</span>
+    <div class="srm-ft-ofcnode-seg">
+      <button type="button" class="srm-ft-ofcnode-btn ${f==="all"?"active":""}" onclick="setEecAnalysisFilter('all')">ทั้งหมด</button>
+      <button type="button" class="srm-ft-ofcnode-btn ${f==="active"?"active":""}" onclick="setEecAnalysisFilter('active')">ยังเกิดอยู่<span class="seg-count">${summary.activeIssues}</span></button>
+      <button type="button" class="srm-ft-ofcnode-btn ${f==="repeat"?"active":""}" onclick="setEecAnalysisFilter('repeat')">Site ซ้ำ<span class="seg-count">${summary.repeatSites}</span></button>
+      <button type="button" class="srm-ft-ofcnode-btn ${f==="easy"?"active":""}" onclick="setEecAnalysisFilter('easy')">แก้ง่าย + Active<span class="seg-count">${summary.easyFixActive}</span></button>
+    </div>`;
+}
+function eecInocEaseBadge(ease, label){
+  const cls = ease <= 2 ? "e1" : ease === 3 ? "e3" : "e4";
+  return `<span class="eec-inoc-ease ${cls}">${esc(label)}</span>`;
+}
+function eecInocTags(row){
+  const tags = [];
+  if(row.isFrequent) tags.push(`<span class="eec-inoc-tag freq">เกิดบ่อย</span>`);
+  if(row.isRepeat) tags.push(`<span class="eec-inoc-tag repeat">Site ซ้ำ</span>`);
+  if(row.isActive) tags.push(`<span class="eec-inoc-tag active">ยังเกิดอยู่</span>`);
+  return tags.join("");
+}
+function renderEecAnalysisIssueExpand(row){
+  const siteRows = row.topSites.map(([site,cnt])=> `<tr><td class="site-plkd-cell">${esc(site)}</td><td class="srm-ofcnode-rc-count">${cnt}</td></tr>`).join("");
+  const descRows = row.topDescs.map(([d,cnt])=> `<tr><td class="subject-cell">${esc(d)}</td><td>${cnt}</td></tr>`).join("");
+  const sampleTickets = [...row.tickets].sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||""))).slice(0, 15);
+  const ttRows = sampleTickets.map(r=>{
+    const site = getEecPowerOutageSiteLabel(r);
+    return `<tr>
+      <td class="site-plkd-cell">${esc(site)}</td>
+      <td>${esc(getEecTicketLabel(r))}</td>
+      <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
+      <td class="subject-cell">${esc(normalizeEecRootCauseKey(r.root_cause||""))}</td>
+      <td class="subject-cell">${esc(getEecClosedDescription(r))}</td>
+    </tr>`;
+  }).join("");
+  return `<div style="padding:12px;">
+    <div class="eec-analysis-action" style="margin-bottom:12px;"><strong>INOC Action:</strong> ${esc(row.action)}</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div><div class="fault-section-title" style="font-size:12px;margin-bottom:6px;">Top Site ซ้ำ</div>
+        <table class="svcava-table fault-data-table"><thead><tr><th>Site</th><th>TT</th></tr></thead><tbody>${siteRows || `<tr><td colspan="2" class="muted">-</td></tr>`}</tbody></table>
+      </div>
+      <div><div class="fault-section-title" style="font-size:12px;margin-bottom:6px;">Closed Description ที่พบบ่อย</div>
+        <table class="svcava-table fault-data-table"><thead><tr><th>Description</th><th>TT</th></tr></thead><tbody>${descRows || `<tr><td colspan="2" class="muted">-</td></tr>`}</tbody></table>
+      </div>
+    </div>
+    <div class="fault-section-title" style="font-size:12px;margin-bottom:6px;">ตัวอย่าง TT ล่าสุด</div>
+    <table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
+      <th>Site</th><th>Ticket / WO</th><th>Closed</th><th>Root Cause</th><th>Closed Description</th>
+    </tr></thead><tbody>${ttRows}</tbody></table>
+  </div>`;
+}
+function toggleEecAnalysisIssueExpand(issueId){
+  eecAnalysisExpandIssue = (eecAnalysisExpandIssue === issueId) ? null : issueId;
+  renderEecAnalysisPanel();
+}
+function onEecAnalysisTableClick(e){
+  const row = e.target.closest(".eec-analysis-issue-row[data-issue]");
+  if(!row) return;
+  toggleEecAnalysisIssueExpand(row.getAttribute("data-issue"));
+}
+function renderEecAnalysisPanel(){
+  const stats = buildEecInocAnalysisStats();
+  const { period, issues, siteRepeats, summary, totalTickets } = stats;
+  const periodEl = document.getElementById("eecAnalysisPeriod");
+  if(periodEl){
+    periodEl.textContent = period.end
+      ? `ช่วงข้อมูล ${period.start} – ${period.end} · SA ${totalTickets} ใบ (ไม่รวม NSA Closed) · ยังเกิด (14 วันล่าสุด): ${period.active14} – ${period.end}`
+      : "ไม่มีข้อมูล TT SA สำหรับวิเคราะห์";
+  }
+  const cardsEl = document.getElementById("eecAnalysisCards");
+  if(cardsEl){
+    cardsEl.innerHTML = `
+      <div class="eec-analysis-card"><span class="eec-analysis-card-lbl">หมวดปัญหา</span><span class="eec-analysis-card-val">${summary.totalIssues}</span></div>
+      <div class="eec-analysis-card active"><span class="eec-analysis-card-lbl">ยังเกิดอยู่</span><span class="eec-analysis-card-val">${summary.activeIssues}</span></div>
+      <div class="eec-analysis-card repeat"><span class="eec-analysis-card-lbl">Site ซ้ำ</span><span class="eec-analysis-card-val">${summary.repeatSites}</span></div>
+      <div class="eec-analysis-card easy"><span class="eec-analysis-card-lbl">แก้ง่าย + Active</span><span class="eec-analysis-card-val">${summary.easyFixActive}</span></div>`;
+  }
+  renderEecAnalysisFilterButtons(summary);
+  let filtered = issues;
+  if(eecAnalysisFilter === "active") filtered = issues.filter(i=> i.isActive);
+  else if(eecAnalysisFilter === "repeat") filtered = issues.filter(i=> i.isRepeat);
+  else if(eecAnalysisFilter === "easy") filtered = issues.filter(i=> i.fixEase <= 2 && i.isActive);
+  const tableWrap = document.getElementById("eecAnalysisTableWrap");
+  if(tableWrap){
+    if(!filtered.length){
+      tableWrap.innerHTML = `<div class="empty-hint" style="padding:16px;">ไม่มีหมวดตรงเงื่อนไข</div>`;
+    } else {
+      tableWrap.innerHTML = `<table class="srm-ft-ofcnode-detail-table" onclick="onEecAnalysisTableClick(event)"><thead><tr>
+        <th>#</th><th>หมวด / INOC</th><th>แก้ไข</th><th>TT</th><th>Site</th><th>Site ซ้ำ</th><th>14 วันล่าสุด</th><th>30 วัน</th><th>ล่าสุด</th>
+      </tr></thead><tbody>${filtered.map((row, idx)=>{
+        const isOpen = eecAnalysisExpandIssue === row.id;
+        const expand = isOpen ? `<tr class="eec-analysis-expand"><td colspan="9">${renderEecAnalysisIssueExpand(row)}</td></tr>` : "";
+        return `<tr class="eec-analysis-issue-row" data-issue="${esc(row.id)}">
+          <td>${idx + 1}</td>
+          <td><strong>${esc(row.label)}</strong><br>${eecInocTags(row)}</td>
+          <td>${eecInocEaseBadge(row.fixEase, row.easeLabel)}<div class="eec-analysis-action">${esc(row.action)}</div></td>
+          <td class="srm-ofcnode-rc-count">${row.count}</td>
+          <td>${row.siteCount}</td>
+          <td>${row.repeatSites}</td>
+          <td class="srm-ofcnode-rc-count">${row.active14}</td>
+          <td>${row.recent30}</td>
+          <td class="dt-cell">${row.lastClosed || "-"}</td>
+        </tr>${expand}`;
+      }).join("")}</tbody></table>`;
+    }
+  }
+  const siteWrap = document.getElementById("eecAnalysisSiteWrap");
+  if(siteWrap){
+    if(!siteRepeats.length){
+      siteWrap.innerHTML = `<div class="empty-hint" style="padding:16px;">ไม่พบ Site ที่เกิดซ้ำ</div>`;
+    } else {
+      siteWrap.innerHTML = `<table class="svcava-table fault-data-table"><thead><tr>
+        <th>Site</th><th>Province</th><th>TT</th><th>14 วันล่าสุด</th><th>หมวดหลัก</th><th>ล่าสุด</th>
+      </tr></thead><tbody>${siteRepeats.map(s=>{
+        const issuesHtml = s.topIssues.map(i=> `${esc(i.label)} (${i.count})`).join(", ");
+        return `<tr>
+          <td class="site-plkd-cell">${esc(s.site)}</td>
+          <td>${esc(s.provinces.join(", ") || "-")}</td>
+          <td class="srm-ofcnode-rc-count">${s.count}</td>
+          <td>${s.active14}</td>
+          <td class="subject-cell">${issuesHtml}</td>
+          <td class="dt-cell">${s.lastClosed || "-"}</td>
+        </tr>`;
+      }).join("")}</tbody></table>`;
+    }
+  }
+}
 function switchEecSubTab(tab){
-  if(!["charts","over-sla","ltr"].includes(tab)) return;
+  if(!["charts","over-sla","ltr","analysis"].includes(tab)) return;
   eecSubTab = tab;
   document.getElementById("eecSubChartsBtn")?.classList.toggle("active", tab === "charts");
   document.getElementById("eecSubOverSlaBtn")?.classList.toggle("active", tab === "over-sla");
   document.getElementById("eecSubLtrBtn")?.classList.toggle("active", tab === "ltr");
+  document.getElementById("eecSubAnalysisBtn")?.classList.toggle("active", tab === "analysis");
   const chartsEl = document.getElementById("eecSubCharts");
   const overSlaEl = document.getElementById("eecSubOverSla");
   const ltrEl = document.getElementById("eecSubLtr");
+  const analysisEl = document.getElementById("eecSubAnalysis");
   if(chartsEl) chartsEl.style.display = tab === "charts" ? "block" : "none";
   if(overSlaEl) overSlaEl.style.display = tab === "over-sla" ? "block" : "none";
   if(ltrEl) ltrEl.style.display = tab === "ltr" ? "block" : "none";
+  if(analysisEl) analysisEl.style.display = tab === "analysis" ? "block" : "none";
   moveEecSubTabIndicator();
   renderEecTab();
 }
@@ -9492,10 +10392,12 @@ function renderEecTab(){
   if(currentTab !== "eec") return;
   if(eecSubTab === "ltr") renderEecLtrPanel();
   else if(eecSubTab === "over-sla") renderEecOverSlaPanel();
+  else if(eecSubTab === "analysis") renderEecAnalysisPanel();
   else{
     renderEecSeverityPanel();
     renderEecProvincePanel();
     refreshEecOfcNodeTrendPanel();
+    renderEecPowerOutagePanel();
   }
   const statusEl = document.getElementById("statusMsgEec");
   if(statusEl && !statusEl.textContent){
@@ -9508,25 +10410,30 @@ function renderEecTab(){
 async function loadEecSiteTickets(showToast){
   try{
     await fetchEecSites();
-    const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,remedy,created_time,closed_time,wo_creator";
+    const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,remedy,created_time,closed_time,departed_time,arrived_time,wo_creator";
     eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + select + "&order=closed_time.asc");
-    const faultRows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,wo_creator,require_finish_time,created_time");
-    EEC_WO_CREATOR_MAP = {};
-    EEC_FAULT_FIELD_MAP = {};
-    faultRows.forEach(r=>{
-      const id = String(r.work_order_id || "").trim();
-      if(!id) return;
-      EEC_WO_CREATOR_MAP[id] = r.wo_creator || "";
-      EEC_FAULT_FIELD_MAP[id] = {
-        require_finish_time: r.require_finish_time || null,
-        created_time: r.created_time || null
-      };
-    });
+    invalidateEecCache();
+    if(!syncEecFaultFieldMapFromFaultTickets()){
+      const faultRows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,wo_creator,require_finish_time,created_time,close_description");
+      EEC_WO_CREATOR_MAP = {};
+      EEC_FAULT_FIELD_MAP = {};
+      faultRows.forEach(r=>{
+        const id = String(r.work_order_id || "").trim();
+        if(!id) return;
+        EEC_WO_CREATOR_MAP[id] = r.wo_creator || "";
+        EEC_FAULT_FIELD_MAP[id] = {
+          require_finish_time: r.require_finish_time || null,
+          created_time: r.created_time || null,
+          close_description: r.close_description || null
+        };
+      });
+    }
     if(showToast) toast(`EEC: ${eecSiteTickets.length} tickets · ${EEC_SITE_SET.size} sites`);
     if(currentTab === "eec") renderEecTab();
   }catch(e){
     console.warn("loadEecSiteTickets failed:", e);
     eecSiteTickets = [];
+    invalidateEecCache();
     if(currentTab === "eec") renderEecTab();
   }
 }
@@ -9669,6 +10576,8 @@ function mapEecWoImportRow(r){
     root_cause: raw.root_cause || null,
     remedy: raw.close_description || raw.complete_solution || null,
     created_time: raw.created_time || null,
+    departed_time: raw.departed_time || null,
+    arrived_time: raw.arrived_time || null,
     require_finish_time: raw.require_finish_time || null,
     closed_time: raw.closed_time,
     wo_creator: raw.wo_creator || "System",
@@ -9774,6 +10683,7 @@ function handleEecUpload(evt){
       if(statusEl) statusEl.textContent = `Processing ${siteRows.length} sites…`;
       const synced = await bulkInsertEecSites(siteRows, statusEl);
       eecSiteTickets = [];
+      invalidateEecCache();
       renderEecTab();
       if(statusEl) statusEl.textContent = `อัปโหลด Site ${synced} รายการ · Ticket ให้ใช้ Upload Work Order`;
       toast(`EEC Site: ${synced} sites`);
