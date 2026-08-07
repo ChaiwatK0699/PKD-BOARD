@@ -10172,10 +10172,10 @@ function renderEecProvinceChart(stats){
             `<span><i style="background:${EEC_PROVINCE_SA_COLORS[p]}"></i>${p} · SA · ${saN} TT</span>`,
             `<span><i style="background:${EEC_PROVINCE_NSA_COLORS[p]}"></i>${p} · NSA · ${nsaN} TT</span>`
           ];
-        }).join("") + `<span><i style="background:#7c4fd6"></i>Total · <strong>${totalAll}</strong></span>`
+        }).join("") + `<span><i style="background:#7c4fd6"></i>Total WO · <strong>${totalAll}</strong></span>`
       : activeProvinces.map(p=>
           `<span><i style="background:${EEC_PROVINCE_COLORS[p]}"></i>${p} · ${stats.provTotals[p]||0} TT</span>`
-        ).join("") + `<span><i style="background:#7c4fd6"></i>Total · <strong>${totalAll}</strong></span>`;
+        ).join("") + `<span><i style="background:#7c4fd6"></i>Total WO · <strong>${totalAll}</strong></span>`;
   }
   if(!stats.labels.length){
     if(chartWrap){
@@ -10218,6 +10218,11 @@ function renderEecProvinceChart(stats){
         label:prov, data:stats.provCounts[prov],
         backgroundColor:EEC_PROVINCE_COLORS[prov], yAxisID:"yCount"
       }));
+  datasets.push({
+    label:"Total WO", data:stats.totals, type:"line", borderColor:"#7c4fd6",
+    backgroundColor:"transparent", tension:.3, pointRadius:5, pointBackgroundColor:"#7c4fd6",
+    pointBorderColor:"#ffffff", pointBorderWidth:2, borderWidth:2.5, yAxisID:"yCount", order:1, clip:false
+  });
   eecProvChartInst = new Chart(canvas, {
     type:"bar",
     data:{ labels:stats.labels, datasets },
