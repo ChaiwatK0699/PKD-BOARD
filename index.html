@@ -8606,6 +8606,7 @@ function mapFaultExportImportRow(r){
     close_description: get("Close Description"),
     root_cause: getImportField(r, "Root Cause"),
     sub_root_cause: getImportField(r, "Sub Root Cause", "Sub root cause"),
+    team: getImportField(r, "Team"),
     skill: normalizeFaultSkill(skillRaw) || skillRaw,
     inoc_log: get("INOC log"),
     control_status: mapFaultControlImport(get("In or Out Control")),
@@ -9287,7 +9288,7 @@ async function syncEecSubRootCauseFromFaultToDb(){
   }
   if(synced){
     invalidateEecCache();
-    eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,sub_root_cause,remedy,created_time,closed_time,departed_time,arrived_time,wo_creator&order=closed_time.asc");
+    eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,wo_creator&order=closed_time.asc");
   }
   return synced;
 }
@@ -10256,17 +10257,70 @@ function refreshEecOfcNodeTrendPanel(){
   renderEecStackedSevChart("eecOfcNodeChart", "eecOfcNodeLegend", stats, "ofc");
   renderEecOfcNodeDetailTable(buildEecOfcNodeSubRootCauseDetail());
 }
+function stripEecSubRcCodePrefix(text){
+  // strips short internal code prefixes like "N O F_", "N Pw_", "N R N_" before the real description
+  return String(text || "").replace(/^[A-Za-z]{1,4}(?:\s+[A-Za-z]{1,4}){0,3}_/, "").replace(/\s+/g, " ").trim();
+}
+function extractEecSubRcBilingualParts(text){
+  const s = String(text || "").trim();
+  if(!s) return null;
+  const firstParen = s.indexOf("(");
+  if(firstParen < 0) return null;
+  const parens = [...s.matchAll(/\(([^)]+)\)/g)].map(m=> m[1].trim()).filter(Boolean);
+  const enCandidate = parens.find(p=> /[A-Za-z]/.test(p)) || parens[0];
+  if(!enCandidate) return null;
+  const thPart = s.slice(0, firstParen).trim();
+  return { thPart, enPart: stripEecSubRcCodePrefix(enCandidate) };
+}
+function buildEecSubRcThToEnMap(rawList){
+  const thToEn = {};
+  rawList.forEach(raw=>{
+    const parts = extractEecSubRcBilingualParts(raw);
+    if(!parts) return;
+    if(parts.thPart && parts.enPart) thToEn[parts.thPart.toLowerCase()] = parts.enPart.toLowerCase();
+  });
+  return thToEn;
+}
+function getEecSubRcCanonicalKey(raw, thToEn){
+  const text = String(raw || "").trim();
+  if(!text) return "none:(ไม่ระบุ sub root cause)";
+  const parts = extractEecSubRcBilingualParts(text);
+  if(parts && parts.enPart) return "en:" + parts.enPart.toLowerCase();
+  const hasThai = /[\u0E00-\u0E7F]/.test(text);
+  if(!hasThai){
+    return "en:" + stripEecSubRcCodePrefix(text).toLowerCase();
+  }
+  const thKey = text.toLowerCase();
+  if(thToEn[thKey]) return "en:" + thToEn[thKey];
+  return "th:" + thKey;
+}
+function pickEecSubRcDisplayLabel(variants){
+  const sorted = [...variants].sort((a,b)=> b.count - a.count);
+  const bilingual = sorted.find(v=> /[\u0E00-\u0E7F]/.test(v.subRootCause) && v.subRootCause.includes("("));
+  if(bilingual) return bilingual.subRootCause;
+  return sorted[0].subRootCause;
+}
 function buildEecOfcNodeSubRootCauseDetail(){
   const tickets = getEecOfcNodeTrendTickets().filter(r=> classifySrmRootCauseGroup(r) === eecOfcNodeTrendGroup);
-  const byRaw = {};
+  const rawList = tickets.map(r=> getEecSubRootCauseForTicket(r) || "(ไม่ระบุ Sub Root Cause)");
+  const thToEn = buildEecSubRcThToEnMap(rawList);
+  const byKey = {};
   tickets.forEach(r=>{
     const raw = getEecSubRootCauseForTicket(r) || "(ไม่ระบุ Sub Root Cause)";
     const group = classifySrmRootCauseGroup(r);
-    if(!byRaw[raw]) byRaw[raw] = { subRootCause: raw, group, count: 0, tickets: [] };
-    byRaw[raw].count++;
-    byRaw[raw].tickets.push(r);
+    const key = getEecSubRcCanonicalKey(raw, thToEn);
+    if(!byKey[key]) byKey[key] = { key, group, count: 0, tickets: [], variants: {} };
+    byKey[key].count++;
+    byKey[key].tickets.push(r);
+    if(!byKey[key].variants[raw]) byKey[key].variants[raw] = { subRootCause: raw, count: 0 };
+    byKey[key].variants[raw].count++;
   });
-  return Object.values(byRaw).sort((a,b)=> b.count - a.count || a.subRootCause.localeCompare(b.subRootCause, "th"));
+  return Object.values(byKey).map(g=>({
+    subRootCause: pickEecSubRcDisplayLabel(Object.values(g.variants)),
+    group: g.group,
+    count: g.count,
+    tickets: g.tickets
+  })).sort((a,b)=> b.count - a.count || a.subRootCause.localeCompare(b.subRootCause, "th"));
 }
 function normalizeEecRootCauseKey(rc){
   const text = String(rc || "").trim();
@@ -10327,6 +10381,34 @@ function buildEecSubRcSiteGroups(tickets){
   });
   return Object.values(bySite).sort((a,b)=> b.count - a.count || a.siteLabel.localeCompare(b.siteLabel));
 }
+function buildEecTeamLines(raw){
+  const s = String(raw || "").trim();
+  if(!s) return [];
+  // brackets can be "( )" or "[ ]" depending on source data
+  // e.g. "NP-EA-CCS-OFC 001 ( Anuchit_OF_CCS_WW Tel.0971201740_E21_EX )"
+  // e.g. "SY-EA-CBR-NOD 111 [ Patchara_NH_CBR_WW Tel.0829282863_E26 ]"
+  let m = s.match(/^(\S+)\s+(\S+)\s*[\(\[]\s*(.+?)\s+(Tel\.\S+)\s*[\)\]]\s*$/i);
+  if(m) return [`${m[1]} ${m[2]}`, m[3].trim(), m[4].trim()];
+  // same but no phone segment
+  m = s.match(/^(\S+)\s+(\S+)\s*[\(\[]\s*(.+?)\s*[\)\]]\s*$/);
+  if(m) return [`${m[1]} ${m[2]}`, m[3].trim()];
+  // single leading token (no separate number) with brackets
+  m = s.match(/^(\S+)\s*[\(\[]\s*(.+?)\s+(Tel\.\S+)\s*[\)\]]\s*$/i);
+  if(m) return [m[1].trim(), m[2].trim(), m[3].trim()];
+  m = s.match(/^(\S+)\s*[\(\[]\s*(.+?)\s*[\)\]]\s*$/);
+  if(m) return [m[1].trim(), m[2].trim()];
+  m = s.match(/^(\S+)\s*[-–]\s*(.+)$/);
+  if(m) return [m[1].trim(), m[2].trim()];
+  m = s.match(/^(\S+)\s+(.+)$/);
+  if(m) return [m[1].trim(), m[2].trim()];
+  return [s];
+}
+function renderEecTeamCell(r){
+  const lines = buildEecTeamLines(r.team);
+  if(!lines.length) return `<span class="muted">-</span>`;
+  const [first, ...rest] = lines;
+  return `${esc(first)}${rest.map(l=> `<br><span class="muted">${esc(l)}</span>`).join("")}`;
+}
 function renderEecSubRcSiteTicketHtml(tickets){
   const sorted = [...tickets].sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")) || String(a.incident_id||"").localeCompare(String(b.incident_id||"")));
   const bodyHtml = sorted.map(r=>{
@@ -10338,6 +10420,7 @@ function renderEecSubRcSiteTicketHtml(tickets){
     const closedDesc = getEecClosedDescription(r);
     return `<tr>
       <td><strong>${ticketCell}</strong></td>
+      <td>${renderEecTeamCell(r)}</td>
       <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
       <td class="dt-cell"><div class="eec-rc-dt-stack"><div>${fmtFaultDT(r.created_time)}</div><div class="eec-rc-dt-closed">${fmtFaultDT(r.closed_time)}</div></div></td>
       <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
@@ -10346,7 +10429,7 @@ function renderEecSubRcSiteTicketHtml(tickets){
     </tr>`;
   }).join("");
   return `<div class="table-scroll" style="margin-top:4px"><table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
-    <th>Ticket / WO</th><th>Severity</th><th>Created<br><span class="th-sub">Closed</span></th><th>Downtime</th><th>Subject Alarm</th><th>Closed Description</th>
+    <th>Ticket / WO</th><th>Team</th><th>Severity</th><th>Created<br><span class="th-sub">Closed</span></th><th>Downtime</th><th>Subject Alarm</th><th>Closed Description</th>
   </tr></thead><tbody>${bodyHtml}</tbody></table></div>`;
 }
 function renderEecSubRcSiteScopeHtml(tickets, subRootCause){
@@ -13114,7 +13197,7 @@ function renderEecTab(){
 async function loadEecSiteTickets(showToast){
   try{
     await fetchEecSites();
-    const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,sub_root_cause,remedy,created_time,closed_time,departed_time,arrived_time,wo_creator";
+    const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,wo_creator";
     eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + select + "&order=closed_time.asc");
     invalidateEecCache();
     if(!syncEecFaultFieldMapFromFaultTickets()){
@@ -13215,7 +13298,7 @@ async function bulkInsertEecSites(rows, statusEl){
 }
 const EEC_UPSERT_FIELD_LIST = [
   "incident_id","source_ticket_id","severity","subject","site_id","province","status",
-  "classification","problem","cause","root_cause","sub_root_cause","remedy",
+  "classification","problem","cause","root_cause","sub_root_cause","remedy","team",
   "created_time","closed_time","departed_time","arrived_time","wo_creator","updated_at"
 ];
 function sanitizeEecUpsertPayload(row){
@@ -13301,6 +13384,7 @@ function mapEecWoImportRow(r){
   if(!incidentId) return null;
   const subRootCause = String(raw.sub_root_cause || "").trim();
   const rootCause = String(raw.root_cause || "").trim();
+  const team = String(raw.team || "").trim();
   const payload = {
     incident_id: incidentId,
     source_ticket_id: raw.source_ticket_id || null,
@@ -13322,6 +13406,7 @@ function mapEecWoImportRow(r){
   };
   if(rootCause) payload.root_cause = rootCause;
   if(subRootCause) payload.sub_root_cause = subRootCause;
+  if(team) payload.team = team;
   return payload;
 }
 async function bulkInsertEecTickets(rows, opts){
