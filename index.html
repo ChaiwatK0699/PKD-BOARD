@@ -7588,7 +7588,7 @@ function drawFaultOverviewLineLabels(chart, ctx, dataset, meta){
   const n = meta.data.length;
   const isSa = dataset.label === "Service Availability";
   const isSaAvg = dataset.label === "Service Availability Avg.";
-  const isTotal = dataset.label === "Total Ticket";
+  const isTotal = dataset.label === "Total Ticket" || dataset.label === "Total WO";
 
   meta.data.forEach((pt, i)=>{
     const val = dataset.data[i];
@@ -7596,11 +7596,13 @@ function drawFaultOverviewLineLabels(chart, ctx, dataset, meta){
     if(val === 0 && !isSa && !isSaAvg) return;
 
     if(isTotal){
-      const withinBar = chart.getDatasetMeta(0).data[i];
-      const overBar = chart.getDatasetMeta(1).data[i];
       let yTop = pt.y;
-      if(withinBar && !withinBar.skip) yTop = Math.min(yTop, withinBar.y);
-      if(overBar && !overBar.skip && Number(chart.data.datasets[1].data[i]) > 0) yTop = Math.min(yTop, overBar.y);
+      if(dataset.label === "Total Ticket"){
+        const withinBar = chart.getDatasetMeta(0).data[i];
+        const overBar = chart.getDatasetMeta(1).data[i];
+        if(withinBar && !withinBar.skip) yTop = Math.min(yTop, withinBar.y);
+        if(overBar && !overBar.skip && Number(chart.data.datasets[1].data[i]) > 0) yTop = Math.min(yTop, overBar.y);
+      }
       const text = String(Math.round(val));
       const y = yTop - 12;
       const box = drawFaultLinePointLabelAt(ctx, pt.x, y, text, dataset.borderColor || "#7c4fd6", FAULT_LABEL_FONT_LINE);
@@ -7761,7 +7763,7 @@ const faultBarLabelPlugin = {
     if(useOverviewLabels){
       const lineOrder = isOverview
         ? ["Total Ticket", "Service Availability", "Service Availability Avg."]
-        : ["Total Ticket"];
+        : ["Total Ticket", "Total WO"];
       lineOrder.forEach(label=>{
         const di = chart.data.datasets.findIndex(d=> d.label === label);
         if(di < 0) return;
