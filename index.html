@@ -9747,10 +9747,8 @@ function renderEecSeverityTrendChart(stats){
   const totalAll = stats.totals.reduce((a,n)=> a + n, 0);
   if(legendEl){
     legendEl.innerHTML = `
-      <span><i style="background:${EEC_SEV_SA_COLOR}"></i>SA · ${stats.saTotal} TT</span>
-      <span><i style="background:${EEC_SEV_NSA_COLOR}"></i>NSA · ${stats.nsaTotal} TT</span>
-      <span><i style="background:${EEC_SEV_SA_OVER_COLOR}"></i>SA Over · ${stats.saOverTotal} TT</span>
-      <span><i style="background:${EEC_SEV_NSA_OVER_COLOR}"></i>NSA Over · ${stats.nsaOverTotal} TT</span>
+      <span><i style="background:${EEC_SEV_SA_COLOR}"></i>SA · ${stats.saTotal + stats.saOverTotal} TT</span>
+      <span><i style="background:${EEC_SEV_NSA_COLOR}"></i>NSA · ${stats.nsaTotal + stats.nsaOverTotal} TT</span>
       <span><i style="background:#7c4fd6"></i>Total Ticket · <strong>${totalAll}</strong></span>`;
   }
   if(!stats.labels.length){
@@ -9779,10 +9777,8 @@ function renderEecSeverityTrendChart(stats){
     data:{
       labels:stats.labels,
       datasets:[
-        { label:"SA", data:stats.saCounts, backgroundColor:EEC_SEV_SA_COLOR, stack:"tickets", yAxisID:"yCount", order:2 },
-        { label:"NSA", data:stats.nsaCounts, backgroundColor:EEC_SEV_NSA_COLOR, stack:"tickets", yAxisID:"yCount", order:2 },
-        { label:"SA Over", data:stats.saOverCounts, backgroundColor:EEC_SEV_SA_OVER_COLOR, stack:"tickets", yAxisID:"yCount", order:2 },
-        { label:"NSA Over", data:stats.nsaOverCounts, backgroundColor:EEC_SEV_NSA_OVER_COLOR, stack:"tickets", yAxisID:"yCount", order:2 },
+        { label:"SA", data:stats.saCounts.map((n,i)=> n + stats.saOverCounts[i]), backgroundColor:EEC_SEV_SA_COLOR, stack:"tickets", yAxisID:"yCount", order:2 },
+        { label:"NSA", data:stats.nsaCounts.map((n,i)=> n + stats.nsaOverCounts[i]), backgroundColor:EEC_SEV_NSA_COLOR, stack:"tickets", yAxisID:"yCount", order:2 },
         {
           label:"Total Ticket", data:stats.totals, type:"line", borderColor:"#7c4fd6",
           backgroundColor:"transparent", tension:.3, pointRadius:5, pointBackgroundColor:"#7c4fd6",
@@ -10149,13 +10145,10 @@ function renderEecOverSlaRcAnalysisTable(rows){
 function renderEecSeverityCards(stats){
   const wrap = document.getElementById("eecSevCards");
   if(!wrap) return;
-  wrap.classList.remove("cols-3");
-  wrap.classList.add("cols-4");
+  wrap.classList.remove("cols-3","cols-4");
   wrap.innerHTML = `
-    <div class="srm-ft-sev-card sa"><span class="srm-ft-sev-card-lbl">SA</span><span class="srm-ft-sev-card-val">${stats.saTotal}</span></div>
-    <div class="srm-ft-sev-card nsa"><span class="srm-ft-sev-card-lbl">NSA</span><span class="srm-ft-sev-card-val">${stats.nsaTotal}</span></div>
-    <div class="srm-ft-sev-card sa-over"><span class="srm-ft-sev-card-lbl">SA Over</span><span class="srm-ft-sev-card-val">${stats.saOverTotal}</span></div>
-    <div class="srm-ft-sev-card nsa-over"><span class="srm-ft-sev-card-lbl">NSA Over</span><span class="srm-ft-sev-card-val">${stats.nsaOverTotal}</span></div>`;
+    <div class="srm-ft-sev-card sa"><span class="srm-ft-sev-card-lbl">SA</span><span class="srm-ft-sev-card-val">${stats.saTotal + stats.saOverTotal}</span></div>
+    <div class="srm-ft-sev-card nsa"><span class="srm-ft-sev-card-lbl">NSA</span><span class="srm-ft-sev-card-val">${stats.nsaTotal + stats.nsaOverTotal}</span></div>`;
 }
 function renderEecSeverityPanel(){
   const stats = buildEecSeverityStats();
