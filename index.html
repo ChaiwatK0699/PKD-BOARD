@@ -1500,7 +1500,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <input type="file" id="fileInputEecWo" accept=".csv,.xlsx,.xls" onchange="handleEecWoUpload(event)" style="display:none;">
       <button class="btn ghost" onclick="document.getElementById('fileInputEec').click()">⭱ Upload EEC Site List</button>
       <input type="file" id="fileInputEec" accept=".csv,.xlsx,.xls" onchange="handleEecUpload(event)" style="display:none;">
-      <button class="btn ghost sm" onclick="loadEecSiteTickets(true)">↻ Refresh</button>
+      <button class="btn ghost sm" onclick="loadEecSiteTickets(true, true)">↻ Refresh</button>
       <span class="status-msg" id="statusMsgEec"></span>
     </div>
     <div class="tabs" id="tabsEecSub" style="margin-bottom:16px;">
@@ -1958,6 +1958,9 @@ let srmDashOpenSlot = null;
 let srmDashSelectedPath = { A:null, B:null, C:null, D:null, E:null };
 let srmDashTableExpand = null;
 let eecSiteTickets = [];
+let eecSiteTicketsLoaded = false;
+let eecSiteTicketsLoadingPromise = null;
+let eecSitesLoadingPromise = null;
 let eecBaseTicketsCache = null;
 let eecClassifiedCache = null;
 let faultFilteredCacheKey = null;
@@ -8468,36 +8471,56 @@ function renderFault(){
   }
   moveFaultSubTabIndicator();
 }
+let loadFaultTicketsPromise = null;
 async function loadFaultTickets(showToast){
-  try{
-    faultTickets = await fetchAllFromRest(FAULT_REST + "?select=*&order=created_time.asc");
-    rebuildFaultPlkdFieldIndex();
-    invalidateFaultTicketCache();
+  if(loadFaultTicketsPromise) return loadFaultTicketsPromise;
+  const run = (async()=>{
     try{
-      await migrateLegacyFaultSkills();
-      await migrateGroupProblemLabels();
-    }catch(e){ console.warn("fault ticket migrate:", e); }
-    if(eecSiteTickets?.length){
-      syncEecFaultFieldMapFromFaultTickets();
-      invalidateEecCache();
+      faultTickets = await fetchAllFromRest(FAULT_REST + "?select=*&order=created_time.asc");
+      rebuildFaultPlkdFieldIndex();
+      invalidateFaultTicketCache();
+      try{
+        await migrateLegacyFaultSkills();
+        await migrateGroupProblemLabels();
+      }catch(e){ console.warn("fault ticket migrate:", e); }
+      if(eecSiteTickets?.length){
+        syncEecFaultFieldMapFromFaultTickets();
+        invalidateEecCache();
+      }
+      if(currentTab==="fault") renderFault();
+      if(showToast) toast(`Fault data loaded (${faultTickets.length} rows)`);
+    }catch(e){
+      console.warn("loadFaultTickets failed:", e);
+      faultTickets = faultTickets || [];
+      if(showToast) toast("Fault load failed");
     }
-    if(currentTab==="fault") renderFault();
-    if(showToast) toast(`Fault data loaded (${faultTickets.length} rows)`);
-  }catch(e){
-    console.warn("loadFaultTickets failed:", e);
-    faultTickets = faultTickets || [];
-    if(showToast) toast("Fault load failed");
+  })();
+  loadFaultTicketsPromise = run;
+  try{
+    await run;
+  }finally{
+    loadFaultTicketsPromise = null;
   }
 }
+let loadSrmTicketsPromise = null;
 async function loadSrmTickets(showToast){
+  if(loadSrmTicketsPromise) return loadSrmTicketsPromise;
+  const run = (async()=>{
+    try{
+      srmTickets = await fetchAllFromRest(SRM_REST + "?select=*&order=created_time.asc");
+      if(currentTab==="srm") renderSiteRepeatMapping();
+      if(showToast) toast(`SRM loaded (${srmTickets.length} rows)`);
+    }catch(e){
+      console.warn("loadSrmTickets failed:", e);
+      srmTickets = srmTickets || [];
+      if(showToast) toast("SRM load failed");
+    }
+  })();
+  loadSrmTicketsPromise = run;
   try{
-    srmTickets = await fetchAllFromRest(SRM_REST + "?select=*&order=created_time.asc");
-    if(currentTab==="srm") renderSiteRepeatMapping();
-    if(showToast) toast(`SRM loaded (${srmTickets.length} rows)`);
-  }catch(e){
-    console.warn("loadSrmTickets failed:", e);
-    srmTickets = srmTickets || [];
-    if(showToast) toast("SRM load failed");
+    await run;
+  }finally{
+    loadSrmTicketsPromise = null;
   }
 }
 async function updateFaultField(workOrderId, field, value){
@@ -8655,7 +8678,6 @@ function mapFaultImportRow(r){
     root_cause: getImportField(r, "Root Cause"),
     sub_root_cause: getImportField(r, "Sub Root Cause", "Sub root cause"),
     close_description: get("Close Description"),
-    update_status: get("Close Description"),
     complete_solution: get("Complete Solution"),
     subject: get("Subject")
   };
@@ -8671,7 +8693,7 @@ const SRM_IMPORT_FIELDS = [
   "incident_urgency","severity","created_time","require_finish_time","source_sla",
   "dispatched_time","accepted_time","departed_time","arrived_time","completed_time","closed_time",
   "time_to_arrive","time_to_complete","time_to_leave","work_type","fault_size","point",
-  "root_cause","sub_root_cause","close_description","complete_solution","subject","update_status","wo_creator",
+  "root_cause","sub_root_cause","close_description","complete_solution","subject","wo_creator",
   "pea_working"
 ];
 const SRM_EDITABLE_FIELDS = new Set(["pea_working", "dash_hidden"]);
@@ -9012,23 +9034,32 @@ async function exportSrmDetailExcel(){
 /* ── EEC Site tab (ตารางแยก eec_sites + eec_site_tickets) ── */
 async function fetchEecSites(force){
   if(EEC_SITE_SET.size && !force) return EEC_SITE_MAP;
+  if(eecSitesLoadingPromise && !force) return eecSitesLoadingPromise;
+  const run = (async()=>{
+    try{
+      const rows = await fetchAllFromRest(EEC_SITES_REST + "?select=site_code,province_en&order=site_code.asc");
+      EEC_SITE_MAP = {};
+      EEC_SITE_SET = new Set();
+      rows.forEach(r=>{
+        const code = String(r.site_code || "").toUpperCase().trim();
+        if(!code) return;
+        EEC_SITE_MAP[code] = String(r.province_en || "").trim().toUpperCase();
+        EEC_SITE_SET.add(code);
+      });
+    }catch(e){
+      console.warn("fetchEecSites failed:", e);
+      if(!force && EEC_SITE_SET.size) return EEC_SITE_MAP;
+      EEC_SITE_MAP = {};
+      EEC_SITE_SET = new Set();
+    }
+    return EEC_SITE_MAP;
+  })();
+  eecSitesLoadingPromise = run;
   try{
-    const rows = await fetchAllFromRest(EEC_SITES_REST + "?select=site_code,province_en&order=site_code.asc");
-    EEC_SITE_MAP = {};
-    EEC_SITE_SET = new Set();
-    rows.forEach(r=>{
-      const code = String(r.site_code || "").toUpperCase().trim();
-      if(!code) return;
-      EEC_SITE_MAP[code] = String(r.province_en || "").trim().toUpperCase();
-      EEC_SITE_SET.add(code);
-    });
-  }catch(e){
-    console.warn("fetchEecSites failed:", e);
-    if(!force && EEC_SITE_SET.size) return EEC_SITE_MAP;
-    EEC_SITE_MAP = {};
-    EEC_SITE_SET = new Set();
+    return await run;
+  }finally{
+    eecSitesLoadingPromise = null;
   }
-  return EEC_SITE_MAP;
 }
 function collectEecSitesFromText(text){
   if(!text || !EEC_SITE_SET.size) return [];
@@ -9277,7 +9308,7 @@ async function syncEecSubRootCauseFromFaultToDb(){
     const chunk = dedupeRowsByKey(cleanPatches.slice(i, i + CHUNK), "incident_id");
     const res = await fetch(EEC_REST + "?on_conflict=incident_id", {
       method:"POST",
-      headers:{...HEADERS, "Prefer":"resolution=merge-duplicates,return=representation"},
+      headers:{...HEADERS, "Prefer":"resolution=merge-duplicates,return=minimal"},
       body: JSON.stringify(chunk)
     });
     if(!res.ok){
@@ -9287,8 +9318,13 @@ async function syncEecSubRootCauseFromFaultToDb(){
     synced += chunk.length;
   }
   if(synced){
+    // Patch the already-loaded rows in memory instead of re-fetching the whole table (saves egress).
+    const patchByIncidentId = new Map(cleanPatches.map(p=> [p.incident_id, p.sub_root_cause]));
+    eecSiteTickets.forEach(r=>{
+      const wo = String(r.incident_id || "").trim();
+      if(patchByIncidentId.has(wo)) r.sub_root_cause = patchByIncidentId.get(wo);
+    });
     invalidateEecCache();
-    eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,wo_creator&order=closed_time.asc");
   }
   return synced;
 }
@@ -13194,47 +13230,61 @@ function renderEecTab(){
   }
   requestAnimationFrame(()=> moveEecSubTabIndicator());
 }
-async function loadEecSiteTickets(showToast){
-  try{
-    await fetchEecSites();
-    const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,classification,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,wo_creator";
-    eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + select + "&order=closed_time.asc");
-    invalidateEecCache();
-    if(!syncEecFaultFieldMapFromFaultTickets()){
-      const faultRows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,source_ticket_id,wo_creator,require_finish_time,created_time,close_description,sub_root_cause");
-      EEC_WO_CREATOR_MAP = {};
-      EEC_FAULT_FIELD_MAP = {};
-      EEC_FAULT_SUBRC_BY_TT = {};
-      faultRows.forEach(r=>{
-        const id = String(r.work_order_id || "").trim();
-        const tt = String(r.source_ticket_id || "").trim();
-        const subRc = String(r.sub_root_cause || "").trim();
-        if(tt && subRc) EEC_FAULT_SUBRC_BY_TT[tt] = subRc;
-        if(!id) return;
-        EEC_WO_CREATOR_MAP[id] = r.wo_creator || "";
-        EEC_FAULT_FIELD_MAP[id] = {
-          require_finish_time: r.require_finish_time || null,
-          created_time: r.created_time || null,
-          close_description: r.close_description || null,
-          sub_root_cause: subRc || null
-        };
-      });
-    }
-    await syncEecSubRootCauseFromFaultToDb();
-    if(showToast){
-      const audit = getEecWoCreatorAudit();
-      let msg = `EEC: ${getEecBaseTickets().length} TT (System) · ${EEC_SITE_SET.size} sites`;
-      if(audit.excludedTotal > 0){
-        msg += ` · ตัดออก ${audit.excludedTotal} ใบ (WO Creator ไม่ใช่ System)`;
+async function loadEecSiteTickets(showToast, force){
+  if(eecSiteTicketsLoadingPromise) return eecSiteTicketsLoadingPromise;
+  if(eecSiteTicketsLoaded && !force && !showToast){
+    if(currentTab === "eec") renderEecTab();
+    return;
+  }
+  const run = (async()=>{
+    try{
+      await fetchEecSites();
+      const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,wo_creator";
+      eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + select + "&order=closed_time.asc");
+      invalidateEecCache();
+      if(!syncEecFaultFieldMapFromFaultTickets()){
+        const faultRows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,source_ticket_id,wo_creator,require_finish_time,created_time,close_description,sub_root_cause");
+        EEC_WO_CREATOR_MAP = {};
+        EEC_FAULT_FIELD_MAP = {};
+        EEC_FAULT_SUBRC_BY_TT = {};
+        faultRows.forEach(r=>{
+          const id = String(r.work_order_id || "").trim();
+          const tt = String(r.source_ticket_id || "").trim();
+          const subRc = String(r.sub_root_cause || "").trim();
+          if(tt && subRc) EEC_FAULT_SUBRC_BY_TT[tt] = subRc;
+          if(!id) return;
+          EEC_WO_CREATOR_MAP[id] = r.wo_creator || "";
+          EEC_FAULT_FIELD_MAP[id] = {
+            require_finish_time: r.require_finish_time || null,
+            created_time: r.created_time || null,
+            close_description: r.close_description || null,
+            sub_root_cause: subRc || null
+          };
+        });
       }
-      toast(msg);
+      await syncEecSubRootCauseFromFaultToDb();
+      eecSiteTicketsLoaded = true;
+      if(showToast){
+        const audit = getEecWoCreatorAudit();
+        let msg = `EEC: ${getEecBaseTickets().length} TT (System) · ${EEC_SITE_SET.size} sites`;
+        if(audit.excludedTotal > 0){
+          msg += ` · ตัดออก ${audit.excludedTotal} ใบ (WO Creator ไม่ใช่ System)`;
+        }
+        toast(msg);
+      }
+      if(currentTab === "eec") renderEecTab();
+    }catch(e){
+      console.warn("loadEecSiteTickets failed:", e);
+      eecSiteTickets = [];
+      invalidateEecCache();
+      if(currentTab === "eec") renderEecTab();
     }
-    if(currentTab === "eec") renderEecTab();
-  }catch(e){
-    console.warn("loadEecSiteTickets failed:", e);
-    eecSiteTickets = [];
-    invalidateEecCache();
-    if(currentTab === "eec") renderEecTab();
+  })();
+  eecSiteTicketsLoadingPromise = run;
+  try{
+    await run;
+  }finally{
+    eecSiteTicketsLoadingPromise = null;
   }
 }
 function getEecUploadSheet(wb){
@@ -13298,7 +13348,7 @@ async function bulkInsertEecSites(rows, statusEl){
 }
 const EEC_UPSERT_FIELD_LIST = [
   "incident_id","source_ticket_id","severity","subject","site_id","province","status",
-  "classification","problem","cause","root_cause","sub_root_cause","remedy","team",
+  "problem","cause","root_cause","sub_root_cause","remedy","team",
   "created_time","closed_time","departed_time","arrived_time","wo_creator","updated_at"
 ];
 function sanitizeEecUpsertPayload(row){
@@ -13348,7 +13398,6 @@ function mapEecImportRow(r){
     site_id: site,
     province: getEecProvinceForTicket({ site_id: site }),
     status: status || "",
-    classification: get("Classification"),
     problem: problem || null,
     cause: cause || null,
     remedy: get("Remedy") || null,
@@ -13393,7 +13442,6 @@ function mapEecWoImportRow(r){
     site_id: site,
     province: getEecProvinceForTicket({ site_id: site }),
     status: raw.status || "",
-    classification: raw.work_type || null,
     problem: null,
     cause: null,
     remedy: raw.close_description || raw.complete_solution || null,
@@ -13459,7 +13507,7 @@ async function bulkInsertEecTickets(rows, opts){
     synced += chunk.length;
     statusEl.textContent = `Tickets… ${synced}/${uniquePayloads.length}`;
   }
-  await loadEecSiteTickets();
+  await loadEecSiteTickets(false, true);
   renderEecTab();
   const siteMsg = siteSynced ? ` · sites ${siteSynced}` : "";
   const dupMsg = dupInFile ? ` · ซ้ำในไฟล์ ${dupInFile}` : "";
