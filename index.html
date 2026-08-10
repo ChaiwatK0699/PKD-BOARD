@@ -475,6 +475,7 @@ body.screenshotting .srm-ft-ofcnode-detail-wrap-collapsed{display:block !importa
 .tab-btn.active.fault{color:var(--coral);}
 .tab-btn.active.srm{color:var(--violet);}
 .tab-btn.active.eec{color:var(--teal);}
+.tab-btn.active.cw{color:var(--amber);}
 
 /* ---- Site Repeat Mapping ---- */
 .srm-head{margin-bottom:18px;}
@@ -1402,6 +1403,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <button class="tab-btn fault" id="tabFaultBtn" onclick="switchTab('fault')" title="Fault PLKD"><span class="tab-ico">F</span><span class="tab-text">Fault PLKD</span></button>
         <button class="tab-btn srm" id="tabSrmBtn" onclick="switchTab('srm')" title="Site Repeat Mapping"><span class="tab-ico">SR</span><span class="tab-text">Site Repeat Mapping</span></button>
         <button class="tab-btn eec" id="tabEecBtn" onclick="switchTab('eec')" title="EEC Site"><span class="tab-ico">E</span><span class="tab-text">EEC Site</span></button>
+        <button class="tab-btn cw" id="tabCwBtn" onclick="switchTab('cw')" title="CW Report"><span class="tab-ico">CW</span><span class="tab-text">CW Report</span></button>
       </div>
     </div>
     <div class="sidebar-section">
@@ -1678,6 +1680,80 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       </div>
       <div class="eec-analysis-summary-wrap" id="eecAnalysisSummaryWrap"></div>
       <div class="eec-analysis-grid" id="eecAnalysisMainGrid"></div>
+    </div>
+  </div>
+  <div id="cwView" class="tab-view" style="display:none;">
+    <div class="srm-head">
+      <h2>CW Report</h2>
+      <p>Site group CW · WO Creator System · Ticket จาก Upload Work Order · นับตามวันที่ Closed</p>
+    </div>
+    <div class="toolbar" style="margin-bottom:14px;">
+      <button class="btn primary" onclick="document.getElementById('fileInputCwWo').click()">⭱ Upload Work Order</button>
+      <input type="file" id="fileInputCwWo" accept=".csv,.xlsx,.xls" onchange="handleCwWoUpload(event)" style="display:none;">
+      <button class="btn ghost sm" onclick="loadCwSiteTickets(true, true)">↻ Refresh</button>
+      <span class="status-msg" id="statusMsgCw"></span>
+    </div>
+    <div class="tabs" id="tabsCwSub" style="margin-bottom:16px;">
+      <div class="tab-indicator" id="tabIndicatorCwSub"></div>
+      <button class="tab-btn active" id="cwSubChartsBtn" onclick="switchCwSubTab('charts')">Trend</button>
+      <button class="tab-btn" id="cwSubOverSlaBtn" onclick="switchCwSubTab('over-sla')">Over SLA</button>
+      <button class="tab-btn" id="cwSubLtrBtn" onclick="switchCwSubTab('ltr')">Long time Repair</button>
+      <button class="tab-btn" id="cwSubAnalysisBtn" onclick="switchCwSubTab('analysis')">Analysis</button>
+    </div>
+    <div id="cwSubCharts">
+      <div class="srm-ft-sev-cards" id="cwSevCards"></div>
+      <div class="fault-chart-card srm-ft-sev-chart-card">
+        <div class="fault-chart-title">CW Ticket Trend · SA / NSA</div>
+        <div class="fault-legend" id="cwSevLegend"></div>
+                <div class="fault-chart-wrap"><canvas id="cwSevChart"></canvas></div>
+      </div>
+      <div class="fault-chart-card srm-ft-sev-chart-card">
+        <div class="fault-chart-title">Trend OFC / NODE · Sub Root Cause</div>
+        <div class="srm-ft-ofcnode-filter" id="cwOfcNodeFilter"></div>
+        <div class="fault-legend" id="cwOfcNodeLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="cwOfcNodeChart"></canvas></div>
+        <div class="srm-ft-ofcnode-detail-title">Detail Sub Root Cause</div>
+        <div class="table-scroll" id="cwOfcNodeDetailWrap" onclick="onCwOfcNodeDetailClick(event)"></div>
+      </div>
+    </div>
+    <div id="cwSubOverSla" style="display:none;">
+      <div class="srm-ft-sev-cards" id="cwOverSlaCards"></div>
+      <div class="fault-chart-card srm-ft-sev-chart-card">
+        <div class="fault-chart-title">Over SLA · Trend · SA / NSA (CW)</div>
+        <div class="fault-legend" id="cwOverSlaLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="cwOverSlaChart"></canvas></div>
+      </div>
+      <div class="fault-chart-card">
+        <div class="fault-chart-title">Over SLA · CW Report</div>
+        <div class="table-scroll" id="cwOverSlaTableWrap"></div>
+      </div>
+    </div>
+    <div id="cwSubLtr" style="display:none;">
+      <div class="fault-chart-card">
+        <div class="fault-chart-title">Long time Repair · Within SLA</div>
+        <div class="fault-legend" id="cwLtrLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="cwLtrChart"></canvas></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">&gt;12 Hrs. <span class="badge" id="cwGt12Count">0</span></div>
+        <div class="table-scroll" id="cwGt12TableWrap"></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">6-12 Hrs. <span class="badge" id="cw612Count">0</span></div>
+        <div class="table-scroll" id="cw612TableWrap"></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">2-6 Hrs. <span class="badge" id="cw26Count">0</span></div>
+        <div class="table-scroll" id="cw26TableWrap"></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">1-2 Hrs. <span class="badge" id="cw12Count">0</span></div>
+        <div class="table-scroll" id="cw12TableWrap"></div>
+      </div>
+    </div>
+    <div id="cwSubAnalysis" style="display:none;">
+      <div class="eec-analysis-summary-wrap" id="cwAnalysisSummaryWrap"></div>
+      <div class="eec-analysis-grid" id="cwAnalysisMainGrid"></div>
     </div>
   </div>
   <div id="faultView" class="tab-view" style="display:none;">
@@ -1992,6 +2068,7 @@ const FAULT_REST = REST + "/fault_ants_tickets";
 const SRM_REST = REST + "/srm_tickets";
 const EEC_REST = REST + "/eec_site_tickets";
 const EEC_SITES_REST = REST + "/eec_sites";
+const CW_REST = REST + "/cw_report_tickets";
 const EEC_PROVINCES = ["CHON BURI", "RAYONG", "CHACHOENGSAO"];
 const EEC_PROVINCE_COLORS = {"CHON BURI":"#2f80ed", "RAYONG":"#d97706", "CHACHOENGSAO":"#7c3aed"};
 const EEC_PROVINCE_SA_COLORS = {"CHON BURI":"#1c6ed4", "RAYONG":"#c45c00", "CHACHOENGSAO":"#6d28d9"};
@@ -2120,6 +2197,17 @@ let eecOverSlaSiteExpand = null;
 let eecLtrChartInst = null;
 let eecProvChartInst = null;
 let eecOfcNodeChartInst = null;
+let cwSevChartInst = null;
+let cwOverSlaChartInst = null;
+let cwLtrChartInst = null;
+let cwOfcNodeChartInst = null;
+let cwOfcNodeTrendGroup = "OFC";
+let cwOfcNodeExpandRc = null;
+let cwOfcNodeExpandSite = null;
+let cwAnalysisExpandDetailKey = null;
+let cwAnalysisExpandSite = null;
+let cwAnalysisExpandOfcMainSite = null;
+let cwAnalysisExpandOfcSection = null;
 let eecSubTab = "charts";
 let eecAnalysisExpandOfcSite = null;
 let eecAnalysisExpandOfcSection = null;
@@ -2135,6 +2223,10 @@ let eecAnalysisBattDetailExpandRow = null;
 let eecDetailProvinceFilter = "";
 let eecDetailExpandSite = null;
 let eecDetailAlarmFilter = "all";
+let cwSiteTickets = [];
+let cwSiteTicketsLoaded = false;
+let cwSiteTicketsLoadingPromise = null;
+let cwSubTab = "charts";
 const SRM_DASH_SLOT_COLORS = { A:"#2f80ed", B:"#1fa67a", C:"#d97706", D:"#7c3aed", E:"#e84a6a" };
 function resetSrmDashSelectedPath(){
   SRM_FT_SLOTS.forEach(s=>{ srmDashSelectedPath[s] = null; });
@@ -2421,6 +2513,7 @@ function renderAll(){
     if(currentTab==="fault") renderFault();
     if(currentTab==="srm") renderSiteRepeatMapping();
     if(currentTab==="eec") renderEecTab();
+    if(currentTab==="cw") renderCwTab();
     document.getElementById("countPending").textContent = groupSourceRows("pending").filter(r=>passFilter(r,"pending")).length;
     document.getElementById("countManual").textContent = tickets.closed.filter(isManualClosed).length;
     renderUploadTs();
@@ -2436,16 +2529,18 @@ function switchTab(tab){
   document.getElementById("tabFaultBtn").classList.toggle("active", tab==="fault");
   document.getElementById("tabSrmBtn").classList.toggle("active", tab==="srm");
   document.getElementById("tabEecBtn").classList.toggle("active", tab==="eec");
+  document.getElementById("tabCwBtn").classList.toggle("active", tab==="cw");
   const homeEl = document.getElementById("homeView"), pendingEl = document.getElementById("pendingView"),
     manualEl = document.getElementById("manualView"),
     srmEl = document.getElementById("srmView"), faultEl = document.getElementById("faultView"),
-    eecEl = document.getElementById("eecView");
+    eecEl = document.getElementById("eecView"), cwEl = document.getElementById("cwView");
   homeEl.style.display = tab==="home" ? "block":"none";
   pendingEl.style.display = tab==="pending" ? "block":"none";
   manualEl.style.display = tab==="manual" ? "block":"none";
   srmEl.style.display = tab==="srm" ? "block":"none";
   faultEl.style.display = tab==="fault" ? "block":"none";
   eecEl.style.display = tab==="eec" ? "block":"none";
+  cwEl.style.display = tab==="cw" ? "block":"none";
   if(tab==="home") renderHome();
   if(tab==="fault") renderFault();
   if(tab==="srm") renderSiteRepeatMapping();
@@ -2455,9 +2550,15 @@ function switchTab(tab){
       renderEecTab();
     });
   }
+  if(tab==="cw"){
+    loadCwSiteTickets(false).then(()=> renderCwTab()).catch(e=>{
+      console.warn("CW tab load failed:", e);
+      renderCwTab();
+    });
+  }
   moveSrmSubTabIndicator();
   const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="manual" ? manualEl
-    : tab==="srm" ? srmEl : tab==="eec" ? eecEl : faultEl;
+    : tab==="srm" ? srmEl : tab==="eec" ? eecEl : tab==="cw" ? cwEl : faultEl;
   shownEl.classList.remove("anim-in");
   void shownEl.offsetWidth; // restart animation
   shownEl.classList.add("anim-in");
@@ -2487,7 +2588,7 @@ function moveTabIndicator(){
     indTools.style.height = "0px";
   }
 }
-window.addEventListener("resize", ()=>{ moveTabIndicator(); moveFaultSubTabIndicator(); });
+window.addEventListener("resize", ()=>{ moveTabIndicator(); moveFaultSubTabIndicator(); moveCwSubTabIndicator(); });
 document.addEventListener("focusout", (e)=>{
   const el = e.target;
   if(el && el.classList && el.classList.contains("free-ta")){
@@ -5886,7 +5987,8 @@ function prepareScreenshotCharts(){
   [
     faultOverviewChartInst, faultLtrSlaChartInst,
     srmFtSevChartInst, srmFtOfcNodeChartInst,
-    eecSevChartInst, eecOverSlaChartInst, eecLtrChartInst, eecProvChartInst, eecOfcNodeChartInst
+    eecSevChartInst, eecOverSlaChartInst, eecLtrChartInst, eecProvChartInst, eecOfcNodeChartInst,
+    cwSevChartInst, cwOverSlaChartInst, cwLtrChartInst, cwOfcNodeChartInst
   ].forEach(inst=>{
     if(!inst) return;
     try{ inst.update("none"); }catch(e){}
@@ -8101,7 +8203,7 @@ function renderFaultOverviewChart(rows){
   if(!canvas || typeof Chart === "undefined") return;
   faultOverviewChartInst = destroyFaultChart(faultOverviewChartInst);
   const dayKeys = buildFaultTrendDayKeys(rows);
-  const labels = dayKeys.map(fmtFaultDayLabel);
+  const labels = fmtEecTrendDayLabels(dayKeys);
   const dayStats = buildFaultOverviewDayStats(rows, dayKeys);
   const { withinCounts, overCounts, totals, svcAva, svcAvaCumulative } = dayStats;
   const svcAvaCumulativeLast = svcAvaCumulative.length ? svcAvaCumulative[svcAvaCumulative.length - 1] : 0;
@@ -8903,7 +9005,7 @@ function buildFaultAnalysisOfcNodeStats(){
   const allTickets = getFaultAnalysisTickets();
   const tickets = allTickets.filter(r=> classifySrmRootCauseGroup(r) === faultAnalysisGroup);
   const dayKeys = buildFaultDayLabelsFromRows(allTickets);
-  const labels = dayKeys.map(fmtFaultDayLabel);
+  const labels = fmtEecTrendDayLabels(dayKeys);
   const byDay = new Map();
   tickets.forEach(r=>{
     const d = getFaultClosedDay(r);
@@ -10995,10 +11097,14 @@ function renderEecStackedSevChart(canvasId, legendId, stats, instRef){
   const canvas = document.getElementById(canvasId);
   const legendEl = document.getElementById(legendId);
   const chartWrap = canvas?.closest(".fault-chart-wrap");
+  const isCwChart = instRef && String(instRef).startsWith("cw-");
   if(!canvas || typeof Chart === "undefined") return null;
   if(instRef === "sev") destroyEecSevChart();
   else if(instRef === "ofc") destroyEecOfcNodeChart();
   else if(instRef === "over-sla") destroyEecOverSlaChart();
+  else if(instRef === "cw-sev" && cwSevChartInst){ cwSevChartInst.destroy(); cwSevChartInst = null; }
+  else if(instRef === "cw-over-sla" && cwOverSlaChartInst){ cwOverSlaChartInst.destroy(); cwOverSlaChartInst = null; }
+  else if(instRef === "cw-ofc" && cwOfcNodeChartInst){ cwOfcNodeChartInst.destroy(); cwOfcNodeChartInst = null; }
   const saColor = "#d94a35";
   const nsaColor = "#2f9e44";
   const totalAll = stats.totals.reduce((a,n)=> a + n, 0);
@@ -11014,20 +11120,22 @@ function renderEecStackedSevChart(canvasId, legendId, stats, instRef){
   }
   if(!stats.labels.length){
     if(chartWrap){
-      let emptyEl = chartWrap.querySelector(".eec-chart-empty");
+      let emptyEl = chartWrap.querySelector(isCwChart ? ".cw-chart-empty" : ".eec-chart-empty");
       if(!emptyEl){
         emptyEl = document.createElement("div");
-        emptyEl.className = "empty-hint eec-chart-empty";
+        emptyEl.className = isCwChart ? "empty-hint cw-chart-empty" : "empty-hint eec-chart-empty";
         emptyEl.style.padding = "48px 16px";
         chartWrap.appendChild(emptyEl);
       }
       emptyEl.textContent = EEC_SITE_SET.size ? "ไม่มี TT ตรงเงื่อนไข" : "กำลังโหลดรายชื่อ EEC Site…";
+      if(isCwChart) emptyEl.textContent = "No CW trend data";
       emptyEl.style.display = "block";
     }
     canvas.style.display = "none";
     return null;
   }
   chartWrap?.querySelector(".eec-chart-empty")?.remove();
+  chartWrap?.querySelector(".cw-chart-empty")?.remove();
   canvas.style.display = "block";
   const countMax = faultCountAxisMax(stats.totals);
   const countStep = faultCountAxisStep(countMax);
@@ -11065,6 +11173,9 @@ function renderEecStackedSevChart(canvasId, legendId, stats, instRef){
   if(instRef === "sev") eecSevChartInst = chart;
   else if(instRef === "ofc") eecOfcNodeChartInst = chart;
   else if(instRef === "over-sla") eecOverSlaChartInst = chart;
+  else if(instRef === "cw-sev") cwSevChartInst = chart;
+  else if(instRef === "cw-over-sla") cwOverSlaChartInst = chart;
+  else if(instRef === "cw-ofc") cwOfcNodeChartInst = chart;
   return chart;
 }
 function renderEecOverSlaCards(stats){
@@ -14782,6 +14893,23 @@ function sanitizeEecUpsertPayload(row){
 function alignEecUpsertChunk(rows){
   return rows.map(sanitizeEecUpsertPayload).filter(Boolean);
 }
+const CW_UPSERT_FIELD_LIST = [
+  "incident_id","source_ticket_id","severity","subject","site_id","province","status",
+  "problem","cause","root_cause","sub_root_cause","remedy","team",
+  "created_time","require_finish_time","closed_time","departed_time","arrived_time","wo_creator","updated_at"
+];
+function sanitizeCwUpsertPayload(row){
+  if(!row || !String(row.incident_id || "").trim()) return null;
+  const out = {};
+  CW_UPSERT_FIELD_LIST.forEach(k=>{
+    const v = row[k];
+    out[k] = (v !== undefined && v !== null && v !== "") ? v : null;
+  });
+  return out;
+}
+function alignCwUpsertChunk(rows){
+  return rows.map(sanitizeCwUpsertPayload).filter(Boolean);
+}
 function dedupeRowsByKey(rows, key){
   const byKey = new Map();
   rows.forEach(r=>{
@@ -14992,6 +15120,765 @@ function handleEecUpload(evt){
   else reader.readAsBinaryString(file);
 }
 
+/* -- CW Report tab (Region CW, separate cw_report_tickets table) -- */
+function invalidateCwCache(){}
+function normalizeCwDbTicket(r){
+  return {
+    ...r,
+    work_order_id: r.incident_id || r.work_order_id || "",
+    source_ticket_id: r.source_ticket_id || r.incident_id || "",
+    close_description: r.remedy || r.close_description || "",
+    wo_status: r.status || r.wo_status || "",
+    team: r.team || ""
+  };
+}
+function findCwSiteInText(text){
+  const m = String(text || "").toUpperCase().match(/\b[A-Z]{2,4}\d{3,5}\b/);
+  return m ? m[0] : "";
+}
+function isCwInvalidSiteCode(site){
+  const s = String(site || "").toUpperCase().trim();
+  return !s || s === "-" || s === "N/A" || s === "NA" || s === "NULL" || s === "FIND NOT FOUND" || s === "NOT FOUND" || s === "NOT FIND";
+}
+function extractCwSite(r){
+  const direct = String(r?.site_id || "").toUpperCase().trim();
+  if(!isCwInvalidSiteCode(direct)) return direct;
+  return findCwSiteInText(`${r?.subject || ""} ${r?.site || ""} ${r?.problem || ""}`);
+}
+function isCwClosedTicket(r){
+  if(!r?.closed_time) return false;
+  if(!isEecClosedStatus(r)) return false;
+  if(!isFaultSaSeverity(r) && !isFaultNsaSrmSeverity(r)) return false;
+  return true;
+}
+function getCwBaseTickets(){
+  return (cwSiteTickets || []).map(normalizeCwDbTicket).filter(isCwClosedTicket).filter(passesEecSystemWoCreator);
+}
+function getCwClassifiedTickets(){
+  return getCwBaseTickets().map(r=>({ ...r, _fault: classifyFaultTicket(r) }));
+}
+function getCwClosedDay(r){
+  return getEecClosedDay(r);
+}
+function getCwTrendRows(rows){
+  const byDay = new Map();
+  rows.forEach(r=>{
+    const d = getCwClosedDay(r);
+    if(!d) return;
+    if(!byDay.has(d)) byDay.set(d, { day:d, sa:0, nsa:0, total:0 });
+    const slot = byDay.get(d);
+    if(isFaultSaSeverity(r)) slot.sa++;
+    else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
+    slot.total++;
+  });
+  return [...byDay.values()].sort((a,b)=> a.day.localeCompare(b.day));
+}
+function buildCwSeverityStats(rows){
+  const tickets = rows || getCwClassifiedTickets();
+  const daysSet = new Set();
+  const byDay = new Map();
+  tickets.forEach(r=>{
+    const d = getCwClosedDay(r);
+    if(!d) return;
+    daysSet.add(d);
+    if(!byDay.has(d)) byDay.set(d, { sa:0, nsa:0 });
+    const slot = byDay.get(d);
+    if(isFaultSaSeverity(r)) slot.sa++;
+    else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
+  });
+  const dayKeys = fillDayKeysRange([...daysSet]);
+  const labels = dayKeys.map(fmtFaultDayLabel);
+  const saCounts = [], nsaCounts = [], totals = [];
+  dayKeys.forEach(day=>{
+    const slot = byDay.get(day) || { sa:0, nsa:0 };
+    saCounts.push(slot.sa);
+    nsaCounts.push(slot.nsa);
+    totals.push(slot.sa + slot.nsa);
+  });
+  return {
+    labels, dayKeys, saCounts, nsaCounts, totals,
+    saTotal: saCounts.reduce((a,n)=> a + n, 0),
+    nsaTotal: nsaCounts.reduce((a,n)=> a + n, 0)
+  };
+}
+function getCwOfcNodeTrendTickets(){
+  return getCwClassifiedTickets().filter(r=>["OFC","NODE"].includes(classifySrmRootCauseGroup(r)));
+}
+function buildCwOfcNodeStats(){
+  const tickets = getCwOfcNodeTrendTickets().filter(r=> classifySrmRootCauseGroup(r) === cwOfcNodeTrendGroup);
+  const daysSet = new Set();
+  const byDay = new Map();
+  tickets.forEach(r=>{
+    const d = getCwClosedDay(r);
+    if(!d) return;
+    daysSet.add(d);
+    if(!byDay.has(d)) byDay.set(d, { sa:0, nsa:0 });
+    const slot = byDay.get(d);
+    if(isFaultSaSeverity(r)) slot.sa++;
+    else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
+  });
+  const dayKeys = fillDayKeysRange([...daysSet]);
+  const labels = fmtEecTrendDayLabels(dayKeys);
+  const saCounts = [], nsaCounts = [], totals = [];
+  dayKeys.forEach(day=>{
+    const slot = byDay.get(day) || { sa:0, nsa:0 };
+    saCounts.push(slot.sa);
+    nsaCounts.push(slot.nsa);
+    totals.push(slot.sa + slot.nsa);
+  });
+  return {
+    labels, dayKeys, saCounts, nsaCounts, totals, group:cwOfcNodeTrendGroup,
+    saTotal: saCounts.reduce((a,n)=> a + n, 0),
+    nsaTotal: nsaCounts.reduce((a,n)=> a + n, 0)
+  };
+}
+function renderCwOfcNodeFilterButtons(){
+  const wrap = document.getElementById("cwOfcNodeFilter");
+  if(!wrap) return;
+  const counts = { OFC:0, NODE:0 };
+  getCwOfcNodeTrendTickets().forEach(r=>{ const g = classifySrmRootCauseGroup(r); if(counts[g] != null) counts[g]++; });
+  wrap.innerHTML = `<span class="flabel">กลุ่ม Sub Root Cause</span><div class="srm-ft-ofcnode-seg">
+    ${["OFC","NODE"].map(g=> `<button type="button" class="srm-ft-ofcnode-btn ${g.toLowerCase()} ${cwOfcNodeTrendGroup===g?"active":""}" onclick="setCwOfcNodeTrendGroup('${g}')">${g}<span class="seg-count">${counts[g]}</span></button>`).join("")}
+  </div>`;
+}
+function setCwOfcNodeTrendGroup(group){
+  if(!["OFC","NODE"].includes(group) || cwOfcNodeTrendGroup === group) return;
+  cwOfcNodeTrendGroup = group;
+  cwOfcNodeExpandRc = null;
+  cwOfcNodeExpandSite = null;
+  refreshCwOfcNodeTrendPanel();
+}
+function buildCwOfcNodeSubRootCauseDetail(){
+  const tickets = getCwOfcNodeTrendTickets().filter(r=> classifySrmRootCauseGroup(r) === cwOfcNodeTrendGroup);
+  const rawList = tickets.map(r=> String(r.sub_root_cause || r.root_cause || r.cause || "(ไม่ระบุ Sub Root Cause)").trim());
+  const thToEn = buildEecSubRcThToEnMap(rawList);
+  const byKey = {};
+  tickets.forEach(r=>{
+    const raw = String(r.sub_root_cause || r.root_cause || r.cause || "(ไม่ระบุ Sub Root Cause)").trim();
+    const key = getEecSubRcCanonicalKey(raw, thToEn);
+    if(!byKey[key]) byKey[key] = { key, group:cwOfcNodeTrendGroup, count:0, tickets:[], variants:{} };
+    byKey[key].count++;
+    byKey[key].tickets.push(r);
+    if(!byKey[key].variants[raw]) byKey[key].variants[raw] = { subRootCause:raw, count:0 };
+    byKey[key].variants[raw].count++;
+  });
+  return Object.values(byKey).map(g=>({
+    subRootCause: pickEecSubRcDisplayLabel(Object.values(g.variants)),
+    group:g.group,
+    count:g.count,
+    tickets:g.tickets
+  })).sort((a,b)=> b.count - a.count || a.subRootCause.localeCompare(b.subRootCause, "th"));
+}
+function buildCwSubRcSiteGroups(tickets){
+  const bySite = {};
+  (tickets || []).forEach(r=>{
+    const siteKey = extractCwSite(r) || "(ไม่ระบุ Site)";
+    if(!bySite[siteKey]) bySite[siteKey] = { siteKey, siteLabel:siteKey, tickets:[], count:0 };
+    bySite[siteKey].tickets.push(r);
+    bySite[siteKey].count++;
+  });
+  return Object.values(bySite).sort((a,b)=> b.count - a.count || a.siteLabel.localeCompare(b.siteLabel, "th"));
+}
+function renderCwSubRcSiteTicketHtml(tickets){
+  return renderCwTicketTableHtml(tickets);
+}
+function renderCwTeamIdNameCell(r){
+  const lines = buildEecTeamLines(r?.team);
+  if(!lines.length) return `<span class="muted">-</span>`;
+  const id = lines[0] || "-";
+  const name = lines.slice(1).join(" · ");
+  return `${esc(id)}${name ? `<br><span class="muted">${esc(name)}</span>` : ""}`;
+}
+function renderCwTicketTableHtml(rows){
+  if(!rows?.length) return `<div class="empty-hint" style="padding:12px;">ไม่มี WO</div>`;
+  const body = rows.map(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    const tt = r.source_ticket_id || "";
+    const wo = r.incident_id || r.work_order_id || "";
+    const ticketCell = tt && wo && tt !== wo ? `${esc(tt)}<br><span class="muted">${esc(wo)}</span>` : esc(wo || tt);
+    return `<tr>
+      <td>${ticketCell}</td>
+      <td>${renderCwTeamIdNameCell(r)}</td>
+      <td><span class="sev-badge">${esc(r.severity || "-")}</span></td>
+      <td class="subject-cell">${esc(r.subject || "")}</td>
+      <td class="dt-cell">${fmtFaultDT(r.created_time)}<br><span class="muted">${fmtFaultDT(r.closed_time)}</span></td>
+      <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
+      <td class="subject-cell">${esc(r.remedy || r.close_description || "")}</td>
+    </tr>`;
+  }).join("");
+  return `<div class="table-scroll" style="margin-top:4px"><table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
+    <th>Ticket / WO</th><th>Team ID / Name</th><th>Severity</th><th>Subject</th><th>Created / Closed</th><th>Downtime</th><th>Closed Description</th>
+  </tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function renderCwSubRcSiteScopeHtml(tickets, subRootCause){
+  const sites = buildCwSubRcSiteGroups(tickets);
+  const bodyRows = sites.flatMap(site=>{
+    const expandKey = `${subRootCause}|${site.siteKey}`;
+    const isOpen = cwOfcNodeExpandSite === expandKey;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const mainRow = `<tr class="cw-subrc-site-row srm-ofcnode-rc-row" data-sub-rc="${esc(subRootCause)}" data-site="${esc(site.siteKey)}">
+      <td>${chevron}<strong class="site-plkd-cell">${esc(site.siteLabel)}</strong></td>
+      <td class="srm-ofcnode-rc-count">${site.count}</td>
+    </tr>`;
+    const expandRow = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="2">${renderCwSubRcSiteTicketHtml(site.tickets)}</td></tr>` : "";
+    return [mainRow, expandRow];
+  }).join("");
+  return `<div class="eec-sub-rc-wrap">
+    <div class="fault-section-title" style="font-size:11px;margin:0 0 8px">Site หลัก · กดเพื่อดู Detail WO</div>
+    <table class="srm-ft-ofcnode-detail-table eec-subrc-site-table"><thead><tr><th>Site หลัก</th><th>WO</th></tr></thead><tbody>${bodyRows}</tbody></table>
+  </div>`;
+}
+function renderCwOfcNodeDetailTable(detailRows){
+  const wrap = document.getElementById("cwOfcNodeDetailWrap");
+  if(!wrap) return;
+  if(!detailRows.length){
+    wrap.innerHTML = `<div class="empty-hint" style="padding:16px;">No Sub Root Cause in this filter.</div>`;
+    return;
+  }
+  const body = detailRows.flatMap(row=>{
+    const isOpen = cwOfcNodeExpandRc === row.subRootCause;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const main = `<tr class="cw-rc-main-row srm-ofcnode-rc-row" data-rc="${esc(row.subRootCause)}">
+      <td>${chevron}${esc(row.subRootCause)}</td>
+      <td><span class="srm-ofcnode-group-badge ${row.group.toLowerCase()}">${esc(row.group)}</span></td>
+      <td class="srm-ofcnode-rc-count">${row.count}</td>
+    </tr>`;
+    const expand = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="3">${renderCwSubRcSiteScopeHtml(row.tickets, row.subRootCause)}</td></tr>` : "";
+    return [main, expand];
+  }).join("");
+  wrap.innerHTML = `<table class="srm-ft-ofcnode-detail-table"><thead><tr><th>Sub Root Cause</th><th>กลุ่ม</th><th>จำนวน WO</th></tr></thead><tbody>${body}</tbody></table>`;
+}
+function onCwOfcNodeDetailClick(e){
+  const siteRow = e.target.closest(".cw-subrc-site-row[data-sub-rc][data-site]");
+  if(siteRow){
+    const key = `${siteRow.getAttribute("data-sub-rc")}|${siteRow.getAttribute("data-site")}`;
+    cwOfcNodeExpandSite = (cwOfcNodeExpandSite === key) ? null : key;
+    renderCwOfcNodeDetailTable(buildCwOfcNodeSubRootCauseDetail());
+    return;
+  }
+  const row = e.target.closest(".cw-rc-main-row[data-rc]");
+  if(!row) return;
+  const rc = row.getAttribute("data-rc");
+  if(cwOfcNodeExpandRc !== rc) cwOfcNodeExpandSite = null;
+  cwOfcNodeExpandRc = (cwOfcNodeExpandRc === rc) ? null : rc;
+  renderCwOfcNodeDetailTable(buildCwOfcNodeSubRootCauseDetail());
+}
+function refreshCwOfcNodeTrendPanel(){
+  renderCwOfcNodeFilterButtons();
+  renderEecStackedSevChart("cwOfcNodeChart", "cwOfcNodeLegend", buildCwOfcNodeStats(), "cw-ofc");
+  renderCwOfcNodeDetailTable(buildCwOfcNodeSubRootCauseDetail());
+}
+function formatCwStatusMessage(){
+  const rows = getCwBaseTickets();
+  const sites = new Set(rows.map(extractCwSite).filter(Boolean)).size;
+  return `${rows.length} TT · ${sites} Site · Region CW · WO Creator System`;
+}
+async function loadCwSiteTickets(showToast, force){
+  if(cwSiteTicketsLoadingPromise) return cwSiteTicketsLoadingPromise;
+  if(cwSiteTicketsLoaded && !force && !showToast){
+    if(currentTab === "cw") renderCwTab();
+    return;
+  }
+  cwSiteTicketsLoadingPromise = (async()=>{
+    try{
+      const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,require_finish_time,closed_time,departed_time,arrived_time,wo_creator,created_at";
+      try{
+        cwSiteTickets = await fetchAllFromRest(CW_REST + "?select=" + select + "&order=closed_time.asc");
+      }catch(selectErr){
+        if(!/require_finish_time/i.test(String(selectErr?.message || selectErr))) throw selectErr;
+        const fallbackSelect = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,wo_creator,created_at";
+        cwSiteTickets = await fetchAllFromRest(CW_REST + "?select=" + fallbackSelect + "&order=closed_time.asc");
+      }
+      cwSiteTicketsLoaded = true;
+      if(showToast) toast(`CW: ${getCwBaseTickets().length} TT · Region CW`);
+      if(currentTab === "cw") renderCwTab();
+    }catch(e){
+      console.warn("loadCwSiteTickets failed:", e);
+      cwSiteTickets = [];
+      if(currentTab === "cw") renderCwTab();
+    }finally{
+      cwSiteTicketsLoadingPromise = null;
+    }
+  })();
+  return cwSiteTicketsLoadingPromise;
+}
+function renderCwCards(elId, rows){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  let sa = 0, nsa = 0;
+  rows.forEach(r=>{ if(isFaultSaSeverity(r)) sa++; else if(isFaultNsaSrmSeverity(r)) nsa++; });
+  el.innerHTML = `
+    <div class="srm-ft-sev-card sa"><span class="srm-ft-sev-card-lbl">SA</span><span class="srm-ft-sev-card-val">${sa}</span></div>
+    <div class="srm-ft-sev-card nsa"><span class="srm-ft-sev-card-lbl">NSA</span><span class="srm-ft-sev-card-val">${nsa}</span></div>`;
+}
+function renderCwTicketTable(rows, wrapId){
+  const wrap = document.getElementById(wrapId);
+  if(!wrap) return;
+  if(!rows.length){
+    wrap.innerHTML = `<div class="empty-hint">ไม่มีข้อมูล CW ตรงเงื่อนไข</div>`;
+    return;
+  }
+  const body = rows.map(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    const tt = r.source_ticket_id || "";
+    const wo = r.incident_id || r.work_order_id || "";
+    const ticketCell = tt && wo && tt !== wo ? `${esc(tt)}<br><span class="muted">${esc(wo)}</span>` : esc(wo || tt);
+    return `<tr>
+      <td><span class="site-plkd-cell">${esc(extractCwSite(r) || r.site_id || "-")}</span></td>
+      <td>${ticketCell}</td>
+      <td><span class="sev-badge">${esc(r.severity || "-")}</span></td>
+      <td class="subject-cell">${esc(r.subject || "")}</td>
+      <td class="dt-cell">${fmtFaultDT(r.created_time)}<br><span class="muted">${fmtFaultDT(r.closed_time)}</span></td>
+      <td class="dt-cell">${fmtFaultDT(r.require_finish_time)}</td>
+      <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
+      <td>${esc(c.slaStatus || "-")}</td>
+      <td class="subject-cell">${esc(r.root_cause || r.cause || "")}</td>
+      <td class="subject-cell">${esc(r.remedy || r.close_description || "")}</td>
+    </tr>`;
+  }).join("");
+  wrap.innerHTML = `<table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
+    <th>Site</th><th>Ticket / WO</th><th>Severity</th><th>Subject</th><th>Created / Closed</th><th>Require Finish</th><th>Downtime</th><th>SLA</th><th>Root Cause</th><th>Closed Description</th>
+  </tr></thead><tbody>${body}</tbody></table>`;
+}
+function renderCwTrend(){
+  const rows = getCwClassifiedTickets();
+  renderCwCards("cwSevCards", rows);
+  renderEecStackedSevChart("cwSevChart", "cwSevLegend", buildCwSeverityStats(rows), "cw-sev");
+  refreshCwOfcNodeTrendPanel();
+}
+function renderCwOverSla(){
+  const rows = getCwClassifiedTickets().filter(r=> r._fault.slaStatus === "Over SLA");
+  renderCwCards("cwOverSlaCards", rows);
+  renderEecStackedSevChart("cwOverSlaChart", "cwOverSlaLegend", buildCwSeverityStats(rows), "cw-over-sla");
+  renderCwTicketTable(rows, "cwOverSlaTableWrap");
+}
+function renderCwLtrTrendChart(rows){
+  const canvas = document.getElementById("cwLtrChart");
+  const legendEl = document.getElementById("cwLtrLegend");
+  const chartWrap = canvas?.closest(".fault-chart-wrap");
+  if(!canvas || typeof Chart === "undefined") return;
+  cwLtrChartInst = destroyFaultChart(cwLtrChartInst);
+  const dayKeys = buildFaultDayLabelsFromRows(rows);
+  const labels = dayKeys.map(fmtFaultDayLabel);
+  const buckets = FAULT_LTR_BUCKETS;
+  const byDayBucket = new Map();
+  rows.forEach(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    const day = getCwClosedDay(r);
+    if(!day || !c.bucket) return;
+    byDayBucket.set(`${day}|${c.bucket}`, (byDayBucket.get(`${day}|${c.bucket}`) || 0) + 1);
+  });
+  const rawByBucket = buckets.map(b=> dayKeys.map(day=> byDayBucket.get(`${day}|${b}`) || 0));
+  const dayTotals = dayKeys.map((_, di)=> rawByBucket.reduce((sum, arr)=> sum + arr[di], 0));
+  if(legendEl){
+    legendEl.innerHTML = buckets.map(b=> `<span><i style="background:${FAULT_BUCKET_COLORS[b]}"></i>${b}</span>`).join("") +
+      `<span><i style="background:#7c4fd6"></i>Total</span>`;
+  }
+  if(!labels.length){
+    if(chartWrap){
+      let emptyEl = chartWrap.querySelector(".cw-chart-empty");
+      if(!emptyEl){
+        emptyEl = document.createElement("div");
+        emptyEl.className = "empty-hint cw-chart-empty";
+        emptyEl.style.padding = "48px 16px";
+        chartWrap.appendChild(emptyEl);
+      }
+      emptyEl.textContent = "ไม่มี TT Long time Repair";
+      emptyEl.style.display = "block";
+    }
+    canvas.style.display = "none";
+    return;
+  }
+  chartWrap?.querySelector(".cw-chart-empty")?.remove();
+  canvas.style.display = "block";
+  const countMax = faultCountAxisMax(dayTotals);
+  const countStep = faultCountAxisStep(countMax);
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  const datasets = buckets.map((b, bi)=>({ label:b, data:rawByBucket[bi], backgroundColor:FAULT_BUCKET_COLORS[b], stack:"downtime", order:2 }));
+  datasets.push({
+    label:"Total", data:dayTotals, type:"line", borderColor:"#7c4fd6", backgroundColor:"transparent",
+    tension:.3, pointRadius:5, pointBackgroundColor:"#7c4fd6", pointBorderColor:"#ffffff", pointBorderWidth:2,
+    borderWidth:2, order:1, clip:false
+  });
+  cwLtrChartInst = new Chart(canvas, {
+    type:"bar",
+    data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:14}},
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{stacked:true, ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor}},
+        y:{
+          stacked:true, position:"left", beginAtZero:true, min:0, max:countMax,
+          title:{display:true, text:"จำนวน Ticket", color:textColor, font:{size:13, weight:"bold"}},
+          ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}}, grid:{color:gridColor}
+        }
+      }
+    },
+    plugins:[faultBarLabelPlugin]
+  });
+}
+function renderCwLtr(){
+  const rows = getCwClassifiedTickets().filter(r=> r._fault.slaStatus === "Within SLA" && r._fault.bucket);
+  renderCwLtrTrendChart(rows);
+  const byBucket = {
+    ">12 Hrs.": rows.filter(r=> r._fault.bucket === ">12 Hrs."),
+    "6-12 Hrs.": rows.filter(r=> r._fault.bucket === "6-12 Hrs."),
+    "2-6 Hrs.": rows.filter(r=> r._fault.bucket === "2-6 Hrs."),
+    "1-2 Hrs.": rows.filter(r=> r._fault.bucket === "1-2 Hrs.")
+  };
+  document.getElementById("cwGt12Count").textContent = byBucket[">12 Hrs."].length;
+  document.getElementById("cw612Count").textContent = byBucket["6-12 Hrs."].length;
+  document.getElementById("cw26Count").textContent = byBucket["2-6 Hrs."].length;
+  document.getElementById("cw12Count").textContent = byBucket["1-2 Hrs."].length;
+  renderCwTicketTable(byBucket[">12 Hrs."], "cwGt12TableWrap");
+  renderCwTicketTable(byBucket["6-12 Hrs."], "cw612TableWrap");
+  renderCwTicketTable(byBucket["2-6 Hrs."], "cw26TableWrap");
+  renderCwTicketTable(byBucket["1-2 Hrs."], "cw12TableWrap");
+}
+function countCwAnalysisWoSite(rows){
+  const sites = new Set();
+  (rows || []).forEach(r=>{
+    const site = extractCwSite(r);
+    if(site) sites.add(site);
+  });
+  return { wo:(rows || []).length, site:sites.size, tickets:rows || [] };
+}
+function buildCwOfcSectionGroups(rows){
+  const sectionCounts = {};
+  (rows || []).forEach(r=>{
+    const parsed = typeof parseEecOfcSectionTicket === "function" ? parseEecOfcSectionTicket(r) : null;
+    if(!parsed?.strict || !parsed.sectionKey) return;
+    const subRc = String(r.sub_root_cause || r.root_cause || r.cause || "(No Sub Root Cause)").trim();
+    const key = parsed.sectionKey;
+    if(!sectionCounts[key]) sectionCounts[key] = { key, section: parsed.displaySection || key, endpoints: parsed.endpoints || [], networkLabels: new Set(), subRcs: {}, tickets: [], sites: new Set(), wo: 0 };
+    const bucket = sectionCounts[key];
+    bucket.wo++;
+    bucket.tickets.push(r);
+    bucket.subRcs[subRc] = (bucket.subRcs[subRc] || 0) + 1;
+    const site = extractCwSite(r);
+    if(site) bucket.sites.add(site);
+    (parsed.networkLabels || []).forEach(l=> bucket.networkLabels.add(l));
+  });
+  return Object.values(sectionCounts).map(row=>{
+    const topSubRc = Object.entries(row.subRcs).sort((a,b)=> b[1]-a[1])[0];
+    return { ...row, site: row.sites.size, subRc: topSubRc ? topSubRc[0] : "(No Sub Root Cause)", repeat: row.wo >= 2, networkLabels: [...row.networkLabels], nodeTypes: [...new Set((row.endpoints || []).map(getEecOfcEndpointNodeType).filter(Boolean))] };
+  }).sort((a,b)=> b.wo - a.wo || a.section.localeCompare(b.section, "th"));
+}
+function buildCwAnalysisDashboard(){
+  const rows = getCwClassifiedTickets();
+  const batteryPool = rows.filter(isFaultAnalysisBatteryTicket);
+  const stolen = rows.filter(isFaultAnalysisStolenTicket);
+  const hardware = rows.filter(isFaultAnalysisHardwareTicket);
+  const ofcPool = rows.filter(r=> classifySrmRootCauseGroup(r) === "OFC");
+  const batteryRows = FAULT_ANALYSIS_BATTERY_ROWS.map(def=>({ ...def, ...countCwAnalysisWoSite(batteryPool.filter(def.match)) }));
+  const ofcSections = buildCwOfcSectionGroups(ofcPool);
+  const repeatSections = ofcSections.filter(r=> r.repeat);
+  const repeatSites = new Set();
+  repeatSections.forEach(sec=> (sec.sites || new Set()).forEach(site=> repeatSites.add(site)));
+  return { rows, batteryRows, batteryTotal: countCwAnalysisWoSite(batteryPool), stolen: countCwAnalysisWoSite(stolen), hardware: countCwAnalysisWoSite(hardware), ofcTotal: countCwAnalysisWoSite(ofcPool), ofcSections, ofcRepeat: { repeatSectionCount: repeatSections.length, repeatWo: repeatSections.reduce((sum,r)=> sum + (r.wo || 0), 0), siteCount: repeatSites.size, sections: repeatSections } };
+}
+function buildCwAnalysisSiteGroups(tickets){
+  const bySite = {};
+  (tickets || []).forEach(r=>{
+    const siteKey = extractCwSite(r) || "(No Site)";
+    if(!bySite[siteKey]) bySite[siteKey] = { siteKey, siteLabel:siteKey, tickets:[], count:0 };
+    bySite[siteKey].tickets.push(r);
+    bySite[siteKey].count++;
+  });
+  return Object.values(bySite).sort((a,b)=> b.count - a.count || a.siteLabel.localeCompare(b.siteLabel, "th"));
+}
+function renderCwAnalysisMainSiteTable(tickets, detailKey){
+  const sites = buildCwAnalysisSiteGroups(tickets);
+  if(!sites.length) return `<div class="empty-hint" style="padding:12px;">ไม่มี Main Site</div>`;
+  const body = sites.flatMap(site=>{
+    const expandKey = `${detailKey}|${site.siteKey}`;
+    const isOpen = cwAnalysisExpandSite === expandKey;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const main = `<tr class="cw-analysis-site-row srm-ofcnode-rc-row" data-detail-key="${esc(detailKey)}" data-site="${esc(site.siteKey)}">
+      <td>${chevron}<span class="site-plkd-cell">${esc(site.siteLabel)}</span></td>
+      <td class="srm-ofcnode-rc-count">${site.count}</td>
+    </tr>`;
+    const expand = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="2">${renderCwTicketTableHtml(site.tickets)}</td></tr>` : "";
+    return [main, expand];
+  }).join("");
+  return `<div class="eec-analysis-detail-panel">
+    <div class="fault-section-title" style="font-size:11px;margin:0 0 8px">Main Site · Detail WO</div>
+    <table class="srm-ft-ofcnode-detail-table"><thead><tr><th>Main Site</th><th>WO</th></tr></thead><tbody>${body}</tbody></table>
+  </div>`;
+}
+function renderCwAnalysisSummaryTable(dash){
+  const rows = [
+    { key:"stolen", label:"Stolen", ...dash.stolen },
+    { key:"hardware", label:"Hardware", ...dash.hardware },
+    { key:"ofc", label:"OFC · Section Site↔Site ซ้ำ", wo:dash.ofcRepeat.repeatWo, site:dash.ofcRepeat.siteCount, tickets:dash.ofcRepeat.sections.flatMap(s=>s.tickets || []) }
+  ];
+  const body = rows.flatMap(row=>{
+    const detailKey = `summary:${row.key}`;
+    const isOpen = cwAnalysisExpandDetailKey === detailKey;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const main = `<tr class="eec-analysis-summary-row cw-analysis-detail-cell${isOpen ? " is-open" : ""}" data-detail-key="${esc(detailKey)}" data-has-tickets="1"><td><div class="eec-analysis-summary-problem">${chevron}${esc(row.label)}</div></td><td class="eec-analysis-summary-wo">${row.wo}</td><td class="eec-analysis-summary-wo">${row.site}</td><td></td><td>Region</td><td>TBD</td><td></td><td></td></tr>`;
+    const expand = isOpen ? `<tr class="eec-analysis-summary-expand"><td colspan="8">${row.key === "ofc" ? renderCwOfcSectionTable(dash.ofcSections) : renderCwAnalysisMainSiteTable(row.tickets, detailKey)}</td></tr>` : "";
+    return [main, expand];
+  }).join("");
+  const titleOpen = cwAnalysisExpandDetailKey === "summary:all";
+  const titleDetail = titleOpen ? renderCwAnalysisMainSiteTable(dash.rows, "summary:all") : "";
+  return `<div class="fault-chart-title cw-analysis-detail-cell${titleOpen ? " is-open" : ""}" data-detail-key="summary:all" data-has-tickets="1">สรุป Analysis · Group Problem</div>${titleDetail}<div class="table-scroll"><table class="eec-analysis-summary-table"><thead><tr><th class="eec-sum-hdr-meta" style="width:18%">Group Problem</th><th class="eec-sum-hdr-meta" style="width:6%">WO</th><th class="eec-sum-hdr-meta" style="width:8%">จำนวน Site</th><th class="eec-sum-hdr-edit" style="width:22%">Solution</th><th class="eec-sum-hdr-edit" style="width:8%">Owner</th><th class="eec-sum-hdr-edit" style="width:10%">Commit Date</th><th class="eec-sum-hdr-edit" style="width:14%">Update Progress</th><th class="eec-sum-hdr-edit" style="width:14%">Remark</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function renderCwBatteryDetailTable(dash){
+  const body = (dash.batteryRows || []).flatMap(row=>{
+    const detailKey = `battery:${row.id}`;
+    const isOpen = cwAnalysisExpandDetailKey === detailKey;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const main = `<tr class="eec-analysis-summary-row cw-analysis-detail-cell${isOpen ? " is-open" : ""}" data-detail-key="${esc(detailKey)}" data-has-tickets="1"><td><div class="eec-analysis-summary-problem">${chevron}${esc(String(row.label || "").replace(/^\d+\.\s*/, ""))}</div></td><td class="eec-analysis-summary-wo">${row.wo}</td><td class="eec-analysis-summary-wo">${row.site}</td><td></td><td>Region</td><td>TBD</td><td></td><td></td></tr>`;
+    const expand = isOpen ? `<tr class="eec-analysis-summary-expand"><td colspan="8">${renderCwAnalysisMainSiteTable(row.tickets, detailKey)}</td></tr>` : "";
+    return [main, expand];
+  }).join("");
+  const titleOpen = cwAnalysisExpandDetailKey === "summary:battery-detail";
+  const titleDetail = titleOpen ? renderCwAnalysisMainSiteTable(dash.batteryTotal.tickets, "summary:battery-detail") : "";
+  return `<div class="fault-chart-title cw-analysis-detail-cell${titleOpen ? " is-open" : ""}" data-detail-key="summary:battery-detail" data-has-tickets="1">Battery – รายละเอียดปัญหาย่อย</div>${titleDetail}<div class="table-scroll"><table class="eec-analysis-summary-table"><thead><tr><th class="eec-sum-hdr-meta" style="width:18%">Battery Sub-issue</th><th class="eec-sum-hdr-meta" style="width:6%">WO</th><th class="eec-sum-hdr-meta" style="width:8%">จำนวน Site</th><th class="eec-sum-hdr-edit" style="width:22%">Solution</th><th class="eec-sum-hdr-edit" style="width:8%">Owner</th><th class="eec-sum-hdr-edit" style="width:10%">Commit Date</th><th class="eec-sum-hdr-edit" style="width:14%">Update Progress</th><th class="eec-sum-hdr-edit" style="width:14%">Remark</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function renderCwAnalysisHorizontalTable(rows, block){
+  if(!rows.length) return `<div class="empty-hint" style="padding:12px;">ไม่มีข้อมูล</div>`;
+  const head = rows.map(r=>{
+    const detailKey = `${block}:${r.key}`;
+    const hasTt = (r.tickets?.length || r.wo || 0) > 0;
+    const isOpen = cwAnalysisExpandDetailKey === detailKey;
+    const chevron = hasTt ? `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>` : "";
+    const cls = ["eec-analysis-col-head", "cw-analysis-detail-cell", hasTt ? "" : "no-tt", isOpen ? "is-open" : ""].filter(Boolean).join(" ");
+    return `<th class="${cls}" data-detail-key="${esc(detailKey)}" data-has-tickets="${hasTt ? "1" : "0"}">${chevron}${esc(r.label)}</th>`;
+  }).join("");
+  const metric = (key,label)=> `<tr><th class="eec-arh-label">${esc(label)}</th>${rows.map(r=>{
+    const detailKey = `${block}:${r.key}`;
+    const hasTt = (r.tickets?.length || r.wo || 0) > 0;
+    const isOpen = cwAnalysisExpandDetailKey === detailKey;
+    const cls = ["eec-arh-num", "cw-analysis-detail-cell", hasTt ? "" : "no-tt", isOpen ? "is-open" : ""].filter(Boolean).join(" ");
+    return `<td class="${cls}" data-detail-key="${esc(detailKey)}" data-has-tickets="${hasTt ? "1" : "0"}">${r[key] || 0}</td>`;
+  }).join("")}</tr>`;
+  const openRow = rows.find(r=> cwAnalysisExpandDetailKey === `${block}:${r.key}`);
+  const table = `<div class="table-scroll eec-analysis-h-scroll"><table class="eec-analysis-rowhead-table eec-analysis-h-table eec-analysis-click-table"><thead><tr><th class="eec-arh-corner"></th>${head}</tr></thead><tbody>${metric("wo","WO")}${metric("site","Site")}</tbody></table></div>`;
+  const detail = openRow ? renderCwAnalysisMainSiteTable(openRow.tickets, `${block}:${openRow.key}`) : "";
+  return `<div class="eec-analysis-h-wrap">${table}${detail}</div>`;
+}
+function buildCwOfcMainSiteGroups(ofcSections){
+  const siteMap = {};
+  (ofcSections || []).forEach(section=>{
+    const endpoints = (section.endpoints?.length ? section.endpoints : String(section.section || "").split(/\s*↔\s*/)).map(s=>String(s||"").trim()).filter(Boolean);
+    const uniq = [...new Set(endpoints.length ? endpoints : [...(section.sites || [])])];
+    uniq.forEach(site=>{
+      if(!siteMap[site]) siteMap[site] = { key:site, site, link:0, wo:0, sections:[], networkLabels:new Set(), nodeTypes:new Set() };
+      const bucket = siteMap[site];
+      bucket.link++;
+      bucket.wo += section.wo || 0;
+      bucket.sections.push(section);
+      (section.networkLabels || []).forEach(l=> bucket.networkLabels.add(l));
+      (section.nodeTypes || []).forEach(t=> bucket.nodeTypes.add(t));
+    });
+  });
+  return Object.values(siteMap)
+    .map(row=>({ ...row, networkLabels:[...row.networkLabels], nodeTypes:[...row.nodeTypes], repeat: row.link >= 2 || row.wo >= 2 }))
+    .filter(row=> row.repeat)
+    .sort((a,b)=> b.wo - a.wo || a.site.localeCompare(b.site, "th"));
+}
+function renderCwOfcSectionTicketTable(section){
+  return renderCwTicketTableHtml(section?.tickets || []);
+}
+function renderCwOfcSiteSectionTable(siteRow){
+  const sections = (siteRow.sections || []).filter(section=> section.repeat).sort((a,b)=> b.wo - a.wo || a.section.localeCompare(b.section, "th"));
+  if(!sections.length) return `<div class="empty-hint" style="padding:12px;">ไม่มี Site ↔ Site</div>`;
+  const rows = sections.flatMap(section=>{
+    const isOpen = cwAnalysisExpandOfcSection === section.key;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const sectionSites = formatEecOfcSectionSitesHtml(section.section, section.repeat);
+    const netBadges = renderEecOfcNetworkBadges(section.networkLabels);
+    const nodeBadges = renderEecOfcNodeTypeBadges(section.endpoints);
+    const netCell = (netBadges || nodeBadges) ? `${netBadges}${netBadges && nodeBadges ? " " : ""}${nodeBadges}` : `<span class="muted">-</span>`;
+    const main = `<tr class="cw-analysis-ofc-section-row eec-analysis-section-row${section.repeat ? " repeat" : ""}" data-section-key="${esc(section.key)}"><td>${chevron}${sectionSites}</td><td>${netCell}</td><td class="subject-cell">${esc(String(section.subRc || "").slice(0,80))}</td><td class="srm-ofcnode-rc-count">${section.wo}</td></tr>`;
+    const expand = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="4">${renderCwOfcSectionTicketTable(section)}</td></tr>` : "";
+    return [main, expand];
+  }).join("");
+  return `<div class="eec-analysis-detail-panel"><div class="fault-section-title" style="font-size:11px;margin:0 0 8px">Site ↔ Site · Detail WO</div><table class="srm-ft-ofcnode-detail-table"><thead><tr><th>Site ↔ Site</th><th>Network / Node</th><th>Sub Root Cause หลัก</th><th>WO</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function renderCwOfcSectionTable(ofcSections){
+  const siteRows = buildCwOfcMainSiteGroups(ofcSections);
+  if(!siteRows.length) return `<div class="empty-hint" style="padding:12px;">ไม่พบ Section Site↔Site ใน Subject</div>`;
+  const body = siteRows.flatMap(row=>{
+    const isOpen = cwAnalysisExpandOfcMainSite === row.key;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const netBadges = renderEecOfcNetworkBadges(row.networkLabels);
+    const nodeBadges = row.nodeTypes?.length ? row.nodeTypes.map(t=> `<span class="eec-ofc-node-type-tag">${esc(t)}</span>`).join(" ") : "";
+    const netCell = (netBadges || nodeBadges) ? `${netBadges}${netBadges && nodeBadges ? " " : ""}${nodeBadges}` : `<span class="muted">-</span>`;
+    const main = `<tr class="cw-analysis-ofc-main-row eec-analysis-section-row${row.repeat ? " repeat" : ""}" data-main-site="${esc(row.key)}"><td>${chevron}<span class="eec-ofc-section-site${row.repeat ? " repeat-site" : ""}">${esc(row.site)}</span></td><td>${netCell}</td><td class="srm-ofcnode-rc-count">${row.link}</td><td class="srm-ofcnode-rc-count">${row.wo}</td></tr>`;
+    const expand = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="4">${renderCwOfcSiteSectionTable(row)}</td></tr>` : "";
+    return [main, expand];
+  }).join("");
+  return `<table class="srm-ft-ofcnode-detail-table"><thead><tr><th>Main Site</th><th>Network / Node</th><th>Site ↔ Site</th><th>WO</th></tr></thead><tbody>${body}</tbody></table>`;
+}
+function onCwAnalysisClick(e){
+  const ofcSection = e.target.closest(".cw-analysis-ofc-section-row[data-section-key]");
+  if(ofcSection){
+    const key = ofcSection.getAttribute("data-section-key");
+    cwAnalysisExpandDetailKey = null;
+    cwAnalysisExpandSite = null;
+    cwAnalysisExpandOfcSection = (cwAnalysisExpandOfcSection === key) ? null : key;
+    renderCwAnalysis();
+    return;
+  }
+  const ofcMain = e.target.closest(".cw-analysis-ofc-main-row[data-main-site]");
+  if(ofcMain){
+    const key = ofcMain.getAttribute("data-main-site");
+    cwAnalysisExpandDetailKey = null;
+    cwAnalysisExpandSite = null;
+    if(cwAnalysisExpandOfcMainSite !== key) cwAnalysisExpandOfcSection = null;
+    cwAnalysisExpandOfcMainSite = (cwAnalysisExpandOfcMainSite === key) ? null : key;
+    renderCwAnalysis();
+    return;
+  }
+  const siteRow = e.target.closest(".cw-analysis-site-row[data-detail-key][data-site]");
+  if(siteRow){
+    const key = `${siteRow.getAttribute("data-detail-key")}|${siteRow.getAttribute("data-site")}`;
+    cwAnalysisExpandSite = (cwAnalysisExpandSite === key) ? null : key;
+    renderCwAnalysis();
+    return;
+  }
+  const detail = e.target.closest(".cw-analysis-detail-cell[data-detail-key]");
+  if(detail){
+    const key = detail.getAttribute("data-detail-key");
+    if(cwAnalysisExpandDetailKey !== key) cwAnalysisExpandSite = null;
+    cwAnalysisExpandOfcMainSite = null;
+    cwAnalysisExpandOfcSection = null;
+    cwAnalysisExpandDetailKey = (cwAnalysisExpandDetailKey === key) ? null : key;
+    renderCwAnalysis();
+  }
+}
+function renderCwAnalysis(){
+  const dash = buildCwAnalysisDashboard();
+  const summaryEl = document.getElementById("cwAnalysisSummaryWrap");
+  if(summaryEl){
+    summaryEl.innerHTML = renderCwAnalysisSummaryTable(dash) + renderCwBatteryDetailTable(dash);
+    summaryEl.onclick = onCwAnalysisClick;
+  }
+  const gridEl = document.getElementById("cwAnalysisMainGrid");
+  if(!gridEl) return;
+  const batteryTable = renderCwAnalysisHorizontalTable(dash.batteryRows.map(r=>({ key:r.id, label:r.label, wo:r.wo, site:r.site, tickets:r.tickets })), "battery");
+  const stolenTable = renderCwAnalysisHorizontalTable([{ key:"main", label:"ขโมย", wo:dash.stolen.wo, site:dash.stolen.site, tickets:dash.stolen.tickets }], "stolen");
+  const batteryTitleDetail = cwAnalysisExpandDetailKey === "summary:battery" ? renderCwAnalysisMainSiteTable(dash.batteryTotal.tickets, "summary:battery") : "";
+  const stolenTitleDetail = cwAnalysisExpandDetailKey === "summary:stolen" ? renderCwAnalysisMainSiteTable(dash.stolen.tickets, "summary:stolen") : "";
+  gridEl.innerHTML = `<div class="fault-chart-card eec-analysis-block eec-analysis-hw-block"><div class="fault-chart-title cw-analysis-detail-cell${cwAnalysisExpandDetailKey === "summary:battery" ? " is-open" : ""}" data-detail-key="summary:battery" data-has-tickets="${dash.batteryTotal.wo ? "1" : "0"}">Battery</div>${batteryTitleDetail}${batteryTable}</div><div class="fault-chart-card eec-analysis-block"><div class="fault-chart-title cw-analysis-detail-cell${cwAnalysisExpandDetailKey === "summary:stolen" ? " is-open" : ""}" data-detail-key="summary:stolen" data-has-tickets="${dash.stolen.wo ? "1" : "0"}">Stolen</div>${stolenTitleDetail}${stolenTable}</div><div class="fault-chart-card eec-analysis-block" style="grid-column:1 / -1;"><div class="fault-chart-title">OFC · Section Site ↔ Site</div>${renderCwOfcSectionTable(dash.ofcSections)}</div>`;
+  gridEl.onclick = onCwAnalysisClick;
+}
+function switchCwSubTab(tab){
+  if(!["charts","over-sla","ltr","analysis"].includes(tab)) return;
+  cwSubTab = tab;
+  document.getElementById("cwSubChartsBtn")?.classList.toggle("active", tab === "charts");
+  document.getElementById("cwSubOverSlaBtn")?.classList.toggle("active", tab === "over-sla");
+  document.getElementById("cwSubLtrBtn")?.classList.toggle("active", tab === "ltr");
+  document.getElementById("cwSubAnalysisBtn")?.classList.toggle("active", tab === "analysis");
+  document.getElementById("cwSubCharts").style.display = tab === "charts" ? "block" : "none";
+  document.getElementById("cwSubOverSla").style.display = tab === "over-sla" ? "block" : "none";
+  document.getElementById("cwSubLtr").style.display = tab === "ltr" ? "block" : "none";
+  document.getElementById("cwSubAnalysis").style.display = tab === "analysis" ? "block" : "none";
+  moveCwSubTabIndicator();
+  renderCwTab();
+}
+function moveCwSubTabIndicator(){
+  const activeBtn = document.querySelector("#tabsCwSub .tab-btn.active");
+  const ind = document.getElementById("tabIndicatorCwSub");
+  if(!activeBtn || !ind) return;
+  ind.style.width = activeBtn.offsetWidth + "px";
+  ind.style.left = activeBtn.offsetLeft + "px";
+}
+function renderCwTab(){
+  if(currentTab !== "cw") return;
+  if(cwSubTab === "over-sla") renderCwOverSla();
+  else if(cwSubTab === "ltr") renderCwLtr();
+  else if(cwSubTab === "analysis") renderCwAnalysis();
+  else renderCwTrend();
+  const statusEl = document.getElementById("statusMsgCw");
+  if(statusEl) statusEl.textContent = formatCwStatusMessage();
+  requestAnimationFrame(()=> moveCwSubTabIndicator());
+}
+function mapCwWoImportRow(r){
+  if(isSrmMaintenanceWo({ work_order_id: String(r["Work Order ID"] || "").trim() })) return null;
+  if(rowHasWoCreatorColumn(r) && !isSystemWoCreatorRow(r)) return null;
+  const raw = mapFaultImportRow(r);
+  if(!raw) return null;
+  const closed = parseEecClosedFromImportRow(r, "wo");
+  if(!closed) return null;
+  raw.closed_time = closed;
+  if(!rowHasWoCreatorColumn(r) && !raw.wo_creator) raw.wo_creator = "System";
+  if(raw.region && !/^CW$/i.test(String(raw.region).trim())) return null;
+  if(!isFaultSrmSeverity(raw) || !isFaultSystemWoCreator(raw) || !hasFaultSourceTicketId(raw)) return null;
+  const site = extractCwSite(raw);
+  const incidentId = String(raw.work_order_id || raw.source_ticket_id || "").trim();
+  if(!incidentId) return null;
+  return {
+    incident_id: incidentId,
+    source_ticket_id: raw.source_ticket_id || null,
+    severity: getSrmFtSeverityKey(raw),
+    subject: raw.subject || "",
+    site_id: site,
+    province: "",
+    status: raw.status || "",
+    root_cause: raw.root_cause || null,
+    sub_root_cause: raw.sub_root_cause || null,
+    remedy: raw.close_description || raw.complete_solution || null,
+    team: raw.team || null,
+    created_time: raw.created_time || null,
+    require_finish_time: raw.require_finish_time || null,
+    departed_time: raw.departed_time || null,
+    arrived_time: raw.arrived_time || null,
+    closed_time: raw.closed_time,
+    wo_creator: raw.wo_creator || "System",
+    updated_at: new Date().toISOString()
+  };
+}
+async function bulkInsertCwTickets(rows){
+  const statusEl = document.getElementById("statusMsgCw");
+  const payloads = [];
+  let skipped = 0;
+  rows.forEach(r=>{
+    const p = sanitizeCwUpsertPayload(mapCwWoImportRow(r));
+    if(p) payloads.push(p); else skipped++;
+  });
+  const uniquePayloads = dedupeRowsByKey(payloads, "incident_id");
+  let synced = 0;
+  for(let i = 0; i < uniquePayloads.length; i += 40){
+    const chunk = alignCwUpsertChunk(uniquePayloads.slice(i, i + 40));
+    const res = await fetch(CW_REST + "?on_conflict=incident_id", {
+      method:"POST", headers:{...HEADERS, "Prefer":"resolution=merge-duplicates,return=representation"}, body:JSON.stringify(chunk)
+    });
+    if(!res.ok){
+      const errText = await res.text();
+      if(statusEl) statusEl.textContent = `Import failed: ${errText}`.slice(0, 300);
+      return;
+    }
+    synced += chunk.length;
+    if(statusEl) statusEl.textContent = `CW Tickets... ${synced}/${uniquePayloads.length}`;
+  }
+  await loadCwSiteTickets(false, true);
+  if(statusEl) statusEl.textContent = `อัปโหลด CW ${synced} แถว · ข้าม ${skipped} · รวม ${cwSiteTickets.length} TT · Region CW`;
+  toast(`CW upload: ${synced} work order`);
+}
+function handleCwWoUpload(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    let rows = [];
+    if(file.name.match(/\.csv$/i)) rows = parseCSV(e.target.result);
+    else{
+      const wb = XLSX.read(e.target.result, {type:"binary", cellDates:true});
+      rows = XLSX.utils.sheet_to_json(getFaultUploadSheet(wb), {defval:"", raw:false});
+    }
+    await bulkInsertCwTickets(rows);
+    evt.target.value = "";
+  };
+  if(file.name.match(/\.csv$/i)) reader.readAsText(file);
+  else reader.readAsBinaryString(file);
+}
 function esc(s){ return String(s==null?"":s).replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
 let toastTimer;
 function toast(msg){
