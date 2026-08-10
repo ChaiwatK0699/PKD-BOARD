@@ -8157,7 +8157,7 @@ const faultBarLabelPlugin = {
     const isOverview = chartId === "faultOverviewChart";
     const isSrmFtSev = chartId === "srmFtSevChart" || chartId === "srmFtOfcNodeChart"
       || chartId === "eecSevChart" || chartId === "eecOfcNodeChart" || chartId === "eecProvChart"
-      || chartId === "eecOverSlaChart";
+      || chartId === "eecOverSlaChart" || chartId === "cwSevChart" || chartId === "cwOfcNodeChart";
     const useOverviewLabels = isOverview || isSrmFtSev;
     if(useOverviewLabels) chart._faultOverviewLabelBoxes = [];
     ctx.save();
