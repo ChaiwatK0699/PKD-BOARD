@@ -2711,7 +2711,7 @@ function renderFilterbar(group){
     <div class="fgroup"><label class="flabel">Closed To</label><input type="date" class="date-input" value="${esc(f.dateTo || "")}" onchange="onClosedDateRangeChange('to', this.value)"></div>
   ` : "";
   const closedTeamFilter = group === "closed" ? `<div class="srm-ft-ofcnode-filter" style="margin:0;">
-    ${["NODE1","NODE2","OFC1","OFC2"].map(team=>`<button type="button" class="btn sm ${f.teamKeys?.has(team) ? "primary" : "ghost"}" onclick="toggleClosedTeamFilter('${team}')">${team}</button>`).join("")}
+    ${["NODE1","NODE2","OFC1","OFC2","OFC3"].map(team=>`<button type="button" class="btn sm ${f.teamKeys?.has(team) ? "primary" : "ghost"}" onclick="toggleClosedTeamFilter('${team}')">${team}</button>`).join("")}
   </div>` : "";
   el.innerHTML = `
     <div class="fgroup"><label class="flabel">Severity</label>
@@ -2799,6 +2799,7 @@ function renderTeams(group){
        {h:"Update Log Status", w:220, field:"evening_summary", editable:true, big:true}];
   getBoardTeamMap().forEach(tm=>{
     const team = tm.team_key;
+    if(group === "closed" && filters.closed.teamKeys?.size && !filters.closed.teamKeys.has(team)) return;
     const teamRows = team === OTHER_TEAM_KEY
       ? rows.filter(r=> ticketBelongsToOtherTeam(r))
       : rows.filter(r=> ticketTeamMatches(r, team));
@@ -6515,7 +6516,7 @@ async function bulkInsertSvcAva(rows){
   rows.forEach(r=>{
     const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
     if(isCancelStatus(get("Status"))) { cancelSkipped++; return; }
-    if(groupBtn !== "closed" && !isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
+    if(!isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
     if(isBroadbandRow(r)){ broadbandSkipped++; return; }
     const p = mapSvcAvaImportRow(r);
     if(p) payloads.push(p);
@@ -6571,15 +6572,56 @@ function exportGroupExcel(group){
   } else {
     rows = groupSourceRows(group).filter(r=>passFilter(r, group));
     sheetName = group==="pending" ? "Pending" : "Closed";
-    cols = [
+    cols = group==="closed" ? [
+      {h:"Team", get:r=>r.team||""},
+      {h:"Raw Team", get:r=>r.raw_team||""},
+      {h:"Site ID", get:r=>r.site_code||""},
+      {h:"Source Ticket ID", get:r=>r.tt_number||""},
+      {h:"SDM TT", get:r=>r.sdm_tt||""},
+      {h:"External Ticket ID", get:r=>r.external_ticket_id||""},
+      {h:"Work Order ID", get:r=>r.work_order_id||""},
+      {h:"Region", get:r=>r.region||""},
+      {h:"Province", get:r=>r.province||""},
+      {h:"Skill", get:r=>r.skill||""},
+      {h:"Status", get:r=>r.wo_status||""},
+      {h:"Suspend Status", get:r=>r.suspend_status||""},
+      {h:"Suspend Reason", get:r=>r.suspend_reason||""},
+      {h:"Suspend Description", get:r=>r.suspend_description||""},
+      {h:"Incident Urgency", get:r=>r.incident_urgency||""},
+      {h:"Severity", get:r=>r.severity||""},
+      {h:"Created Time", get:r=>fmtFaultRawDT(r.created_time)},
+      {h:"Require Finish Time", get:r=>fmtFaultRawDT(r.require_finish_time)},
+      {h:"SLA", get:r=>r.sla||""},
+      {h:"Dispatched", get:r=>fmtFaultRawDT(r.dispatched_time)},
+      {h:"Accepted", get:r=>fmtFaultRawDT(r.accepted_time)},
+      {h:"Departed", get:r=>fmtFaultRawDT(r.departed_time)},
+      {h:"Arrived", get:r=>fmtFaultRawDT(r.arrived_time)},
+      {h:"Completed", get:r=>fmtFaultRawDT(r.completed_time)},
+      {h:"Closed", get:r=>fmtFaultRawDT(r.closed_time)},
+      {h:"Downtime", get:r=>{ const mins = calcFaultDowntimeMinutes(r); return mins != null ? fmtHMText(mins) : ""; }},
+      {h:"Time to Arrive", get:r=>r.time_to_arrive||""},
+      {h:"Time to Complete", get:r=>r.time_to_complete||""},
+      {h:"Time to Leave", get:r=>r.time_to_leave||""},
+      {h:"Work Type", get:r=>r.work_type||""},
+      {h:"Fault Size", get:r=>r.fault_size||""},
+      {h:"Point", get:r=>r.point||""},
+      {h:"Root Cause", get:r=>r.root_cause||""},
+      {h:"Sub Root Cause", get:r=>r.sub_root_cause||""},
+      {h:"Close Description", get:r=>r.close_description||""},
+      {h:"Complete Solution", get:r=>r.complete_solution||""},
+      {h:"Subject", get:r=>r.subject||""},
+      {h:"WO Creator", get:r=>r.wo_creator||""},
+      {h:"Update Log Status", get:r=>r.evening_summary||""},
+      {h:"INOC Log", get:r=>r.inoc_feedback||""}
+    ] : [
       {h:"Team", get:r=>r.team||""},
       {h:"Site ID", get:r=>r.site_code||""},
       {h:"TT / Ext ID", get:r=>r.tt_number||r.work_order_id||""},
       {h:"Subject", get:r=>r.subject||""},
-      {h:"Suspend Reason", get:r=>r.suspend_reason||""},           // INOC-filled
-      {h:"Suspend Description", get:r=>r.suspend_description||""}, // INOC-filled
-      {h:"Update Log Status", get:r=>r.evening_summary||""},       // INOC-filled
-      {h:"INOC Log", get:r=>r.inoc_feedback||""}                    // INOC-filled
+      {h:"Suspend Reason", get:r=>r.suspend_reason||""},
+      {h:"Suspend Description", get:r=>r.suspend_description||""},
+      {h:"Update Log Status", get:r=>r.evening_summary||""},
+      {h:"INOC Log", get:r=>r.inoc_feedback||""}
     ];
   }
   if(rows.length===0){ toast("No rows to export"); return; }
@@ -6685,6 +6727,7 @@ async function bulkInsertWorkOrders(rows, groupBtn){
       accepted_time: get("Accepted"),
       departed_time: get("Departed"),
       arrived_time: get("Arrived"),
+      resume_time: get("Pause/Resume Time"),
       completed_time: get("Completed"),
       closed_time: get("Closed"),
       time_to_arrive: get("Time to Arrive"),
@@ -7065,8 +7108,9 @@ const FAULT_EXPORT_COLS = [
   {h:"Ticket Open", get:r=>fmtFaultRawDT(r.created_time)},
   {h:"Require Finish", get:r=>fmtFaultRawDT(r.require_finish_time)},
   {h:"Departed", get:r=>fmtFaultRawDT(r.departed_time)},
-  {h:"Arrived", get:r=>fmtFaultRawDT(r.arrived_time)},
-  {h:"Completed", get:r=>fmtFaultRawDT(r.completed_time)},
+      {h:"Arrived", get:r=>fmtFaultRawDT(r.arrived_time)},
+      {h:"Pause/Resume Time", get:r=>fmtFaultRawDT(r.resume_time)},
+      {h:"Completed", get:r=>fmtFaultRawDT(r.completed_time)},
   {h:"Close", get:r=>fmtFaultRawDT(r.closed_time)},
   {h:"Downtime", get:r=>{ const c=r._fault||classifyFaultTicket(r); return c.downtimeMinutes!=null?fmtHMText(c.downtimeMinutes):""; }},
   {h:"Root Cause", get:r=>r.root_cause||""},
