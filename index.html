@@ -1629,6 +1629,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn active" id="eecSubChartsBtn" onclick="switchEecSubTab('charts')">Trend</button>
       <button class="tab-btn" id="eecSubOverSlaBtn" onclick="switchEecSubTab('over-sla')">Over SLA</button>
       <button class="tab-btn" id="eecSubLtrBtn" onclick="switchEecSubTab('ltr')">Long time Repair</button>
+      <button class="tab-btn" id="eecSubSiteSearchBtn" onclick="switchEecSubTab('site-search')">Site Search</button>
       <button class="tab-btn" id="eecSubAnalysisBtn" onclick="switchEecSubTab('analysis')">Analysis</button>
       <button class="tab-btn" id="eecSubTeamBtn" onclick="switchEecSubTab('team')">Analysis Team</button>
     </div>
@@ -1699,6 +1700,32 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="fault-table-block">
         <div class="fault-section-title">1-2 Hrs. <span class="badge" id="eec12Count">0</span></div>
         <div class="table-scroll" id="eec12TableWrap"></div>
+      </div>
+    </div>
+    <div id="eecSubSiteSearch" style="display:none;">
+      <div class="fault-chart-card">
+        <div class="fault-overview-toolbar" style="margin-bottom:12px;">
+          <div>
+            <div class="fault-chart-title" style="margin:0">Site Search · Ticket Lookup</div>
+            <p class="status-msg" id="eecSiteSearchHint" style="margin:4px 0 0;text-transform:none;font-size:12px;">พิมพ์ Site ID เพื่อค้นหา WO ทั้งหมดของ Site นั้น</p>
+          </div>
+          <div class="fgroup" style="min-width:280px;">
+            <label class="flabel" for="eecSiteSearchInput">Site ID</label>
+            <input type="text" id="eecSiteSearchInput" class="search-input" placeholder="เช่น CCS0050-AC-01" oninput="onEecSiteSearchInput(this.value)">
+          </div>
+          <div class="fgroup">
+            <label class="flabel" for="eecSiteSearchDateFrom">วันที่เลือก</label>
+            <input type="date" id="eecSiteSearchDateFrom" class="date-input" onchange="onEecSiteSearchDateChange()">
+          </div>
+          <div class="fgroup">
+            <label class="flabel" for="eecSiteSearchDateTo">วันที่เลือก</label>
+            <input type="date" id="eecSiteSearchDateTo" class="date-input" onchange="onEecSiteSearchDateChange()">
+          </div>
+          <button type="button" class="btn ghost sm" onclick="clearEecSiteSearch()">Clear</button>
+        </div>
+        <div class="srm-ft-ofcnode-filter" id="eecSiteSearchSuggestions"></div>
+        <div class="status-msg" id="eecSiteSearchSummary" style="margin:10px 0;text-transform:none;font-size:12px;"></div>
+        <div class="table-scroll" id="eecSiteSearchResultWrap"></div>
       </div>
     </div>
     <div id="eecSubAnalysis" style="display:none;">
@@ -2088,7 +2115,11 @@ function getActiveTeamMap(){
   return (Array.isArray(TEAM_MAP) && TEAM_MAP.length) ? TEAM_MAP : DEFAULT_TEAM_MAP;
 }
 let tickets = { pending: [], closed: [], svcava: [] };
-let filters = { pending:{severities:new Set(), plkdOnly:false, search:""}, closed:{severities:new Set(), plkdOnly:true, search:""}, manual:{severities:new Set(), plkdOnly:false, search:""} };
+let filters = {
+  pending:{severities:new Set(), plkdOnly:false, search:""},
+  closed:{severities:new Set(), plkdOnly:true, search:"", dateFrom:"", dateTo:"", teamKeys:new Set()},
+  manual:{severities:new Set(), plkdOnly:false, search:""}
+};
 let currentTab = "home";
 let ATTENDANCE = {}; // team_key -> {clock_in, arrived, plan_override, inoc_feedback}
 let HOME_NOTE = { service_ava: "" };
@@ -2264,6 +2295,9 @@ let eecAnalysisBattDetailExpandRow = null;
 let eecDetailProvinceFilter = "";
 let eecDetailExpandSite = null;
 let eecDetailAlarmFilter = "all";
+let eecSiteSearchQuery = "";
+let eecSiteSearchDateFrom = "";
+let eecSiteSearchDateTo = "";
 let cwSiteTickets = [];
 let cwSiteTicketsLoaded = false;
 let cwSiteTicketsLoadingPromise = null;
@@ -2672,6 +2706,13 @@ function renderFilterbar(group){
     .slice(0, 500);
   const listId = `searchList${group.charAt(0).toUpperCase()}${group.slice(1)}`;
   const f = filters[group];
+  const closedDateFilter = group === "closed" ? `
+    <div class="fgroup"><label class="flabel">Closed From</label><input type="date" class="date-input" value="${esc(f.dateFrom || "")}" onchange="onClosedDateRangeChange('from', this.value)"></div>
+    <div class="fgroup"><label class="flabel">Closed To</label><input type="date" class="date-input" value="${esc(f.dateTo || "")}" onchange="onClosedDateRangeChange('to', this.value)"></div>
+  ` : "";
+  const closedTeamFilter = group === "closed" ? `<div class="srm-ft-ofcnode-filter" style="margin:0;">
+    ${["NODE1","NODE2","OFC1","OFC2"].map(team=>`<button type="button" class="btn sm ${f.teamKeys?.has(team) ? "primary" : "ghost"}" onclick="toggleClosedTeamFilter('${team}')">${team}</button>`).join("")}
+  </div>` : "";
   el.innerHTML = `
     <div class="fgroup"><label class="flabel">Severity</label>
       <select class="sev-select" multiple size="1" onchange="onSevChange('${group}', this)">
@@ -2679,6 +2720,8 @@ function renderFilterbar(group){
         ${allSev.map(s=>`<option value="${esc(s)}" ${f.severities.has(s)?'selected':''}>${esc(s)}</option>`).join("")}
       </select>
     </div>
+    ${closedDateFilter}
+    ${closedTeamFilter}
     <label class="toggle-chip"><input type="checkbox" ${f.plkdOnly?'checked':''} onchange="onPlkdToggle('${group}', this.checked)"> PLKD Watchlist only</label>
     <div class="fgroup"><input class="search-box" list="${listId}" placeholder="Search Source Ticket ID / Work Order ID" value="${esc(f.search)}" oninput="onSearch('${group}', this.value)"><datalist id="${listId}">${searchOptions.map(v=>`<option value="${esc(v)}"></option>`).join("")}</datalist></div>
   `;
@@ -2690,6 +2733,22 @@ function onSevChange(group, sel){
 }
 function onPlkdToggle(group, val){ filters[group].plkdOnly = val; renderTeams(group); }
 function onSearch(group, val){ filters[group].search = val; renderTeams(group); }
+function onClosedDateRangeChange(which, value){
+  if(which === "from") filters.closed.dateFrom = value || "";
+  if(which === "to") filters.closed.dateTo = value || "";
+  renderTeams("closed");
+  renderFilterbar("closed");
+  const el = document.getElementById("countClosed");
+  if(el) el.textContent = groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length;
+}
+function toggleClosedTeamFilter(team){
+  const set = filters.closed.teamKeys;
+  if(set.has(team)) set.delete(team); else set.add(team);
+  renderTeams("closed");
+  renderFilterbar("closed");
+  const el = document.getElementById("countClosed");
+  if(el) el.textContent = groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length;
+}
 
 function passFilter(r, group){
   const f = filters[group];
@@ -2699,6 +2758,12 @@ function passFilter(r, group){
   if(sevUp==="NSA5" || sevUp==="NSA6") return false; // hide NSA5/6 everywhere
   if(f.severities.size && !f.severities.has(r.severity)) return false;
   if(f.plkdOnly && !isPlkdMatch(r)) return false;
+  if(group === "closed"){
+    const closedDay = String(r.closed_time || "").slice(0, 10);
+    if(f.dateFrom && (!closedDay || closedDay < f.dateFrom)) return false;
+    if(f.dateTo && (!closedDay || closedDay > f.dateTo)) return false;
+    if(f.teamKeys?.size && ![...f.teamKeys].some(team=>ticketTeamMatches(r, team))) return false;
+  }
   if(f.search){
     const q = f.search.toUpperCase();
     const qNorm = normalizeTicketSearchText(q);
@@ -2767,6 +2832,7 @@ function renderTeams(group){
         <th>Arrived</th>
         <th>Completed</th>
         <th>Closed</th>
+        ${group==="closed" ? "<th>Downtime<br><span class=\"th-sub\">Created → Closed</span></th>" : ""}
         ${extraCols.map(c=>`<th>${c.h}</th>`).join("")}
         <th>INOC LOG</th>
         <th></th>
@@ -2799,6 +2865,7 @@ function renderTeams(group){
         <td class="dt-cell">${fmtDT(r.arrived_time)}</td>
         <td class="dt-cell">${fmtDT(r.completed_time)}</td>
         <td class="dt-cell">${fmtDT(r.closed_time)}</td>
+        ${group==="closed" ? `<td class="dt-cell dt-downtime">${fmtFaultDowntime(calcFaultDowntimeMinutes(r))}</td>` : ""}
         ${extraCols.map(c=> c.big
           ? `<td><textarea class="home-evening free-ta" placeholder="Update log status…" onchange="updateField('${r.id}','${c.field}', this.value)">${esc(r[c.field]||'')}</textarea></td>`
           : c.editable
@@ -13112,13 +13179,13 @@ function renderEecDetailTableHtml(rows){
       <td>${esc(r.wo_creator||"")}</td>
       <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
       <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
-      <td class="subject-cell">${esc(r.root_cause||"")}</td>
-      <td class="subject-cell">${esc(r.remedy||"")}</td>
+      <td class="subject-cell">${esc(getEecSubRootCauseForTicket(r) || "")}</td>
+      <td class="subject-cell">${esc(getEecClosedDescription(r) || "")}</td>
     </tr>`;
   }).join("");
   return `<table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
     <th>Site</th><th>Ticket / WO</th><th>Province</th><th>Subject</th><th>Severity</th><th>Status</th>
-    <th>WO Creator</th><th>Created</th><th>Closed</th><th>Root Cause</th><th>Remedy</th>
+    <th>WO Creator</th><th>Created</th><th>Closed</th><th>Sub Root Cause</th><th>Closed Description</th>
   </tr></thead><tbody>${bodyHtml}</tbody></table>`;
 }
 function renderEecSlaTableHtml(rows){
@@ -13199,6 +13266,119 @@ function renderEecDetailPanel(){
   renderEecDetailProvinceButtons();
   const wrap = document.getElementById("eecDetailTableWrap");
   if(wrap) wrap.innerHTML = renderEecSiteDetailTableHtml(sites);
+}
+function normalizeEecSiteSearchValue(v){
+  return String(v || "").trim().toUpperCase();
+}
+function getEecTicketSearchSite(r){
+  return normalizeEecSiteSearchValue(getEecPowerOutageSiteKey(r) || r?.site_id || extractEecSite(r));
+}
+function getEecSiteSearchDateKey(r){
+  const raw = String(r?.closed_time || r?.created_time || "").trim();
+  return raw ? raw.slice(0, 10) : "";
+}
+function getEecSiteSearchDateRange(){
+  let from = String(eecSiteSearchDateFrom || "").trim();
+  let to = String(eecSiteSearchDateTo || "").trim();
+  if(from && to && from > to) [from, to] = [to, from];
+  return { from, to };
+}
+function passesEecSiteSearchDateRange(r){
+  const day = getEecSiteSearchDateKey(r);
+  const { from, to } = getEecSiteSearchDateRange();
+  if(!day) return !from && !to;
+  if(from && day < from) return false;
+  if(to && day > to) return false;
+  return true;
+}
+function getEecSiteSearchRows(){
+  const q = normalizeEecSiteSearchValue(eecSiteSearchQuery);
+  if(!q) return [];
+  return getEecBaseTickets().filter(r=>{
+    const site = getEecTicketSearchSite(r);
+    return (site === q || site.includes(q)) && passesEecSiteSearchDateRange(r);
+  }).sort((a,b)=> String(b.created_time || b.closed_time || "").localeCompare(String(a.created_time || a.closed_time || "")));
+}
+function getEecSiteSearchSuggestions(){
+  const q = normalizeEecSiteSearchValue(eecSiteSearchQuery);
+  if(!q) return [];
+  const counts = {};
+  getEecBaseTickets().forEach(r=>{
+    if(!passesEecSiteSearchDateRange(r)) return;
+    const site = getEecTicketSearchSite(r);
+    if(!site || !site.includes(q)) return;
+    counts[site] = (counts[site] || 0) + 1;
+  });
+  return Object.entries(counts)
+    .map(([site, count])=>({ site, count }))
+    .sort((a,b)=> b.count - a.count || a.site.localeCompare(b.site))
+    .slice(0, 12);
+}
+function onEecSiteSearchInput(value){
+  eecSiteSearchQuery = value || "";
+  renderEecSiteSearchPanel();
+}
+function onEecSiteSearchDateChange(){
+  eecSiteSearchDateFrom = document.getElementById("eecSiteSearchDateFrom")?.value || "";
+  eecSiteSearchDateTo = document.getElementById("eecSiteSearchDateTo")?.value || "";
+  renderEecSiteSearchPanel();
+}
+function setEecSiteSearch(site){
+  eecSiteSearchQuery = site || "";
+  const input = document.getElementById("eecSiteSearchInput");
+  if(input) input.value = eecSiteSearchQuery;
+  renderEecSiteSearchPanel();
+}
+function clearEecSiteSearch(){
+  eecSiteSearchDateFrom = "";
+  eecSiteSearchDateTo = "";
+  const fromEl = document.getElementById("eecSiteSearchDateFrom");
+  const toEl = document.getElementById("eecSiteSearchDateTo");
+  if(fromEl) fromEl.value = "";
+  if(toEl) toEl.value = "";
+  setEecSiteSearch("");
+}
+function renderEecSiteSearchPanel(){
+  const input = document.getElementById("eecSiteSearchInput");
+  if(input && input.value !== eecSiteSearchQuery) input.value = eecSiteSearchQuery;
+  const fromEl = document.getElementById("eecSiteSearchDateFrom");
+  const toEl = document.getElementById("eecSiteSearchDateTo");
+  if(fromEl && fromEl.value !== eecSiteSearchDateFrom) fromEl.value = eecSiteSearchDateFrom;
+  if(toEl && toEl.value !== eecSiteSearchDateTo) toEl.value = eecSiteSearchDateTo;
+  const suggestionsEl = document.getElementById("eecSiteSearchSuggestions");
+  const summaryEl = document.getElementById("eecSiteSearchSummary");
+  const wrap = document.getElementById("eecSiteSearchResultWrap");
+  if(!wrap) return;
+  const q = normalizeEecSiteSearchValue(eecSiteSearchQuery);
+  if(!q){
+    if(suggestionsEl) suggestionsEl.innerHTML = "";
+    if(summaryEl) summaryEl.textContent = "ใส่ Site ID เพื่อค้นหา Ticket / WO";
+    wrap.innerHTML = `<div class="empty-hint" style="padding:16px;">ยังไม่ได้ค้นหา Site</div>`;
+    return;
+  }
+  const rows = getEecSiteSearchRows();
+  const suggestions = getEecSiteSearchSuggestions();
+  if(suggestionsEl){
+    suggestionsEl.innerHTML = suggestions.length
+      ? `<span class="flabel">Matched Site</span><div class="srm-ft-ofcnode-seg">${suggestions.map(s=> `<button type="button" class="srm-ft-ofcnode-btn ${s.site === q ? "active" : ""}" onclick="setEecSiteSearch('${esc(s.site)}')">${esc(s.site)}<span class="seg-count">${s.count}</span></button>`).join("")}</div>`
+      : "";
+  }
+  const exactCount = rows.filter(r=> getEecTicketSearchSite(r) === q).length;
+  const { from, to } = getEecSiteSearchDateRange();
+  const dateText = from || to ? ` · Date ${from || "..."} - ${to || "..."}` : "";
+  if(summaryEl){
+    summaryEl.textContent = exactCount
+      ? `${q} · ${exactCount} exact WO · ${rows.length} matched WO`
+      : `${q} · ${rows.length} matched WO`;
+  }
+  if(summaryEl){
+    summaryEl.textContent = exactCount
+      ? `${q} · ${exactCount} exact WO · ${rows.length} matched WO${dateText}`
+      : `${q} · ${rows.length} matched WO${dateText}`;
+  }
+  wrap.innerHTML = rows.length
+    ? renderEecDetailTableHtml(rows)
+    : `<div class="empty-hint" style="padding:16px;">ไม่พบ Ticket ของ Site: ${esc(q)}</div>`;
 }
 function addIsoDays(isoDay, n){
   if(!isoDay) return null;
@@ -15304,21 +15484,24 @@ function toggleAnalysisTeamDetail(scope, metric, teamKey){
   renderAnalysisTeamPanel(scope);
 }
 function switchEecSubTab(tab){
-  if(!["charts","over-sla","ltr","analysis","team"].includes(tab)) return;
+  if(!["charts","over-sla","ltr","site-search","analysis","team"].includes(tab)) return;
   eecSubTab = tab;
   document.getElementById("eecSubChartsBtn")?.classList.toggle("active", tab === "charts");
   document.getElementById("eecSubOverSlaBtn")?.classList.toggle("active", tab === "over-sla");
   document.getElementById("eecSubLtrBtn")?.classList.toggle("active", tab === "ltr");
+  document.getElementById("eecSubSiteSearchBtn")?.classList.toggle("active", tab === "site-search");
   document.getElementById("eecSubAnalysisBtn")?.classList.toggle("active", tab === "analysis");
   document.getElementById("eecSubTeamBtn")?.classList.toggle("active", tab === "team");
   const chartsEl = document.getElementById("eecSubCharts");
   const overSlaEl = document.getElementById("eecSubOverSla");
   const ltrEl = document.getElementById("eecSubLtr");
+  const siteSearchEl = document.getElementById("eecSubSiteSearch");
   const analysisEl = document.getElementById("eecSubAnalysis");
   const teamEl = document.getElementById("eecSubTeam");
   if(chartsEl) chartsEl.style.display = tab === "charts" ? "block" : "none";
   if(overSlaEl) overSlaEl.style.display = tab === "over-sla" ? "block" : "none";
   if(ltrEl) ltrEl.style.display = tab === "ltr" ? "block" : "none";
+  if(siteSearchEl) siteSearchEl.style.display = tab === "site-search" ? "block" : "none";
   if(analysisEl) analysisEl.style.display = tab === "analysis" ? "block" : "none";
   if(teamEl) teamEl.style.display = tab === "team" ? "block" : "none";
   moveEecSubTabIndicator();
@@ -15335,6 +15518,7 @@ function renderEecTab(){
   if(currentTab !== "eec") return;
   if(eecSubTab === "ltr") renderEecLtrPanel();
   else if(eecSubTab === "over-sla") renderEecOverSlaPanel();
+  else if(eecSubTab === "site-search") renderEecSiteSearchPanel();
   else if(eecSubTab === "analysis") renderEecAnalysisPanel();
   else if(eecSubTab === "team") renderAnalysisTeamPanel("eec");
   else{
