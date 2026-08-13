@@ -1414,6 +1414,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="tabs tabs-vertical" id="tabsTools">
         <div class="tab-indicator" id="tabIndicatorTools"></div>
         <button class="tab-btn pending" id="tabPendingBtn" onclick="switchTab('pending')" title="Pending"><span class="tab-ico">P</span><span class="tab-text">Pending</span> <span class="count" id="countPending">0</span></button>
+        <button class="tab-btn closed" id="tabClosedBtn" onclick="switchTab('closed')" title="Closed"><span class="tab-ico">C</span><span class="tab-text">Closed</span> <span class="count" id="countClosed">0</span></button>
         <button class="tab-btn manual" id="tabManualBtn" onclick="switchTab('manual')" title="Manual Closed By INOC"><span class="tab-ico">M</span><span class="tab-text">Manual Closed By INOC</span> <span class="count" id="countManual">0</span></button>
       </div>
     </div>
@@ -1472,6 +1473,17 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div class="filterbar" id="filterbarPending"></div>
     <div id="pendingTeams"></div>
   </div>
+  <div id="closedView" class="tab-view" style="display:none;">
+    <div class="toolbar">
+      <button class="btn primary" onclick="document.getElementById('fileInputClosed').click()">Upload Work Order (Closed)</button>
+      <input type="file" id="fileInputClosed" accept=".csv,.xlsx,.xls" onchange="handleUpload(event,'closed')">
+      <button class="btn ghost sm" onclick="loadAll()">↻ Refresh</button>
+      <button class="btn green sm" onclick="exportGroupExcel('closed')">Export Excel (INOC columns)</button>
+      <span class="status-msg" id="statusMsgClosed">PLKD Watchlist only</span>
+    </div>
+    <div class="filterbar" id="filterbarClosed"></div>
+    <div id="closedTeams"></div>
+  </div>
   <div id="manualView" class="tab-view" style="display:none;">
     <div class="toolbar">
       <button class="btn ghost sm" onclick="loadAll()">↻ Refresh</button>
@@ -1509,6 +1521,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn active" id="srmSubMappingBtn" onclick="switchSrmSubTab('mapping')">Mapping</button>
       <button class="tab-btn" id="srmSubFreeTextBtn" onclick="switchSrmSubTab('freetext')">Detail</button>
       <button class="tab-btn" id="srmSubAnalysisBtn" onclick="switchSrmSubTab('analysis')">Analysis</button>
+      <button class="tab-btn" id="srmSubTeamBtn" onclick="switchSrmSubTab('team')">Analysis Team</button>
       <button class="tab-btn" id="srmSubDashboardBtn" onclick="switchSrmSubTab('dashboard')" style="display:none;">Dashboard</button>
     </div>
     <div id="srmSubMapping">
@@ -1594,6 +1607,9 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <div id="srmAnalysisSubRcWrap"></div>
       </div>
     </div>
+    <div id="srmSubTeam" class="srm-analysis-view" style="display:none;">
+      <div id="srmAnalysisTeamWrap"></div>
+    </div>
   </div>
   <div id="eecView" class="tab-view" style="display:none;">
     <div class="srm-head">
@@ -1614,6 +1630,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn" id="eecSubOverSlaBtn" onclick="switchEecSubTab('over-sla')">Over SLA</button>
       <button class="tab-btn" id="eecSubLtrBtn" onclick="switchEecSubTab('ltr')">Long time Repair</button>
       <button class="tab-btn" id="eecSubAnalysisBtn" onclick="switchEecSubTab('analysis')">Analysis</button>
+      <button class="tab-btn" id="eecSubTeamBtn" onclick="switchEecSubTab('team')">Analysis Team</button>
     </div>
     <div id="eecSubCharts">
     <div class="srm-ft-sev-cards" id="eecSevCards"></div>
@@ -1692,6 +1709,9 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="eec-analysis-summary-wrap" id="eecAnalysisSummaryWrap"></div>
       <div class="eec-analysis-grid" id="eecAnalysisMainGrid"></div>
     </div>
+    <div id="eecSubTeam" style="display:none;">
+      <div id="eecAnalysisTeamWrap"></div>
+    </div>
   </div>
   <div id="cwView" class="tab-view" style="display:none;">
     <div class="srm-head">
@@ -1710,6 +1730,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn" id="cwSubOverSlaBtn" onclick="switchCwSubTab('over-sla')">Over SLA</button>
       <button class="tab-btn" id="cwSubLtrBtn" onclick="switchCwSubTab('ltr')">Long time Repair</button>
       <button class="tab-btn" id="cwSubAnalysisBtn" onclick="switchCwSubTab('analysis')">Analysis</button>
+      <button class="tab-btn" id="cwSubTeamBtn" onclick="switchCwSubTab('team')">Analysis Team</button>
     </div>
     <div id="cwSubCharts">
       <div class="srm-ft-sev-cards" id="cwSevCards"></div>
@@ -1765,6 +1786,9 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div id="cwSubAnalysis" style="display:none;">
       <div class="eec-analysis-summary-wrap" id="cwAnalysisSummaryWrap"></div>
       <div class="eec-analysis-grid" id="cwAnalysisMainGrid"></div>
+    </div>
+    <div id="cwSubTeam" style="display:none;">
+      <div id="cwAnalysisTeamWrap"></div>
     </div>
   </div>
   <div id="faultView" class="tab-view" style="display:none;">
@@ -2064,7 +2088,7 @@ function getActiveTeamMap(){
   return (Array.isArray(TEAM_MAP) && TEAM_MAP.length) ? TEAM_MAP : DEFAULT_TEAM_MAP;
 }
 let tickets = { pending: [], closed: [], svcava: [] };
-let filters = { pending:{severities:new Set(), plkdOnly:false, search:""}, closed:{severities:new Set(), plkdOnly:false, search:""}, manual:{severities:new Set(), plkdOnly:false, search:""} };
+let filters = { pending:{severities:new Set(), plkdOnly:false, search:""}, closed:{severities:new Set(), plkdOnly:true, search:""}, manual:{severities:new Set(), plkdOnly:false, search:""} };
 let currentTab = "home";
 let ATTENDANCE = {}; // team_key -> {clock_in, arrived, plan_override, inoc_feedback}
 let HOME_NOTE = { service_ava: "" };
@@ -2525,13 +2549,14 @@ async function loadAll(){
 function renderAll(){
   try{ renderHome(); }catch(e){ console.error("renderHome failed:", e); }
   try{
-    renderFilterbar("pending"); renderFilterbar("manual");
-    renderTeams("pending"); renderTeams("manual");
+    renderFilterbar("pending"); renderFilterbar("closed"); renderFilterbar("manual");
+    renderTeams("pending"); renderTeams("closed"); renderTeams("manual");
     if(currentTab==="fault") renderFault();
     if(currentTab==="srm") renderSiteRepeatMapping();
     if(currentTab==="eec") renderEecTab();
     if(currentTab==="cw") renderCwTab();
     document.getElementById("countPending").textContent = groupSourceRows("pending").filter(r=>passFilter(r,"pending")).length;
+    document.getElementById("countClosed").textContent = groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length;
     document.getElementById("countManual").textContent = tickets.closed.filter(isManualClosed).length;
     renderUploadTs();
   }catch(e){
@@ -2542,17 +2567,20 @@ function switchTab(tab){
   currentTab = tab;
   document.getElementById("tabHomeBtn").classList.toggle("active", tab==="home");
   document.getElementById("tabPendingBtn").classList.toggle("active", tab==="pending");
+  document.getElementById("tabClosedBtn").classList.toggle("active", tab==="closed");
   document.getElementById("tabManualBtn").classList.toggle("active", tab==="manual");
   document.getElementById("tabFaultBtn").classList.toggle("active", tab==="fault");
   document.getElementById("tabSrmBtn").classList.toggle("active", tab==="srm");
   document.getElementById("tabEecBtn").classList.toggle("active", tab==="eec");
   document.getElementById("tabCwBtn").classList.toggle("active", tab==="cw");
   const homeEl = document.getElementById("homeView"), pendingEl = document.getElementById("pendingView"),
+    closedEl = document.getElementById("closedView"),
     manualEl = document.getElementById("manualView"),
     srmEl = document.getElementById("srmView"), faultEl = document.getElementById("faultView"),
     eecEl = document.getElementById("eecView"), cwEl = document.getElementById("cwView");
   homeEl.style.display = tab==="home" ? "block":"none";
   pendingEl.style.display = tab==="pending" ? "block":"none";
+  closedEl.style.display = tab==="closed" ? "block":"none";
   manualEl.style.display = tab==="manual" ? "block":"none";
   srmEl.style.display = tab==="srm" ? "block":"none";
   faultEl.style.display = tab==="fault" ? "block":"none";
@@ -2574,7 +2602,7 @@ function switchTab(tab){
     });
   }
   moveSrmSubTabIndicator();
-  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="manual" ? manualEl
+  const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="closed" ? closedEl : tab==="manual" ? manualEl
     : tab==="srm" ? srmEl : tab==="eec" ? eecEl : tab==="cw" ? cwEl : faultEl;
   shownEl.classList.remove("anim-in");
   void shownEl.offsetWidth; // restart animation
@@ -2622,10 +2650,27 @@ function groupSourceRows(group){
   if(group==="pending") return tickets.pending.filter(r=>!isCancelled(r));
   return tickets[group];
 }
+function getTicketSearchIds(r){
+  return [
+    r?.source_ticket_id,
+    r?.tt_number,
+    r?.sdm_tt,
+    r?.external_ticket_id,
+    r?.work_order_id,
+    r?.site_code
+  ].map(v=>String(v || "").trim()).filter(Boolean);
+}
+function normalizeTicketSearchText(v){
+  return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
 function renderFilterbar(group){
   const el = document.getElementById(GROUP_FILTERBAR[group]);
   if(!el) return;
   const allSev = [...new Set(groupSourceRows(group).map(r=>r.severity).filter(Boolean))].sort();
+  const searchOptions = [...new Set(groupSourceRows(group).flatMap(getTicketSearchIds))]
+    .sort((a,b)=> a.localeCompare(b))
+    .slice(0, 500);
+  const listId = `searchList${group.charAt(0).toUpperCase()}${group.slice(1)}`;
   const f = filters[group];
   el.innerHTML = `
     <div class="fgroup"><label class="flabel">Severity</label>
@@ -2635,7 +2680,7 @@ function renderFilterbar(group){
       </select>
     </div>
     <label class="toggle-chip"><input type="checkbox" ${f.plkdOnly?'checked':''} onchange="onPlkdToggle('${group}', this.checked)"> PLKD Watchlist only</label>
-    <div class="fgroup"><input class="search-box" placeholder="Search Site / TT…" value="${esc(f.search)}" oninput="onSearch('${group}', this.value)"></div>
+    <div class="fgroup"><input class="search-box" list="${listId}" placeholder="Search Source Ticket ID / Work Order ID" value="${esc(f.search)}" oninput="onSearch('${group}', this.value)"><datalist id="${listId}">${searchOptions.map(v=>`<option value="${esc(v)}"></option>`).join("")}</datalist></div>
   `;
 }
 function onSevChange(group, sel){
@@ -2656,8 +2701,11 @@ function passFilter(r, group){
   if(f.plkdOnly && !isPlkdMatch(r)) return false;
   if(f.search){
     const q = f.search.toUpperCase();
-    const hay = `${r.site_code||""} ${r.tt_number||""} ${r.work_order_id||""}`.toUpperCase();
-    if(!hay.includes(q)) return false;
+    const qNorm = normalizeTicketSearchText(q);
+    const ids = getTicketSearchIds(r);
+    const hay = ids.join(" ").toUpperCase();
+    const hayNorm = ids.map(normalizeTicketSearchText).join(" ");
+    if(!hay.includes(q) && (!qNorm || !hayNorm.includes(qNorm))) return false;
   }
   return true;
 }
@@ -3729,7 +3777,7 @@ function getActiveSrmFtLabels(slot){
 function moveSrmSubTabIndicator(){
   const tabs = document.getElementById("tabsSrmSub");
   const ind = document.getElementById("tabIndicatorSrmSub");
-  const btnIds = { mapping:"srmSubMappingBtn", freetext:"srmSubFreeTextBtn", analysis:"srmSubAnalysisBtn", dashboard:"srmSubDashboardBtn" };
+  const btnIds = { mapping:"srmSubMappingBtn", freetext:"srmSubFreeTextBtn", analysis:"srmSubAnalysisBtn", team:"srmSubTeamBtn", dashboard:"srmSubDashboardBtn" };
   const btn = document.getElementById(btnIds[srmSubTab] || "srmSubMappingBtn");
   if(!tabs || !ind || !btn) return;
   ind.style.left = btn.offsetLeft + "px";
@@ -3743,6 +3791,7 @@ async function reloadSrmFtAssignmentsFromDb(){
 function renderSrmActiveSubTab(){
   if(srmSubTab === "freetext") renderSrmFreeTextTab();
   else if(srmSubTab === "analysis") renderSrmAnalysisPanel();
+  else if(srmSubTab === "team") renderAnalysisTeamPanel("srm");
   else if(srmSubTab === "dashboard") renderSrmDashboardTab();
 }
 function switchSrmSubTab(tab){
@@ -3750,13 +3799,15 @@ function switchSrmSubTab(tab){
   document.getElementById("srmSubMappingBtn")?.classList.toggle("active", tab==="mapping");
   document.getElementById("srmSubFreeTextBtn")?.classList.toggle("active", tab==="freetext");
   document.getElementById("srmSubAnalysisBtn")?.classList.toggle("active", tab==="analysis");
+  document.getElementById("srmSubTeamBtn")?.classList.toggle("active", tab==="team");
   document.getElementById("srmSubDashboardBtn")?.classList.toggle("active", tab==="dashboard");
   document.getElementById("srmSubMapping").style.display = tab==="mapping" ? "block" : "none";
   document.getElementById("srmSubFreeText").style.display = tab==="freetext" ? "block" : "none";
   document.getElementById("srmSubAnalysis").style.display = tab==="analysis" ? "block" : "none";
+  document.getElementById("srmSubTeam").style.display = tab==="team" ? "block" : "none";
   document.getElementById("srmSubDashboard").style.display = tab==="dashboard" ? "block" : "none";
   moveSrmSubTabIndicator();
-  if(tab==="freetext" || tab==="analysis" || tab==="dashboard"){
+  if(tab==="freetext" || tab==="analysis" || tab==="team" || tab==="dashboard"){
     if(!srmMonthTickets.length) buildSiteRepeatData();
     Promise.all([
       reloadSrmFtAssignmentsFromDb(),
@@ -3870,7 +3921,7 @@ function onSrmDateRangeChange(){
   if(toEl) toEl.value = to;
   resetSrmPageState();
   renderSiteRepeatMapping();
-  if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+  if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
 }
 function onSrmMonthChange(val){
   if(!val || val === srmSelectedMonth) return;
@@ -3881,7 +3932,7 @@ function onSrmMonthChange(val){
   renderSrmDateRangeInputs();
   resetSrmPageState();
   renderSiteRepeatMapping();
-  if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+  if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
 }
 function getSrmMonthContext(){
   const range = ensureSrmDateRange();
@@ -4072,7 +4123,7 @@ function renderSiteRepeatMapping(){
     countWrap.innerHTML = empty;
     dtWrap.innerHTML = empty;
     renderSrmKeywordPanel(null);
-    if(srmSubTab==="freetext" || srmSubTab==="analysis" || srmSubTab==="dashboard") renderSrmActiveSubTab();
+    if(srmSubTab==="freetext" || srmSubTab==="analysis" || srmSubTab==="team" || srmSubTab==="dashboard") renderSrmActiveSubTab();
     return;
   }
 
@@ -4086,7 +4137,7 @@ function renderSiteRepeatMapping(){
     dtWrap.innerHTML = empty;
     renderSrmKeywordPanel(null);
     if(sub) sub.textContent += ` · 0 Site · 0 วัน`;
-    if(srmSubTab==="freetext" || srmSubTab==="analysis" || srmSubTab==="dashboard") renderSrmActiveSubTab();
+    if(srmSubTab==="freetext" || srmSubTab==="analysis" || srmSubTab==="team" || srmSubTab==="dashboard") renderSrmActiveSubTab();
     return;
   }
 
@@ -4123,7 +4174,7 @@ function renderSiteRepeatMapping(){
     legendLabel: "H:m"
   });
 
-  if(srmSubTab==="freetext" || srmSubTab==="analysis" || srmSubTab==="dashboard") renderSrmActiveSubTab();
+  if(srmSubTab==="freetext" || srmSubTab==="analysis" || srmSubTab==="team" || srmSubTab==="dashboard") renderSrmActiveSubTab();
 }
 function collectSrmDetailRows(kind, params){
   params = params || {};
@@ -6397,7 +6448,7 @@ async function bulkInsertSvcAva(rows){
   rows.forEach(r=>{
     const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
     if(isCancelStatus(get("Status"))) { cancelSkipped++; return; }
-    if(!isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
+    if(groupBtn !== "closed" && !isSystemWoCreatorRow(r)){ woCreatorSkipped++; return; }
     if(isBroadbandRow(r)){ broadbandSkipped++; return; }
     const p = mapSvcAvaImportRow(r);
     if(p) payloads.push(p);
@@ -6583,6 +6634,7 @@ async function bulkInsertWorkOrders(rows, groupBtn){
       plan_today: get("Root Cause") ? `${get("Root Cause")}` : "",
       ticket_date: dateVal
     };
+    if(groupBtn === "closed" && !isPlkdMatch(row)){ skipped++; return; }
     if(woCreator) row.wo_creator = woCreator;
     payloads.push(row);
   });
@@ -10166,6 +10218,7 @@ function mapFaultImportRow(r){
     accepted_time: parseFaultWoDate(get("Accepted")),
     departed_time: parseFaultWoDate(get("Departed")),
     arrived_time: parseFaultWoDate(get("Arrived")),
+    resume_time: parseFaultWoDate(get("Pause/Resume Time")),
     completed_time: parseFaultWoDate(get("Completed")),
     closed_time: parseFaultWoDate(get("Closed")),
     time_to_arrive: get("Time to Arrive"),
@@ -10190,7 +10243,7 @@ const SRM_IMPORT_FIELDS = [
   "work_order_id","source_ticket_id","sdm_tt","external_ticket_id",
   "region","province","skill","team","site_id","status","suspend_status",
   "incident_urgency","severity","created_time","require_finish_time","source_sla",
-  "dispatched_time","accepted_time","departed_time","arrived_time","completed_time","closed_time",
+  "dispatched_time","accepted_time","departed_time","arrived_time","resume_time","completed_time","closed_time",
   "time_to_arrive","time_to_complete","time_to_leave","work_type","fault_size","point",
   "root_cause","sub_root_cause","close_description","complete_solution","subject","wo_creator",
   "pea_working"
@@ -10326,7 +10379,7 @@ async function refreshSiteRepeatMapping(){
     const ctx = getSrmMonthContext();
     const data = buildSiteRepeatData();
     renderSiteRepeatMapping();
-    if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+    if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
     if(statusEl) statusEl.textContent = formatSrmRefreshStatus(data, ctx);
   }catch(e){
     console.error(e);
@@ -10349,7 +10402,7 @@ async function clearSiteRepeatMappingData(){
   if(!woIds.length){
     resetSrmPageState();
     renderSiteRepeatMapping();
-    if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+    if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
     toast(`ไม่มีข้อมูล SRM ในช่วงวันที่ ${ctx.monthLabel}`);
     return;
   }
@@ -10369,7 +10422,7 @@ async function clearSiteRepeatMappingData(){
     srmTickets = srmTickets.filter(r=> !removed.has(r.work_order_id));
     resetSrmPageState();
     renderSiteRepeatMapping();
-    if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+    if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
     if(statusEl) statusEl.textContent = `ล้างแล้ว · ช่วงวันที่ ${ctx.monthLabel} · ลบ ${woIds.length} TT`;
     toast("ล้างข้อมูลแล้ว");
   }catch(e){
@@ -10434,7 +10487,7 @@ async function bulkInsertSrmTickets(rows){
   const ctx = getSrmMonthContext();
   const data = buildSiteRepeatData();
   renderSiteRepeatMapping();
-  if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+  if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
   statusEl.textContent = `อัปโหลด ${synced} แถว · ช่วงวันที่ ${ctx.monthLabel} · ${data.grandCount} TT · ${data.sites.length} Site`;
 }
 function groupFaultImportPayloads(payloads){
@@ -14987,21 +15040,287 @@ async function exportEecAnalysisToPptx(){
     toast("สร้างไฟล์ PowerPoint ไม่สำเร็จ");
   }
 }
+const ANALYSIS_TEAM_PAGE_SIZE = 10;
+const analysisTeamState = {
+  eec:{ dispatch:{ sev:"all", root:"OFC", page:1, team:null }, arrive:{ sev:"all", root:"OFC", page:1, team:null }, downtime:{ sev:"all", root:"OFC", page:1, team:null } },
+  srm:{ dispatch:{ sev:"all", root:"OFC", page:1, team:null }, arrive:{ sev:"all", root:"OFC", page:1, team:null }, downtime:{ sev:"all", root:"OFC", page:1, team:null } },
+  cw:{ dispatch:{ sev:"all", root:"OFC", page:1, team:null }, arrive:{ sev:"all", root:"OFC", page:1, team:null }, downtime:{ sev:"all", root:"OFC", page:1, team:null } }
+};
+function normalizeAnalysisTeamSubRootCauseText(v){
+  return String(v || "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+function getAnalysisTeamSubRootCauseText(r){
+  return String(r?.sub_root_cause || r?.root_cause || r?.cause || "").trim();
+}
+function getAnalysisTeamResumeValue(r){
+  return r?.resume_time || r?.resume || r?.resume_at || r?.restored_time || r?.restoration_time || r?.recovered_time || "";
+}
+function classifyAnalysisTeamScopeGroup(r){
+  return typeof classifySrmRootCauseGroup === "function" ? classifySrmRootCauseGroup(r) : "NODE";
+  const text = normalizeAnalysisTeamSubRootCauseText(getAnalysisTeamSubRootCauseText(r));
+  const compact = text.replace(/[\s_()/\\-]+/g, "");
+  const isOfc = /ไฟเบอร์ขาด|สายcrack|หักในหัวต่อ|fiber optic cut|crack in closure|odf|pigtail|connector|jumper/i.test(text)
+    || compact.includes("noffiberopticcutcrackinclosure")
+    || compact.includes("nifodfpigtailconnectorjumper");
+  if(isOfc) return "ofc";
+  const isNope = /ระบบไฟฟ้า|power\s*-\s*(ac|dc)\s*-\s*breaker|ac\s*-\s*breaker|dc\s*-\s*breaker/i.test(text)
+    || compact.includes("npwpoweracbreaker")
+    || compact.includes("npwpowerdcbreaker");
+  if(isNope) return "nope";
+  return "other";
+}
+function matchesAnalysisTeamScopeGroup(r, mode){
+  if(!mode || mode === "all") return true;
+  return classifyAnalysisTeamScopeGroup(r) === mode;
+}
+function getAnalysisTeamScopeTickets(scope){
+  if(scope === "eec") return typeof getEecAnalysisScopeTickets === "function" ? getEecAnalysisScopeTickets() : [];
+  if(scope === "srm") return typeof getSrmAnalysisAllTickets === "function" ? getSrmAnalysisAllTickets() : [];
+  if(scope === "cw") return typeof getCwClassifiedTickets === "function" ? getCwClassifiedTickets() : [];
+  return [];
+}
+function getAnalysisTeamWrapId(scope){
+  return scope === "eec" ? "eecAnalysisTeamWrap" : scope === "cw" ? "cwAnalysisTeamWrap" : "srmAnalysisTeamWrap";
+}
+function getAnalysisTeamTicketId(r){
+  return String(r?.work_order_id || r?.incident_id || r?.source_ticket_id || r?.sdm_tt || r?.ticket_id || "").trim();
+}
+function renderAnalysisTeamTtWoCell(r){
+  const tt = String(r?.source_ticket_id || r?.sdm_tt || "").trim();
+  const wo = String(r?.work_order_id || r?.incident_id || "").trim();
+  if(tt && wo && tt !== wo) return `<div><b>TT:</b> ${esc(tt)}</div><div><b>WO:</b> ${esc(wo)}</div>`;
+  if(tt) return `<div><b>TT:</b> ${esc(tt)}</div>`;
+  if(wo) return `<div><b>WO:</b> ${esc(wo)}</div>`;
+  return "-";
+}
+function getAnalysisTeamTeamName(r){
+  return String(r?.team || r?.owner_group || r?.assigned_team || r?.assign_to || r?.technician_team || "").trim() || "(No Team)";
+}
+function minutesBetweenAnalysisTimes(start, end){
+  const a = parseFaultTs(start);
+  const b = parseFaultTs(end);
+  if(!a || !b) return null;
+  const ms = b.getTime() - a.getTime();
+  if(!Number.isFinite(ms) || ms < 0) return null;
+  return Math.round(ms / 60000);
+}
+function getAnalysisTeamMetricMinutes(r, metric){
+  if(metric === "dispatch") return minutesBetweenAnalysisTimes(r?.departed_time, r?.arrived_time);
+  if(metric === "downtime") return calcFaultDowntimeMinutes(r);
+  return minutesBetweenAnalysisTimes(r?.arrived_time, r?.completed_time || r?.closed_time);
+}
+function formatAnalysisTeamMinutes(mins){
+  if(!Number.isFinite(mins)) return "-";
+  return String(Math.round(mins));
+}
+function formatAnalysisTeamHours(mins){
+  if(!Number.isFinite(mins)) return "-";
+  return `${(Math.round(mins) / 60).toFixed(2)} hr`;
+}
+function formatAnalysisTeamDuration(mins){
+  if(!Number.isFinite(mins)) return "-";
+  const m = Math.round(mins);
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  return h ? `${h}h ${mm}m` : `${mm}m`;
+}
+function getAnalysisTeamSlaSuffix(r){
+  const explicit = String(r?.source_sla || r?.sla || "").trim().toUpperCase();
+  if(explicit) return explicit;
+  const created = parseFaultTs(r?.created_time);
+  const required = parseFaultTs(r?.require_finish_time);
+  if(!created || !required) return "";
+  const hours = Math.round((required.getTime() - created.getTime()) / 3600000);
+  if(!Number.isFinite(hours) || hours <= 0) return "";
+  if(hours % 24 === 0) return `${hours / 24}D`;
+  return `${hours}H`;
+}
+function formatAnalysisTeamSeverity(r){
+  const sev = String((typeof getSrmFtSeverityKey === "function" ? getSrmFtSeverityKey(r) : r?.severity) || r?.severity || "").trim().toUpperCase();
+  const suffix = getAnalysisTeamSlaSuffix(r);
+  if(!sev) return suffix || "-";
+  if(suffix && !sev.includes(suffix)) return `${sev}-${suffix}`;
+  return sev;
+}
+function matchesAnalysisTeamSeverity(r, mode){
+  if(mode === "sa") return isFaultSaSeverity(r);
+  if(mode === "nsa") return isFaultNsaSrmSeverity(r);
+  return isFaultSaSeverity(r) || isFaultNsaSrmSeverity(r);
+}
+function buildAnalysisTeamGroups(scope, metric){
+  const state = analysisTeamState[scope]?.[metric] || { sev:"all" };
+  const threshold = metric === "dispatch" ? 60 : 240;
+  const dedupe = new Map();
+  getAnalysisTeamScopeTickets(scope).forEach(r=>{
+    if(!matchesAnalysisTeamSeverity(r, state.sev)) return;
+    if(!matchesAnalysisTeamScopeGroup(r, state.root || "all")) return;
+    const mins = getAnalysisTeamMetricMinutes(r, metric);
+    if(!Number.isFinite(mins) || mins <= threshold) return;
+    const id = getAnalysisTeamTicketId(r) || `__${dedupe.size}`;
+    if(!dedupe.has(id) || mins > dedupe.get(id).minutes) dedupe.set(id, { row:r, minutes:mins });
+  });
+  const groups = new Map();
+  dedupe.forEach(item=>{
+    const team = getAnalysisTeamTeamName(item.row);
+    if(!groups.has(team)) groups.set(team, { team, tickets:[], total:0, max:0 });
+    const g = groups.get(team);
+    g.tickets.push(item);
+    g.total += item.minutes;
+    g.max = Math.max(g.max, item.minutes);
+  });
+  return [...groups.values()].map(g=>({
+    ...g,
+    count:g.tickets.length,
+    avg:g.tickets.length ? Math.round(g.total / g.tickets.length) : 0
+  })).sort((a,b)=> b.max - a.max || b.avg - a.avg || b.count - a.count || a.team.localeCompare(b.team));
+}
+function renderAnalysisTeamScopeFilter(scope, metric){
+  const active = analysisTeamState[scope][metric].root || "OFC";
+  const items = [
+    { key:"OFC", label:"OFC" },
+    { key:"NODE", label:"NODE" }
+  ];
+  return `<div class="srm-ft-ofcnode-filter" style="margin:0 0 12px;">
+    ${items.map(item=>`<button type="button" class="btn ${active === item.key ? "primary" : "ghost"}" onclick="setAnalysisTeamScopeFilter('${scope}','${metric}','${item.key}')">${item.label}</button>`).join("")}
+  </div>`;
+}
+function renderAnalysisTeamSeverityFilter(scope, metric){
+  const active = analysisTeamState[scope][metric].sev;
+  return `<div class="srm-ft-ofcnode-filter" style="margin:0;">
+    ${["all","sa","nsa"].map(mode=>`<button type="button" class="btn sm ${active === mode ? "primary" : "ghost"}" onclick="setAnalysisTeamSeverity('${scope}','${metric}','${mode}')">${mode === "all" ? "All" : mode.toUpperCase()}</button>`).join("")}
+  </div>`;
+}
+function renderAnalysisTeamPagination(scope, metric, pages){
+  if(pages <= 1) return "";
+  const page = analysisTeamState[scope][metric].page;
+  return `<div class="srm-ft-ofcnode-filter" style="justify-content:flex-end;margin-top:10px;">
+    ${Array.from({length:pages}, (_,i)=>i+1).map(p=>`<button type="button" class="btn sm ${p === page ? "primary" : "ghost"}" onclick="setAnalysisTeamPage('${scope}','${metric}',${p})">${p}</button>`).join("")}
+  </div>`;
+}
+function renderAnalysisTeamDetailTable(group, metric){
+  const timeLabel = metric === "dispatch" ? "Time Departed to Arrive" : metric === "downtime" ? "Downtime" : "Time Arrived to Complete";
+  const rows = group.tickets.slice().sort((a,b)=> b.minutes - a.minutes).map(item=>{
+    const r = item.row;
+    const departed = fmtFaultRawDT(r.departed_time || "");
+    const arrived = fmtFaultRawDT(r.arrived_time || "");
+    const resume = fmtFaultRawDT(getAnalysisTeamResumeValue(r)) || String(getAnalysisTeamResumeValue(r) || "").trim();
+    const closed = fmtFaultRawDT(r.closed_time || r.completed_time || "");
+    const downtimeMinutes = calcFaultDowntimeMinutes(r);
+    const downtime = downtimeMinutes != null ? fmtFaultDowntime(downtimeMinutes) : "-";
+    return `<tr>
+      <td>${renderAnalysisTeamTtWoCell(r)}</td>
+      <td>${esc(formatAnalysisTeamSeverity(r))}</td>
+      <td>${esc(r.subject || "-")}</td>
+      <td>${esc(departed || "-")}</td>
+      <td>${esc(arrived || "-")}</td>
+      <td>${esc(resume || "-")}</td>
+      <td>${formatAnalysisTeamHours(item.minutes)}</td>
+      <td>${esc(closed || "-")}</td>
+      <td>${downtime || "-"}</td>
+      <td>${esc(r.root_cause || r.cause || "-")}</td>
+      <td>${esc(getAnalysisTeamSubRootCauseText(r) || "-")}</td>
+      <td>${esc(getAnalysisClosedDescriptionText(r) || r.remedy || "-")}</td>
+    </tr>`;
+  }).join("");
+  return `<div class="table-scroll" style="margin:8px 0 12px;">
+    <table>
+      <thead><tr><th>TT+Wo</th><th>Severity</th><th>Subject</th><th>Departed</th><th>Arrived</th><th>Resume</th><th>${timeLabel}</th><th>Closed</th><th>Downtime</th><th>Root Cause</th><th>Sub Root Cause</th><th>Closed Description</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="12" style="text-align:center;color:var(--muted);">No WO</td></tr>`}</tbody>
+    </table>
+  </div>`;
+}
+function renderAnalysisTeamSection(scope, metric, title, subTitle){
+  const state = analysisTeamState[scope][metric];
+  const groups = buildAnalysisTeamGroups(scope, metric);
+  const pages = Math.max(1, Math.ceil(groups.length / ANALYSIS_TEAM_PAGE_SIZE));
+  state.page = Math.min(Math.max(1, state.page || 1), pages);
+  const start = (state.page - 1) * ANALYSIS_TEAM_PAGE_SIZE;
+  const pageGroups = groups.slice(start, start + ANALYSIS_TEAM_PAGE_SIZE);
+  const rows = pageGroups.map(g=>{
+    const key = encodeURIComponent(g.team);
+    const isOpen = state.team === g.team;
+    return `<tr class="cw-analysis-detail-cell${isOpen ? " is-open" : ""}" onclick="toggleAnalysisTeamDetail('${scope}','${metric}','${key}')">
+      <td>${esc(g.team)}</td>
+      <td>${g.count}</td>
+      <td>${formatAnalysisTeamHours(g.avg)}</td>
+      <td>${formatAnalysisTeamHours(g.max)}</td>
+    </tr>${isOpen ? `<tr><td colspan="4">${renderAnalysisTeamDetailTable(g, metric)}</td></tr>` : ""}`;
+  }).join("");
+  return `<div class="fault-chart-card">
+    ${renderAnalysisTeamScopeFilter(scope, metric)}
+    <div class="fault-overview-toolbar" style="margin-bottom:12px;">
+      <div>
+        <div class="fault-chart-title" style="margin:0">${esc(title)}</div>
+        <div class="status-msg" style="text-transform:none;margin-top:4px;">${esc(subTitle)} ยท ${groups.length} Teams</div>
+      </div>
+      ${renderAnalysisTeamSeverityFilter(scope, metric)}
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Team</th><th>WO</th><th>Avg Hour</th><th>Max Hour</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="4" style="text-align:center;color:var(--muted);">No data</td></tr>`}</tbody>
+      </table>
+    </div>
+    ${renderAnalysisTeamPagination(scope, metric, pages)}
+  </div>`;
+}
+function renderAnalysisTeamPanel(scope){
+  const el = document.getElementById(getAnalysisTeamWrapId(scope));
+  if(!el) return;
+  el.innerHTML = [
+    renderAnalysisTeamSection(scope, "dispatch", "Departed to Arrive Over 1 hr", "Unit: hour"),
+    renderAnalysisTeamSection(scope, "arrive", "Arrive to Complete > 4 hr", "Unit: hour"),
+    renderAnalysisTeamSection(scope, "downtime", "Downtime Over 4 hr", "Unit: hour")
+  ].join("");
+}
+function setAnalysisTeamSeverity(scope, metric, sev){
+  const st = analysisTeamState[scope]?.[metric];
+  if(!st) return;
+  st.sev = sev;
+  st.page = 1;
+  st.team = null;
+  renderAnalysisTeamPanel(scope);
+}
+function setAnalysisTeamScopeFilter(scope, metric, root){
+  const st = analysisTeamState[scope]?.[metric];
+  if(!st) return;
+  st.root = root;
+  st.page = 1;
+  st.team = null;
+  renderAnalysisTeamPanel(scope);
+}
+function setAnalysisTeamPage(scope, metric, page){
+  const st = analysisTeamState[scope]?.[metric];
+  if(!st) return;
+  st.page = page;
+  st.team = null;
+  renderAnalysisTeamPanel(scope);
+}
+function toggleAnalysisTeamDetail(scope, metric, teamKey){
+  const st = analysisTeamState[scope]?.[metric];
+  if(!st) return;
+  const team = decodeURIComponent(teamKey || "");
+  st.team = st.team === team ? null : team;
+  renderAnalysisTeamPanel(scope);
+}
 function switchEecSubTab(tab){
-  if(!["charts","over-sla","ltr","analysis"].includes(tab)) return;
+  if(!["charts","over-sla","ltr","analysis","team"].includes(tab)) return;
   eecSubTab = tab;
   document.getElementById("eecSubChartsBtn")?.classList.toggle("active", tab === "charts");
   document.getElementById("eecSubOverSlaBtn")?.classList.toggle("active", tab === "over-sla");
   document.getElementById("eecSubLtrBtn")?.classList.toggle("active", tab === "ltr");
   document.getElementById("eecSubAnalysisBtn")?.classList.toggle("active", tab === "analysis");
+  document.getElementById("eecSubTeamBtn")?.classList.toggle("active", tab === "team");
   const chartsEl = document.getElementById("eecSubCharts");
   const overSlaEl = document.getElementById("eecSubOverSla");
   const ltrEl = document.getElementById("eecSubLtr");
   const analysisEl = document.getElementById("eecSubAnalysis");
+  const teamEl = document.getElementById("eecSubTeam");
   if(chartsEl) chartsEl.style.display = tab === "charts" ? "block" : "none";
   if(overSlaEl) overSlaEl.style.display = tab === "over-sla" ? "block" : "none";
   if(ltrEl) ltrEl.style.display = tab === "ltr" ? "block" : "none";
   if(analysisEl) analysisEl.style.display = tab === "analysis" ? "block" : "none";
+  if(teamEl) teamEl.style.display = tab === "team" ? "block" : "none";
   moveEecSubTabIndicator();
   renderEecTab();
 }
@@ -15017,6 +15336,7 @@ function renderEecTab(){
   if(eecSubTab === "ltr") renderEecLtrPanel();
   else if(eecSubTab === "over-sla") renderEecOverSlaPanel();
   else if(eecSubTab === "analysis") renderEecAnalysisPanel();
+  else if(eecSubTab === "team") renderAnalysisTeamPanel("eec");
   else{
     renderEecSeverityPanel();
     renderEecProvincePanel();
@@ -15037,8 +15357,14 @@ async function loadEecSiteTickets(showToast, force){
   const run = (async()=>{
     try{
       await fetchEecSites();
-      const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,wo_creator,created_at";
-      eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + select + "&order=closed_time.asc");
+      const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,resume_time,wo_creator,created_at";
+      try{
+        eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + select + "&order=closed_time.asc");
+      }catch(selectErr){
+        if(!/resume_time/i.test(String(selectErr?.message || selectErr))) throw selectErr;
+        const fallbackSelect = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,wo_creator,created_at";
+        eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + fallbackSelect + "&order=closed_time.asc");
+      }
       invalidateEecCache();
       if(!syncEecFaultFieldMapFromFaultTickets()){
         const faultRows = await fetchAllFromRest(FAULT_REST + "?select=work_order_id,source_ticket_id,wo_creator,require_finish_time,created_time,close_description,sub_root_cause");
@@ -15147,7 +15473,7 @@ async function bulkInsertEecSites(rows, statusEl){
 const EEC_UPSERT_FIELD_LIST = [
   "incident_id","source_ticket_id","severity","subject","site_id","province","status",
   "problem","cause","root_cause","sub_root_cause","remedy","team",
-  "created_time","closed_time","departed_time","arrived_time","wo_creator","updated_at"
+  "created_time","closed_time","departed_time","arrived_time","resume_time","wo_creator","updated_at"
 ];
 function sanitizeEecUpsertPayload(row){
   if(!row || !String(row.incident_id || "").trim()) return null;
@@ -15164,7 +15490,7 @@ function alignEecUpsertChunk(rows){
 const CW_UPSERT_FIELD_LIST = [
   "incident_id","source_ticket_id","severity","subject","site_id","province","status",
   "problem","cause","root_cause","sub_root_cause","remedy","team",
-  "created_time","require_finish_time","closed_time","departed_time","arrived_time","wo_creator","updated_at"
+  "created_time","require_finish_time","closed_time","departed_time","arrived_time","resume_time","wo_creator","updated_at"
 ];
 function sanitizeCwUpsertPayload(row){
   if(!row || !String(row.incident_id || "").trim()) return null;
@@ -15217,6 +15543,7 @@ function mapEecImportRow(r){
     cause: cause || null,
     remedy: get("Remedy") || null,
     created_time: parseEecExcelDate(r["Create Date"]),
+    resume_time: parseEecExcelDate(r["Pause/Resume Time"]),
     closed_time: closed,
     wo_creator: getImportWoCreator(r) || null,
     updated_at: new Date().toISOString()
@@ -15263,6 +15590,7 @@ function mapEecWoImportRow(r){
     created_time: raw.created_time || null,
     departed_time: raw.departed_time || null,
     arrived_time: raw.arrived_time || null,
+    resume_time: raw.resume_time || null,
     closed_time: raw.closed_time,
     wo_creator: raw.wo_creator || "System",
     updated_at: new Date().toISOString()
@@ -15653,7 +15981,7 @@ async function loadCwSiteTickets(showToast, force){
   }
   cwSiteTicketsLoadingPromise = (async()=>{
     try{
-      const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,require_finish_time,closed_time,departed_time,arrived_time,wo_creator,created_at";
+      const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,require_finish_time,closed_time,departed_time,arrived_time,resume_time,wo_creator,created_at";
       try{
         cwSiteTickets = await fetchAllFromRest(CW_REST + "?select=" + select + "&order=closed_time.asc");
       }catch(selectErr){
@@ -16092,16 +16420,18 @@ function renderCwAnalysis(){
   gridEl.onclick = onCwAnalysisClick;
 }
 function switchCwSubTab(tab){
-  if(!["charts","over-sla","ltr","analysis"].includes(tab)) return;
+  if(!["charts","over-sla","ltr","analysis","team"].includes(tab)) return;
   cwSubTab = tab;
   document.getElementById("cwSubChartsBtn")?.classList.toggle("active", tab === "charts");
   document.getElementById("cwSubOverSlaBtn")?.classList.toggle("active", tab === "over-sla");
   document.getElementById("cwSubLtrBtn")?.classList.toggle("active", tab === "ltr");
   document.getElementById("cwSubAnalysisBtn")?.classList.toggle("active", tab === "analysis");
+  document.getElementById("cwSubTeamBtn")?.classList.toggle("active", tab === "team");
   document.getElementById("cwSubCharts").style.display = tab === "charts" ? "block" : "none";
   document.getElementById("cwSubOverSla").style.display = tab === "over-sla" ? "block" : "none";
   document.getElementById("cwSubLtr").style.display = tab === "ltr" ? "block" : "none";
   document.getElementById("cwSubAnalysis").style.display = tab === "analysis" ? "block" : "none";
+  document.getElementById("cwSubTeam").style.display = tab === "team" ? "block" : "none";
   moveCwSubTabIndicator();
   renderCwTab();
 }
@@ -16117,6 +16447,7 @@ function renderCwTab(){
   if(cwSubTab === "over-sla") renderCwOverSla();
   else if(cwSubTab === "ltr") renderCwLtr();
   else if(cwSubTab === "analysis") renderCwAnalysis();
+  else if(cwSubTab === "team") renderAnalysisTeamPanel("cw");
   else renderCwTrend();
   const statusEl = document.getElementById("statusMsgCw");
   if(statusEl) statusEl.textContent = formatCwStatusMessage();
@@ -16152,6 +16483,7 @@ function mapCwWoImportRow(r){
     require_finish_time: raw.require_finish_time || null,
     departed_time: raw.departed_time || null,
     arrived_time: raw.arrived_time || null,
+    resume_time: raw.resume_time || null,
     closed_time: raw.closed_time,
     wo_creator: raw.wo_creator || "System",
     updated_at: new Date().toISOString()
