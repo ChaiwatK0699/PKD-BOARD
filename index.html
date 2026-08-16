@@ -1510,6 +1510,8 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div class="toolbar">
       <button class="btn primary" onclick="document.getElementById('fileInputSrm').click()">⭱ Upload Work Order</button>
       <input type="file" id="fileInputSrm" accept=".csv,.xlsx,.xls" onchange="handleSrmUpload(event)">
+      <button class="btn ghost sm" onclick="document.getElementById('fileInputSrmOpenPending').click()">Upload Open Pending</button>
+      <input type="file" id="fileInputSrmOpenPending" accept=".csv,.xlsx,.xls" onchange="handleOpenPendingUpload(event,'srm')" style="display:none;">
       <button class="btn ghost sm" onclick="refreshSiteRepeatMapping()">↻ Refresh</button>
       <button class="btn ghost sm" onclick="clearSiteRepeatMappingData()">ล้างข้อมูล</button>
       <div class="fgroup" style="margin-left:auto;">
@@ -1532,6 +1534,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn" id="srmSubFreeTextBtn" onclick="switchSrmSubTab('freetext')">Detail</button>
       <button class="tab-btn" id="srmSubAnalysisBtn" onclick="switchSrmSubTab('analysis')">Analysis</button>
       <button class="tab-btn" id="srmSubTeamBtn" onclick="switchSrmSubTab('team')">Analysis Team</button>
+      <button class="tab-btn" id="srmSubOpenPendingBtn" onclick="switchSrmSubTab('open-pending')">Open Pending</button>
       <button class="tab-btn" id="srmSubDashboardBtn" onclick="switchSrmSubTab('dashboard')" style="display:none;">Dashboard</button>
     </div>
     <div id="srmSubMapping">
@@ -1619,6 +1622,23 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     </div>
     <div id="srmSubTeam" class="srm-analysis-view" style="display:none;">
       <div id="srmAnalysisTeamWrap"></div>
+    </div>
+    <div id="srmSubOpenPending" style="display:none;">
+      <div class="fault-chart-card">
+        <div class="fault-overview-toolbar" style="margin-bottom:10px;">
+          <div class="fault-chart-title" style="margin:0">Open Pending · Trend จาก Create Time</div>
+          <div class="fault-overview-day">
+            <label class="flabel" for="srmOpenPendingSearch">Search Site ID in Subject</label>
+            <input type="text" id="srmOpenPendingSearch" class="search-input" placeholder="เช่น RYG0418" oninput="onOpenPendingSearch('srm', this.value)">
+          </div>
+        </div>
+        <div class="fault-legend" id="srmOpenPendingLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="srmOpenPendingChart"></canvas></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">Detail Open Pending <span class="badge" id="srmOpenPendingCount">0</span></div>
+        <div class="table-scroll" id="srmOpenPendingTableWrap"></div>
+      </div>
     </div>
   </div>
   <div id="eecView" class="tab-view" style="display:none;">
@@ -1836,6 +1856,8 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div class="toolbar">
       <button class="btn primary" onclick="document.getElementById('fileInputFault').click()">⭱ Upload Work Order (Fault PLKD)</button>
       <input type="file" id="fileInputFault" accept=".csv,.xlsx,.xls" onchange="handleFaultUpload(event)" style="display:none;">
+      <button class="btn ghost sm" onclick="document.getElementById('fileInputFaultOpenPending').click()">Upload Open Pending</button>
+      <input type="file" id="fileInputFaultOpenPending" accept=".csv,.xlsx,.xls" onchange="handleOpenPendingUpload(event,'fault')" style="display:none;">
       <button class="btn ghost sm" onclick="loadFaultTickets(true)">↻ Refresh</button>
       <button class="btn ghost sm" onclick="openGpManageModal()" title="จัดการหัวข้อ Group Problem">⚙ Group Problem</button>
       <button class="btn ghost sm" onclick="openCoManageModal()" title="จัดการหัวข้อ Cause Over">⚙ Cause Over</button>
@@ -1852,6 +1874,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn" id="faultSubLtrBtn" onclick="switchFaultSubTab('ltr')">Long time Repair Detail</button>
       <button class="tab-btn" id="faultSubControlBtn" onclick="switchFaultSubTab('control')">In Control / Out Control</button>
       <button class="tab-btn" id="faultSubAnalysisBtn" onclick="switchFaultSubTab('analysis')">Analysis</button>
+      <button class="tab-btn" id="faultSubOpenPendingBtn" onclick="switchFaultSubTab('open-pending')">Open Pending</button>
     </div>
     <div id="faultSubOverview">
       <div class="fault-chart-card">
@@ -1974,6 +1997,23 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="fault-chart-card">
         <div class="fault-chart-title">Sub Root Cause · Site / Work Order</div>
         <div id="faultAnalysisSubRcWrap"></div>
+      </div>
+    </div>
+    <div id="faultSubOpenPending" style="display:none;">
+      <div class="fault-chart-card">
+        <div class="fault-overview-toolbar" style="margin-bottom:10px;">
+          <div class="fault-chart-title" style="margin:0">Open Pending · Trend จาก Create Time</div>
+          <div class="fault-overview-day">
+            <label class="flabel" for="faultOpenPendingSearch">Search Site ID in Subject</label>
+            <input type="text" id="faultOpenPendingSearch" class="search-input" placeholder="เช่น RYG0418" oninput="onOpenPendingSearch('fault', this.value)">
+          </div>
+        </div>
+        <div class="fault-legend" id="faultOpenPendingLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="faultOpenPendingChart"></canvas></div>
+      </div>
+      <div class="fault-table-block">
+        <div class="fault-section-title">Detail Open Pending <span class="badge" id="faultOpenPendingCount">0</span></div>
+        <div class="table-scroll" id="faultOpenPendingTableWrap"></div>
       </div>
     </div>
   </div>
@@ -2146,6 +2186,7 @@ let expandedTeams = new Set(); // empty = all teams start collapsed by default
 const PKD_TRACKING_START = "2025-07-27";
 const FAULT_REST = REST + "/fault_ants_tickets";
 const SRM_REST = REST + "/srm_tickets";
+const OPEN_PENDING_REST = REST + "/open_pending_tickets";
 const EEC_REST = REST + "/eec_site_tickets";
 const EEC_SITES_REST = REST + "/eec_sites";
 const CW_REST = REST + "/cw_report_tickets";
@@ -2157,6 +2198,7 @@ const EEC_PROVINCE_SHORT = {"CHON BURI":"CBI", "RAYONG":"RYG", "CHACHOENGSAO":"C
 const FAULT_BUCKET_COLORS = {"1-2 Hrs.":"#2f9e44","2-6 Hrs.":"#e6b800","6-12 Hrs.":"#e88b6a",">12 Hrs.":"#d94a35"};
 const FAULT_LTR_BUCKETS = ["1-2 Hrs.","2-6 Hrs.","6-12 Hrs.",">12 Hrs."];
 let faultTickets = [];
+let openPendingTickets = [];
 let srmTickets = [];
 let faultPlkdFieldIndex = null;
 let faultSubTab = "overview";
@@ -2213,7 +2255,8 @@ const FAULT_SUB_TAB_MAP = {
   "ltr-sla": { btn: "faultSubLtrSlaBtn", view: "faultSubLtrSla" },
   ltr: { btn: "faultSubLtrBtn", view: "faultSubLtr" },
   control: { btn: "faultSubControlBtn", view: "faultSubControl" },
-  analysis: { btn: "faultSubAnalysisBtn", view: "faultSubAnalysis" }
+  analysis: { btn: "faultSubAnalysisBtn", view: "faultSubAnalysis" },
+  "open-pending": { btn: "faultSubOpenPendingBtn", view: "faultSubOpenPending" }
 };
 let faultOverviewChartInst = null;
 let faultLtrSlaChartInst = null;
@@ -2226,6 +2269,8 @@ let srmSelectedMonth = null;
 let srmDateFrom = "";
 let srmDateTo = "";
 let srmSubTab = "mapping";
+let openPendingSearch = { srm:"", fault:"" };
+let openPendingChartInst = { srm:null, fault:null };
 const SRM_KEYWORDS = [
   { key:"main_ac_power_fail", label:"MAIN AC POWER FAIL", pattern:/main\s*ac\s*power\s*fail/i, color:"#0891b2", bg:"rgba(8,145,178,.2)" },
   { key:"main_power_fail", label:"Main Power Fail", pattern:/main\s*power\s*fail/i, color:"#dc2626", bg:"rgba(220,38,38,.18)" },
@@ -2606,6 +2651,7 @@ async function loadAll(){
   }
   loadFaultTickets(false).catch(e=> console.warn("Fault load failed:", e));
   loadSrmTickets(false).catch(e=> console.warn("SRM load failed:", e));
+  loadOpenPendingTickets(false).catch(e=> console.warn("Open Pending load failed:", e));
 }
 function renderAll(){
   try{ renderHome(); }catch(e){ console.error("renderHome failed:", e); }
@@ -3872,7 +3918,7 @@ function getActiveSrmFtLabels(slot){
 function moveSrmSubTabIndicator(){
   const tabs = document.getElementById("tabsSrmSub");
   const ind = document.getElementById("tabIndicatorSrmSub");
-  const btnIds = { mapping:"srmSubMappingBtn", freetext:"srmSubFreeTextBtn", analysis:"srmSubAnalysisBtn", team:"srmSubTeamBtn", dashboard:"srmSubDashboardBtn" };
+  const btnIds = { mapping:"srmSubMappingBtn", freetext:"srmSubFreeTextBtn", analysis:"srmSubAnalysisBtn", team:"srmSubTeamBtn", "open-pending":"srmSubOpenPendingBtn", dashboard:"srmSubDashboardBtn" };
   const btn = document.getElementById(btnIds[srmSubTab] || "srmSubMappingBtn");
   if(!tabs || !ind || !btn) return;
   ind.style.left = btn.offsetLeft + "px";
@@ -3887,7 +3933,11 @@ function renderSrmActiveSubTab(){
   if(srmSubTab === "freetext") renderSrmFreeTextTab();
   else if(srmSubTab === "analysis") renderSrmAnalysisPanel();
   else if(srmSubTab === "team") renderAnalysisTeamPanel("srm");
+  else if(srmSubTab === "open-pending") renderOpenPendingPanel("srm");
   else if(srmSubTab === "dashboard") renderSrmDashboardTab();
+}
+function isSrmRenderableSubTab(){
+  return ["freetext","analysis","team","open-pending","dashboard"].includes(srmSubTab);
 }
 function switchSrmSubTab(tab){
   srmSubTab = tab;
@@ -3895,14 +3945,16 @@ function switchSrmSubTab(tab){
   document.getElementById("srmSubFreeTextBtn")?.classList.toggle("active", tab==="freetext");
   document.getElementById("srmSubAnalysisBtn")?.classList.toggle("active", tab==="analysis");
   document.getElementById("srmSubTeamBtn")?.classList.toggle("active", tab==="team");
+  document.getElementById("srmSubOpenPendingBtn")?.classList.toggle("active", tab==="open-pending");
   document.getElementById("srmSubDashboardBtn")?.classList.toggle("active", tab==="dashboard");
   document.getElementById("srmSubMapping").style.display = tab==="mapping" ? "block" : "none";
   document.getElementById("srmSubFreeText").style.display = tab==="freetext" ? "block" : "none";
   document.getElementById("srmSubAnalysis").style.display = tab==="analysis" ? "block" : "none";
   document.getElementById("srmSubTeam").style.display = tab==="team" ? "block" : "none";
+  document.getElementById("srmSubOpenPending").style.display = tab==="open-pending" ? "block" : "none";
   document.getElementById("srmSubDashboard").style.display = tab==="dashboard" ? "block" : "none";
   moveSrmSubTabIndicator();
-  if(tab==="freetext" || tab==="analysis" || tab==="team" || tab==="dashboard"){
+  if(["freetext","analysis","team","open-pending","dashboard"].includes(tab)){
     if(!srmMonthTickets.length) buildSiteRepeatData();
     Promise.all([
       reloadSrmFtAssignmentsFromDb(),
@@ -4016,7 +4068,7 @@ function onSrmDateRangeChange(){
   if(toEl) toEl.value = to;
   resetSrmPageState();
   renderSiteRepeatMapping();
-  if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+  if(isSrmRenderableSubTab()) renderSrmActiveSubTab();
 }
 function onSrmMonthChange(val){
   if(!val || val === srmSelectedMonth) return;
@@ -4027,7 +4079,7 @@ function onSrmMonthChange(val){
   renderSrmDateRangeInputs();
   resetSrmPageState();
   renderSiteRepeatMapping();
-  if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+  if(isSrmRenderableSubTab()) renderSrmActiveSubTab();
 }
 function getSrmMonthContext(){
   const range = ensureSrmDateRange();
@@ -4218,7 +4270,7 @@ function renderSiteRepeatMapping(){
     countWrap.innerHTML = empty;
     dtWrap.innerHTML = empty;
     renderSrmKeywordPanel(null);
-    if(srmSubTab==="freetext" || srmSubTab==="analysis" || srmSubTab==="team" || srmSubTab==="dashboard") renderSrmActiveSubTab();
+    if(isSrmRenderableSubTab()) renderSrmActiveSubTab();
     return;
   }
 
@@ -4232,7 +4284,7 @@ function renderSiteRepeatMapping(){
     dtWrap.innerHTML = empty;
     renderSrmKeywordPanel(null);
     if(sub) sub.textContent += ` · 0 Site · 0 วัน`;
-    if(srmSubTab==="freetext" || srmSubTab==="analysis" || srmSubTab==="team" || srmSubTab==="dashboard") renderSrmActiveSubTab();
+    if(isSrmRenderableSubTab()) renderSrmActiveSubTab();
     return;
   }
 
@@ -4269,7 +4321,7 @@ function renderSiteRepeatMapping(){
     legendLabel: "H:m"
   });
 
-  if(srmSubTab==="freetext" || srmSubTab==="analysis" || srmSubTab==="team" || srmSubTab==="dashboard") renderSrmActiveSubTab();
+  if(isSrmRenderableSubTab()) renderSrmActiveSubTab();
 }
 function collectSrmDetailRows(kind, params){
   params = params || {};
@@ -8069,6 +8121,151 @@ function renderFaultTable(tableEl, rows, storageKey, opts){
   }
   makeColumnsResizable(tableEl, storageKey);
 }
+function isOpenPendingTicket(r){
+  const closed = parseFaultTs(r?.closed_time);
+  if(closed) return false;
+  const status = String(r?.status || r?.wo_status || r?.work_order_status || "").trim().toLowerCase();
+  if(!status) return true;
+  if(status.includes("closed") || status.includes("cancel")) return false;
+  return true;
+}
+function getOpenPendingSourceRows(scope){
+  const rows = openPendingTickets;
+  return (Array.isArray(rows) ? rows : []).filter(r=>{
+    if(scope === "srm"){
+      if(!passesSrmTicketFocus(r)) return false;
+      const site = extractFaultPlkdSite(r);
+      if(!site || site === "-" || !SITE_SET.has(site)) return false;
+    }else{
+      if(isSrmMaintenanceWo(r)) return false;
+      if(!isFaultSaSeverity(r)) return false;
+      if(isFaultBroadbandTicket(r)) return false;
+      if(!isPlkdFaultTicket(r)) return false;
+      if(!isFaultSystemWoCreator(r)) return false;
+      if(!hasFaultSourceTicketId(r)) return false;
+      if(faultRegionFilter && (r.region || "") !== faultRegionFilter) return false;
+    }
+    if(!parseFaultTs(r.created_time)) return false;
+    return true;
+  }).map(r=>({...r, _fault: classifyFaultTicket(r)}));
+}
+function filterOpenPendingRows(scope, rows){
+  const q = String(openPendingSearch[scope] || "").trim().toUpperCase();
+  if(!q) return rows;
+  return rows.filter(r=>{
+    const subject = String(r.subject || "").toUpperCase();
+    const site = extractFaultPlkdSite(r);
+    return subject.includes(q) || String(site || "").toUpperCase().includes(q);
+  });
+}
+function openPendingCreatedDay(r){
+  const raw = String(r?.created_time || "").trim();
+  const m = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+  if(m) return m[1];
+  const d = parseFaultTs(raw);
+  return d ? fmtIsoLocalDate(d) : "";
+}
+function buildOpenPendingDayKeys(rows){
+  const rowDays = rows.map(openPendingCreatedDay).filter(Boolean).sort();
+  const range = getFaultDateRange();
+  let start = rowDays[0] || fmtIsoLocalDate(range.start);
+  let end = range.dateVal || fmtIsoLocalDate(range.end);
+  const lastRowDay = rowDays[rowDays.length - 1];
+  if(lastRowDay && lastRowDay > end) end = lastRowDay;
+  if(start > end) start = end;
+  const keys = [];
+  const d = new Date(start + "T00:00:00");
+  const stop = new Date(end + "T00:00:00");
+  while(d <= stop){
+    keys.push(fmtIsoLocalDate(d));
+    d.setDate(d.getDate() + 1);
+  }
+  return keys;
+}
+function buildOpenPendingTrend(rows){
+  const byDay = new Map();
+  rows.forEach(r=>{
+    const key = openPendingCreatedDay(r);
+    if(!key) return;
+    byDay.set(key, (byDay.get(key) || 0) + 1);
+  });
+  const dayKeys = buildOpenPendingDayKeys(rows);
+  return { dayKeys, counts:dayKeys.map(k=>byDay.get(k) || 0) };
+}
+function renderOpenPendingTrendChart(scope, rows){
+  const canvas = document.getElementById(`${scope}OpenPendingChart`);
+  const legend = document.getElementById(`${scope}OpenPendingLegend`);
+  if(!canvas || typeof Chart === "undefined") return;
+  const trend = buildOpenPendingTrend(rows);
+  if(openPendingChartInst[scope]){
+    openPendingChartInst[scope].destroy();
+    openPendingChartInst[scope] = null;
+  }
+  if(legend) legend.innerHTML = `<span class="legend-dot" style="background:var(--amber)"></span>Open Pending <strong>${rows.length}</strong>`;
+  openPendingChartInst[scope] = new Chart(canvas, {
+    type:"bar",
+    data:{
+      labels:fmtEecTrendDayLabels(trend.dayKeys),
+      datasets:[{
+        label:"Open Pending",
+        data:trend.counts,
+        backgroundColor:"rgba(255,176,32,.75)",
+        borderColor:"#d97706",
+        borderWidth:1,
+        borderRadius:5
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ ticks:{color:"#868e96"}, grid:{display:false} },
+        y:{ beginAtZero:true, ticks:{precision:0, color:"#868e96"}, grid:{color:"rgba(134,142,150,.18)"} }
+      }
+    }
+  });
+}
+function openPendingRowHtml(r){
+  const site = extractFaultPlkdSite(r);
+  const wo = r.work_order_id || r.incident_id || "-";
+  const tt = r.source_ticket_id || r.tt_number || r.sdm_tt || "-";
+  return `<tr>
+    <td class="site-plkd-cell">${esc(site || "-")}</td>
+    <td class="tt-line">${esc(tt)}<div class="tt-subject">${esc(wo)}</div></td>
+    <td>${esc(r.severity || "-")}</td>
+    <td>${esc(r.status || r.wo_status || "Open")}</td>
+    <td class="dt-cell">${fmtFaultDT(r.created_time)}</td>
+    <td class="dt-cell">${fmtFaultDT(r.require_finish_time)}</td>
+    <td class="dt-cell">${fmtFaultDT(r.closed_time)}</td>
+    <td>${esc(r.team || r.raw_team || "-")}</td>
+    <td class="subject-cell">${esc(r.subject || "")}</td>
+  </tr>`;
+}
+function renderOpenPendingTable(scope, rows){
+  const wrap = document.getElementById(`${scope}OpenPendingTableWrap`);
+  const count = document.getElementById(`${scope}OpenPendingCount`);
+  if(count) count.textContent = rows.length;
+  if(!wrap) return;
+  const body = rows.length ? rows.map(openPendingRowHtml).join("") : `<tr><td colspan="9" class="empty-hint">No open pending tickets.</td></tr>`;
+  wrap.innerHTML = `<table class="svcava-table fault-data-table"><thead><tr>
+    <th>Site</th><th>TT / WO</th><th>Severity</th><th>Status</th><th>Create Time</th><th>Require Finish</th><th>Closed</th><th>Team</th><th>Subject</th>
+  </tr></thead><tbody>${body}</tbody></table>`;
+  makeColumnsResizable(wrap.querySelector("table"), `${scope}-open-pending`);
+}
+function renderOpenPendingPanel(scope){
+  const input = document.getElementById(`${scope}OpenPendingSearch`);
+  if(input && input.value !== openPendingSearch[scope]) input.value = openPendingSearch[scope] || "";
+  const allRows = getOpenPendingSourceRows(scope)
+    .sort((a,b)=> String(b.created_time || "").localeCompare(String(a.created_time || "")));
+  const detailRows = filterOpenPendingRows(scope, allRows);
+  renderOpenPendingTrendChart(scope, allRows);
+  renderOpenPendingTable(scope, detailRows);
+}
+function onOpenPendingSearch(scope, value){
+  openPendingSearch[scope] = value || "";
+  renderOpenPendingPanel(scope);
+}
 function calcFaultServiceAvailability(dateStr, rows){
   const TOTAL_SITE_MINUTES = 168 * 24 * 60;
   const dayRows = rows.filter(r=>{
@@ -10158,6 +10355,8 @@ function renderFault(){
     }
   } else if(faultSubTab === "analysis"){
     renderFaultAnalysisPanel();
+  } else if(faultSubTab === "open-pending"){
+    renderOpenPendingPanel("fault");
   }
   moveFaultSubTabIndicator();
 }
@@ -10211,6 +10410,28 @@ async function loadSrmTickets(showToast){
     await run;
   }finally{
     loadSrmTicketsPromise = null;
+  }
+}
+let loadOpenPendingTicketsPromise = null;
+async function loadOpenPendingTickets(showToast){
+  if(loadOpenPendingTicketsPromise) return loadOpenPendingTicketsPromise;
+  const run = (async()=>{
+    try{
+      openPendingTickets = await fetchAllFromRest(OPEN_PENDING_REST + "?select=*&order=created_time.asc");
+      if(currentTab==="srm" && srmSubTab==="open-pending") renderOpenPendingPanel("srm");
+      if(currentTab==="fault" && faultSubTab==="open-pending") renderOpenPendingPanel("fault");
+      if(showToast) toast(`Open Pending loaded (${openPendingTickets.length} rows)`);
+    }catch(e){
+      console.warn("loadOpenPendingTickets failed:", e);
+      openPendingTickets = openPendingTickets || [];
+      if(showToast) toast("Open Pending load failed");
+    }
+  })();
+  loadOpenPendingTicketsPromise = run;
+  try{
+    await run;
+  }finally{
+    loadOpenPendingTicketsPromise = null;
   }
 }
 async function updateFaultField(workOrderId, field, value){
@@ -10388,6 +10609,14 @@ const SRM_IMPORT_FIELDS = [
   "pea_working"
 ];
 const SRM_EDITABLE_FIELDS = new Set(["pea_working", "dash_hidden"]);
+const OPEN_PENDING_IMPORT_FIELDS = [
+  "work_order_id","source_ticket_id","sdm_tt","external_ticket_id",
+  "region","province","skill","team","site_id","status","suspend_status",
+  "incident_urgency","severity","created_time","require_finish_time","source_sla",
+  "dispatched_time","accepted_time","departed_time","arrived_time","resume_time","completed_time","closed_time",
+  "time_to_arrive","time_to_complete","time_to_leave","work_type","fault_size","point",
+  "root_cause","sub_root_cause","close_description","complete_solution","subject","wo_creator"
+];
 function mapSrmImportRow(r){
   const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
   const raw = mapFaultImportRow(r);
@@ -10400,6 +10629,23 @@ function mapSrmImportRow(r){
   });
   const pea = get("PEA Working");
   if(pea) payload.pea_working = pea;
+  return payload.work_order_id ? payload : null;
+}
+function mapOpenPendingImportRow(r){
+  const raw = mapFaultImportRow(r);
+  if(!raw) return null;
+  if(!rowHasWoCreatorColumn(r)) raw.wo_creator = "System";
+  if(isSrmMaintenanceWo(raw)) return null;
+  if(!isFaultSrmSeverity(raw)) return null;
+  if(isFaultBroadbandTicket(raw)) return null;
+  if(!isPlkdFaultTicket(raw)) return null;
+  if(!isFaultSystemWoCreator(raw)) return null;
+  if(!hasFaultSourceTicketId(raw)) return null;
+  if(!raw.created_time) return null;
+  const payload = { updated_at: new Date().toISOString() };
+  OPEN_PENDING_IMPORT_FIELDS.forEach(k=>{
+    if(raw[k] !== undefined && raw[k] !== null && raw[k] !== "") payload[k] = raw[k];
+  });
   return payload.work_order_id ? payload : null;
 }
 function mapSvcAvaImportRow(r){
@@ -10507,6 +10753,29 @@ function handleSrmUpload(evt){
   };
   if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
 }
+function readWorkOrderUploadRows(file, cb){
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    let rows = [];
+    if(file.name.match(/\.csv$/i)){
+      rows = parseCSV(e.target.result);
+    } else {
+      const wb = XLSX.read(e.target.result, {type:"binary"});
+      const sheet = getFaultUploadSheet(wb);
+      rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
+    }
+    cb(rows);
+  };
+  if(file.name.match(/\.csv$/i)) reader.readAsText(file); else reader.readAsBinaryString(file);
+}
+function handleOpenPendingUpload(evt, scope){
+  const file = evt.target.files[0];
+  if(!file) return;
+  readWorkOrderUploadRows(file, async rows=>{
+    await bulkInsertOpenPendingTickets(rows, scope);
+    evt.target.value = "";
+  });
+}
 async function refreshSiteRepeatMapping(){
   const statusEl = document.getElementById("statusMsgSrm");
   if(statusEl) statusEl.textContent = "กำลังโหลด…";
@@ -10518,7 +10787,7 @@ async function refreshSiteRepeatMapping(){
     const ctx = getSrmMonthContext();
     const data = buildSiteRepeatData();
     renderSiteRepeatMapping();
-    if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+    if(isSrmRenderableSubTab()) renderSrmActiveSubTab();
     if(statusEl) statusEl.textContent = formatSrmRefreshStatus(data, ctx);
   }catch(e){
     console.error(e);
@@ -10541,7 +10810,7 @@ async function clearSiteRepeatMappingData(){
   if(!woIds.length){
     resetSrmPageState();
     renderSiteRepeatMapping();
-    if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+    if(isSrmRenderableSubTab()) renderSrmActiveSubTab();
     toast(`ไม่มีข้อมูล SRM ในช่วงวันที่ ${ctx.monthLabel}`);
     return;
   }
@@ -10561,7 +10830,7 @@ async function clearSiteRepeatMappingData(){
     srmTickets = srmTickets.filter(r=> !removed.has(r.work_order_id));
     resetSrmPageState();
     renderSiteRepeatMapping();
-    if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+    if(isSrmRenderableSubTab()) renderSrmActiveSubTab();
     if(statusEl) statusEl.textContent = `ล้างแล้ว · ช่วงวันที่ ${ctx.monthLabel} · ลบ ${woIds.length} TT`;
     toast("ล้างข้อมูลแล้ว");
   }catch(e){
@@ -10626,8 +10895,48 @@ async function bulkInsertSrmTickets(rows){
   const ctx = getSrmMonthContext();
   const data = buildSiteRepeatData();
   renderSiteRepeatMapping();
-  if(srmSubTab === "freetext" || srmSubTab === "analysis" || srmSubTab === "team" || srmSubTab === "dashboard") renderSrmActiveSubTab();
+  if(isSrmRenderableSubTab()) renderSrmActiveSubTab();
   statusEl.textContent = `อัปโหลด ${synced} แถว · ช่วงวันที่ ${ctx.monthLabel} · ${data.grandCount} TT · ${data.sites.length} Site`;
+}
+async function bulkInsertOpenPendingTickets(rows, scope){
+  const statusEl = document.getElementById(scope === "srm" ? "statusMsgSrm" : "statusMsgFault");
+  if(!statusEl) return;
+  statusEl.textContent = `Processing Open Pending ${rows.length} rows...`;
+  let skipped = 0;
+  const payloads = [];
+  rows.forEach(r=>{
+    const p = mapOpenPendingImportRow(r);
+    if(!p){ skipped++; return; }
+    payloads.push(p);
+  });
+  if(payloads.length === 0){
+    statusEl.textContent = "No valid Open Pending rows (need PLKD + SA/NSA + System + Source Ticket ID + Created Time).";
+    return;
+  }
+  const CHUNK = 40;
+  let synced = 0;
+  for(const group of groupFaultImportPayloads(payloads)){
+    for(let i = 0; i < group.length; i += CHUNK){
+      const chunk = group.slice(i, i + CHUNK);
+      const res = await fetch(OPEN_PENDING_REST + "?on_conflict=work_order_id", {
+        method:"POST",
+        headers:{...HEADERS, "Prefer":"resolution=merge-duplicates,return=representation"},
+        body: JSON.stringify(chunk)
+      });
+      if(!res.ok){
+        const errText = await res.text();
+        console.error(errText);
+        statusEl.textContent = `Open Pending import failed at row ${i+1}: ${errText}`.slice(0, 300);
+        return;
+      }
+      synced += chunk.length;
+      statusEl.textContent = `Processing Open Pending... ${synced}/${payloads.length}`;
+    }
+  }
+  await loadOpenPendingTickets(false);
+  if(scope === "srm") switchSrmSubTab("open-pending");
+  else switchFaultSubTab("open-pending");
+  statusEl.textContent = `Synced ${synced} Open Pending row(s)${skipped ? ` - skipped ${skipped}` : ""}`;
 }
 function groupFaultImportPayloads(payloads){
   const groups = new Map();
