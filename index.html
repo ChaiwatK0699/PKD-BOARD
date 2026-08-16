@@ -941,6 +941,16 @@ body.screenshotting .srm-ft-ofcnode-detail-wrap-collapsed{display:block !importa
 .srm-ft-ticket-table .srm-team-split-cell{min-width:150px; max-width:210px; font-family:'JetBrains Mono'; line-height:1.25;}
 .srm-ft-ticket-table .srm-team-id-line{font-weight:800; color:var(--text);}
 .srm-ft-ticket-table .srm-team-name-line{margin-top:5px; padding-top:5px; border-top:1px solid var(--border); color:var(--muted); white-space:normal;}
+.analysis-team-subrc-dropdown{position:relative; min-width:320px;}
+.analysis-team-subrc-dropdown summary{list-style:none; cursor:pointer; user-select:none;}
+.analysis-team-subrc-dropdown summary::-webkit-details-marker{display:none;}
+.analysis-team-subrc-menu{position:absolute; z-index:20; top:calc(100% + 6px); left:0; width:min(680px, calc(100vw - 64px)); max-height:320px; overflow:auto; padding:8px; border:1px solid var(--border-soft); border-radius:8px; background:var(--panel); box-shadow:0 12px 30px rgba(0,0,0,.16);}
+.analysis-team-subrc-option{display:flex; align-items:flex-start; gap:8px; padding:7px 8px; border-radius:6px; font-size:12px; line-height:1.35; cursor:pointer;}
+.analysis-team-subrc-option:hover{background:var(--bg-soft, rgba(127,127,127,.06));}
+.analysis-team-subrc-option input{margin-top:2px;}
+.analysis-team-subrc-option .seg-count{margin-left:auto; flex-shrink:0;}
+.analysis-team-subrc-group{padding:7px 8px 5px; font-family:'Barlow Condensed'; font-weight:800; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); border-top:1px solid var(--border-soft);}
+.analysis-team-subrc-group:first-child{border-top:none;}
 .srm-dash-be-table .srm-dash-sort-col{width:48px; text-align:center;}
 .srm-dash-be-table thead th:nth-child(4){text-align:center; width:96px;}
 .srm-dash-be-row.dragging{opacity:.45;}
@@ -1629,7 +1639,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="tab-btn active" id="eecSubChartsBtn" onclick="switchEecSubTab('charts')">Trend</button>
       <button class="tab-btn" id="eecSubOverSlaBtn" onclick="switchEecSubTab('over-sla')">Over SLA</button>
       <button class="tab-btn" id="eecSubLtrBtn" onclick="switchEecSubTab('ltr')">Long time Repair</button>
-      <button class="tab-btn" id="eecSubSiteSearchBtn" onclick="switchEecSubTab('site-search')">Site Search</button>
+      <button class="tab-btn" id="eecSubSiteSearchBtn" onclick="switchEecSubTab('site-search')">Search</button>
       <button class="tab-btn" id="eecSubAnalysisBtn" onclick="switchEecSubTab('analysis')">Analysis</button>
       <button class="tab-btn" id="eecSubTeamBtn" onclick="switchEecSubTab('team')">Analysis Team</button>
     </div>
@@ -1706,12 +1716,16 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="fault-chart-card">
         <div class="fault-overview-toolbar" style="margin-bottom:12px;">
           <div>
-            <div class="fault-chart-title" style="margin:0">Site Search · Ticket Lookup</div>
-            <p class="status-msg" id="eecSiteSearchHint" style="margin:4px 0 0;text-transform:none;font-size:12px;">พิมพ์ Site ID เพื่อค้นหา WO ทั้งหมดของ Site นั้น</p>
+            <div class="fault-chart-title" style="margin:0">Search · Ticket Lookup</div>
+            <p class="status-msg" id="eecSiteSearchHint" style="margin:4px 0 0;text-transform:none;font-size:12px;">พิมพ์ Site ID หรือ Team ID เพื่อค้นหา WO</p>
           </div>
           <div class="fgroup" style="min-width:280px;">
             <label class="flabel" for="eecSiteSearchInput">Site ID</label>
             <input type="text" id="eecSiteSearchInput" class="search-input" placeholder="เช่น CCS0050-AC-01" oninput="onEecSiteSearchInput(this.value)">
+          </div>
+          <div class="fgroup" style="min-width:220px;">
+            <label class="flabel" for="eecTeamSearchInput">Team ID</label>
+            <input type="text" id="eecTeamSearchInput" class="search-input" placeholder="เช่น OFC 001 / NOD 111" oninput="onEecTeamSearchInput(this.value)">
           </div>
           <div class="fgroup">
             <label class="flabel" for="eecSiteSearchDateFrom">วันที่เลือก</label>
@@ -2296,6 +2310,7 @@ let eecDetailProvinceFilter = "";
 let eecDetailExpandSite = null;
 let eecDetailAlarmFilter = "all";
 let eecSiteSearchQuery = "";
+let eecTeamSearchQuery = "";
 let eecSiteSearchDateFrom = "";
 let eecSiteSearchDateTo = "";
 let cwSiteTickets = [];
@@ -2525,11 +2540,23 @@ async function fetchTeamMap(){
   }
   enrichTeamMap();
 }
+async function fetchRestPages(path, pageSize=1000){
+  const rows = [];
+  for(let from=0;;from+=pageSize){
+    const to = from + pageSize - 1;
+    const sep = path.includes("?") ? "&" : "?";
+    const res = await fetch(REST + `${path}${sep}limit=${pageSize}&offset=${from}`, {headers:HEADERS});
+    if(!res.ok) throw new Error(await res.text());
+    const page = await res.json();
+    const list = Array.isArray(page) ? page : [];
+    rows.push(...list);
+    if(list.length < pageSize) break;
+  }
+  return rows;
+}
 async function fetchTickets(group){
   try{
-    const res = await fetch(REST + `/tickets?status_group=eq.${group}&order=created_at.asc`, {headers:HEADERS});
-    if(!res.ok) throw new Error(await res.text());
-    const data = await res.json();
+    const data = await fetchRestPages(`/tickets?status_group=eq.${group}&order=created_at.asc`);
     return Array.isArray(data) ? data : [];
   }catch(e){
     console.warn(`fetchTickets(${group}) failed:`, e);
@@ -9875,6 +9902,8 @@ function onSrmAnalysisProblemClick(e){
     const key = `${subRc.getAttribute("data-section-key")}|${subRc.getAttribute("data-subrc-key")}`;
     srmAnalysisOfcSubRc = srmAnalysisOfcSubRc === key ? null : key;
     renderSrmAnalysisProblemBlocks(buildSrmAnalysisDashboard());
+    if(summaryEl) summaryEl.textContent = "ใส่ Site ID หรือ Team ID เพื่อค้นหา Ticket / WO";
+    wrap.innerHTML = `<div class="empty-hint" style="padding:16px;">ยังไม่ได้ค้นหา</div>`;
     return;
   }
   const section = e.target.closest(".srm-analysis-ofc-section-row[data-section-key]");
@@ -13216,6 +13245,7 @@ function renderEecDetailTableHtml(rows){
       <td class="site-plkd-cell">${esc(site)}</td>
       <td>${renderEecNewUploadBadge(r, latestUploadTs)}${ticketCell}</td>
       <td>${esc(getEecProvinceForTicket(r))}</td>
+      <td>${renderEecTeamCell(r)}</td>
       <td class="subject-cell">${esc(r.subject||"")}</td>
       <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
       <td>${esc(r.status||"")}</td>
@@ -13227,7 +13257,7 @@ function renderEecDetailTableHtml(rows){
     </tr>`;
   }).join("");
   return `<table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
-    <th>Site</th><th>Ticket / WO</th><th>Province</th><th>Subject</th><th>Severity</th><th>Status</th>
+    <th>Site</th><th>Ticket / WO</th><th>Province</th><th>Team</th><th>Subject</th><th>Severity</th><th>Status</th>
     <th>WO Creator</th><th>Created</th><th>Closed</th><th>Sub Root Cause</th><th>Closed Description</th>
   </tr></thead><tbody>${bodyHtml}</tbody></table>`;
 }
@@ -13316,6 +13346,23 @@ function normalizeEecSiteSearchValue(v){
 function getEecTicketSearchSite(r){
   return normalizeEecSiteSearchValue(getEecPowerOutageSiteKey(r) || r?.site_id || extractEecSite(r));
 }
+function normalizeEecTeamSearchValue(v){
+  return String(v || "").trim().toUpperCase().replace(/\s+/g, " ");
+}
+function compactEecTeamSearchValue(v){
+  return normalizeEecTeamSearchValue(v).replace(/[^A-Z0-9]/g, "");
+}
+function getEecTicketSearchTeamText(r){
+  return normalizeEecTeamSearchValue([r?.team, ...buildEecTeamLines(r?.team)].filter(Boolean).join(" "));
+}
+function matchesEecTeamSearch(r){
+  const q = normalizeEecTeamSearchValue(eecTeamSearchQuery);
+  if(!q) return true;
+  const compactQ = compactEecTeamSearchValue(q);
+  const teamText = getEecTicketSearchTeamText(r);
+  const compactTeam = compactEecTeamSearchValue(teamText);
+  return teamText.includes(q) || (compactQ && compactTeam.includes(compactQ));
+}
 function getEecSiteSearchDateKey(r){
   const raw = String(r?.closed_time || r?.created_time || "").trim();
   return raw ? raw.slice(0, 10) : "";
@@ -13336,10 +13383,12 @@ function passesEecSiteSearchDateRange(r){
 }
 function getEecSiteSearchRows(){
   const q = normalizeEecSiteSearchValue(eecSiteSearchQuery);
-  if(!q) return [];
+  const tq = normalizeEecTeamSearchValue(eecTeamSearchQuery);
+  if(!q && !tq) return [];
   return getEecBaseTickets().filter(r=>{
     const site = getEecTicketSearchSite(r);
-    return (site === q || site.includes(q)) && passesEecSiteSearchDateRange(r);
+    const siteOk = q ? (site === q || site.includes(q)) : true;
+    return siteOk && matchesEecTeamSearch(r) && passesEecSiteSearchDateRange(r);
   }).sort((a,b)=> String(b.created_time || b.closed_time || "").localeCompare(String(a.created_time || a.closed_time || "")));
 }
 function getEecSiteSearchSuggestions(){
@@ -13348,6 +13397,7 @@ function getEecSiteSearchSuggestions(){
   const counts = {};
   getEecBaseTickets().forEach(r=>{
     if(!passesEecSiteSearchDateRange(r)) return;
+    if(!matchesEecTeamSearch(r)) return;
     const site = getEecTicketSearchSite(r);
     if(!site || !site.includes(q)) return;
     counts[site] = (counts[site] || 0) + 1;
@@ -13359,6 +13409,10 @@ function getEecSiteSearchSuggestions(){
 }
 function onEecSiteSearchInput(value){
   eecSiteSearchQuery = value || "";
+  renderEecSiteSearchPanel();
+}
+function onEecTeamSearchInput(value){
+  eecTeamSearchQuery = value || "";
   renderEecSiteSearchPanel();
 }
 function onEecSiteSearchDateChange(){
@@ -13373,10 +13427,13 @@ function setEecSiteSearch(site){
   renderEecSiteSearchPanel();
 }
 function clearEecSiteSearch(){
+  eecTeamSearchQuery = "";
   eecSiteSearchDateFrom = "";
   eecSiteSearchDateTo = "";
+  const teamEl = document.getElementById("eecTeamSearchInput");
   const fromEl = document.getElementById("eecSiteSearchDateFrom");
   const toEl = document.getElementById("eecSiteSearchDateTo");
+  if(teamEl) teamEl.value = "";
   if(fromEl) fromEl.value = "";
   if(toEl) toEl.value = "";
   setEecSiteSearch("");
@@ -13384,6 +13441,8 @@ function clearEecSiteSearch(){
 function renderEecSiteSearchPanel(){
   const input = document.getElementById("eecSiteSearchInput");
   if(input && input.value !== eecSiteSearchQuery) input.value = eecSiteSearchQuery;
+  const teamInput = document.getElementById("eecTeamSearchInput");
+  if(teamInput && teamInput.value !== eecTeamSearchQuery) teamInput.value = eecTeamSearchQuery;
   const fromEl = document.getElementById("eecSiteSearchDateFrom");
   const toEl = document.getElementById("eecSiteSearchDateTo");
   if(fromEl && fromEl.value !== eecSiteSearchDateFrom) fromEl.value = eecSiteSearchDateFrom;
@@ -13393,7 +13452,14 @@ function renderEecSiteSearchPanel(){
   const wrap = document.getElementById("eecSiteSearchResultWrap");
   if(!wrap) return;
   const q = normalizeEecSiteSearchValue(eecSiteSearchQuery);
-  if(!q){
+  const tq = normalizeEecTeamSearchValue(eecTeamSearchQuery);
+  if(!q && !tq){
+    if(suggestionsEl) suggestionsEl.innerHTML = "";
+    if(summaryEl) summaryEl.textContent = "ใส่ Site ID หรือ Team ID เพื่อค้นหา Ticket / WO";
+    wrap.innerHTML = `<div class="empty-hint" style="padding:16px;">ยังไม่ได้ค้นหา</div>`;
+    return;
+  }
+  if(!q && !tq){
     if(suggestionsEl) suggestionsEl.innerHTML = "";
     if(summaryEl) summaryEl.textContent = "ใส่ Site ID เพื่อค้นหา Ticket / WO";
     wrap.innerHTML = `<div class="empty-hint" style="padding:16px;">ยังไม่ได้ค้นหา Site</div>`;
@@ -13409,6 +13475,7 @@ function renderEecSiteSearchPanel(){
   const exactCount = rows.filter(r=> getEecTicketSearchSite(r) === q).length;
   const { from, to } = getEecSiteSearchDateRange();
   const dateText = from || to ? ` · Date ${from || "..."} - ${to || "..."}` : "";
+  const searchParts = [q ? `Site ${q}` : "", tq ? `Team ${tq}` : ""].filter(Boolean);
   if(summaryEl){
     summaryEl.textContent = exactCount
       ? `${q} · ${exactCount} exact WO · ${rows.length} matched WO`
@@ -13418,6 +13485,9 @@ function renderEecSiteSearchPanel(){
     summaryEl.textContent = exactCount
       ? `${q} · ${exactCount} exact WO · ${rows.length} matched WO${dateText}`
       : `${q} · ${rows.length} matched WO${dateText}`;
+  }
+  if(summaryEl){
+    summaryEl.textContent = `${searchParts.join(" · ")} · ${rows.length} matched WO${q && exactCount ? ` · ${exactCount} exact Site WO` : ""}${dateText}`;
   }
   wrap.innerHTML = rows.length
     ? renderEecDetailTableHtml(rows)
@@ -15265,9 +15335,9 @@ async function exportEecAnalysisToPptx(){
 }
 const ANALYSIS_TEAM_PAGE_SIZE = 10;
 const analysisTeamState = {
-  eec:{ dispatch:{ sev:"all", root:"OFC", page:1, team:null }, arrive:{ sev:"all", root:"OFC", page:1, team:null }, downtime:{ sev:"all", root:"OFC", page:1, team:null } },
-  srm:{ dispatch:{ sev:"all", root:"OFC", page:1, team:null }, arrive:{ sev:"all", root:"OFC", page:1, team:null }, downtime:{ sev:"all", root:"OFC", page:1, team:null } },
-  cw:{ dispatch:{ sev:"all", root:"OFC", page:1, team:null }, arrive:{ sev:"all", root:"OFC", page:1, team:null }, downtime:{ sev:"all", root:"OFC", page:1, team:null } }
+  eec:{ dispatch:{ sev:"all", subRcs:new Set(), page:1, team:null }, arrive:{ sev:"all", subRcs:new Set(), page:1, team:null }, downtime:{ sev:"all", subRcs:new Set(), page:1, team:null } },
+  srm:{ dispatch:{ sev:"all", subRcs:new Set(), page:1, team:null }, arrive:{ sev:"all", subRcs:new Set(), page:1, team:null }, downtime:{ sev:"all", subRcs:new Set(), page:1, team:null } },
+  cw:{ dispatch:{ sev:"all", subRcs:new Set(), page:1, team:null }, arrive:{ sev:"all", subRcs:new Set(), page:1, team:null }, downtime:{ sev:"all", subRcs:new Set(), page:1, team:null } }
 };
 function normalizeAnalysisTeamSubRootCauseText(v){
   return String(v || "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -15278,23 +15348,76 @@ function getAnalysisTeamSubRootCauseText(r){
 function getAnalysisTeamResumeValue(r){
   return r?.resume_time || r?.resume || r?.resume_at || r?.restored_time || r?.restoration_time || r?.recovered_time || "";
 }
+function hasAnalysisTeamResumeTime(r){
+  return !!String(getAnalysisTeamResumeValue(r) || "").trim();
+}
 function classifyAnalysisTeamScopeGroup(r){
-  return typeof classifySrmRootCauseGroup === "function" ? classifySrmRootCauseGroup(r) : "NODE";
   const text = normalizeAnalysisTeamSubRootCauseText(getAnalysisTeamSubRootCauseText(r));
   const compact = text.replace(/[\s_()/\\-]+/g, "");
   const isOfc = /ไฟเบอร์ขาด|สายcrack|หักในหัวต่อ|fiber optic cut|crack in closure|odf|pigtail|connector|jumper/i.test(text)
     || compact.includes("noffiberopticcutcrackinclosure")
     || compact.includes("nifodfpigtailconnectorjumper");
-  if(isOfc) return "ofc";
+  if(isOfc) return "OFC";
   const isNope = /ระบบไฟฟ้า|power\s*-\s*(ac|dc)\s*-\s*breaker|ac\s*-\s*breaker|dc\s*-\s*breaker/i.test(text)
     || compact.includes("npwpoweracbreaker")
     || compact.includes("npwpowerdcbreaker");
-  if(isNope) return "nope";
-  return "other";
+  if(isNope) return "NODE";
+  return "OTHER";
 }
 function matchesAnalysisTeamScopeGroup(r, mode){
   if(!mode || mode === "all") return true;
   return classifyAnalysisTeamScopeGroup(r) === mode;
+}
+function getAnalysisTeamSubRcRawLabel(r){
+  return getAnalysisTeamSubRootCauseText(r) || "(ไม่ระบุ Sub Root Cause)";
+}
+function buildAnalysisTeamSubRcMeta(rows){
+  const rawList = (rows || []).map(getAnalysisTeamSubRcRawLabel);
+  const thToEn = buildEecSubRcThToEnMap(rawList);
+  const byKey = {};
+  (rows || []).forEach(r=>{
+    const raw = getAnalysisTeamSubRcRawLabel(r);
+    const key = getEecSubRcCanonicalKey(raw, thToEn);
+    if(!byKey[key]) byKey[key] = { key, count:0, variants:{}, groups:{} };
+    byKey[key].count++;
+    const group = typeof classifySrmRootCauseGroup === "function" ? classifySrmRootCauseGroup(r) : "OTHER";
+    byKey[key].groups[group] = (byKey[key].groups[group] || 0) + 1;
+    if(!byKey[key].variants[raw]) byKey[key].variants[raw] = { subRootCause:raw, count:0 };
+    byKey[key].variants[raw].count++;
+  });
+  return {
+    thToEn,
+    options:Object.values(byKey).map(row=>{
+      const topGroup = Object.entries(row.groups).sort((a,b)=> b[1] - a[1])[0]?.[0] || "OTHER";
+      return {
+        key: row.key,
+        label: pickEecSubRcDisplayLabel(Object.values(row.variants)),
+        count: row.count,
+        group: topGroup
+      };
+    }).sort((a,b)=> (analysisTeamSubRcGroupRank(a.group) - analysisTeamSubRcGroupRank(b.group)) || b.count - a.count || a.label.localeCompare(b.label, "th"))
+  };
+}
+function analysisTeamSubRcGroupRank(group){
+  if(group === "OFC") return 1;
+  if(group === "NODE") return 2;
+  return 3;
+}
+function analysisTeamSubRcGroupLabel(group){
+  if(group === "OFC") return "OFC";
+  if(group === "NODE") return "NOD / NODE";
+  return "OTHER";
+}
+function getAnalysisTeamSubRcKey(r, thToEn){
+  return getEecSubRcCanonicalKey(getAnalysisTeamSubRcRawLabel(r), thToEn || {});
+}
+function ensureAnalysisTeamSubRcSet(scope, metric){
+  const st = analysisTeamState[scope]?.[metric];
+  if(!st) return new Set();
+  if(!(st.subRcs instanceof Set)){
+    st.subRcs = new Set(Array.isArray(st.subRcs) ? st.subRcs : []);
+  }
+  return st.subRcs;
 }
 function getAnalysisTeamScopeTickets(scope){
   if(scope === "eec") return typeof getEecAnalysisScopeTickets === "function" ? getEecAnalysisScopeTickets() : [];
@@ -15338,7 +15461,7 @@ function formatAnalysisTeamMinutes(mins){
 }
 function formatAnalysisTeamHours(mins){
   if(!Number.isFinite(mins)) return "-";
-  return `${(Math.round(mins) / 60).toFixed(2)} hr`;
+  return formatAnalysisTeamDuration(mins);
 }
 function formatAnalysisTeamDuration(mins){
   if(!Number.isFinite(mins)) return "-";
@@ -15373,12 +15496,18 @@ function matchesAnalysisTeamSeverity(r, mode){
 function buildAnalysisTeamGroups(scope, metric){
   const state = analysisTeamState[scope]?.[metric] || { sev:"all" };
   const threshold = metric === "dispatch" ? 60 : 240;
-  const dedupe = new Map();
-  getAnalysisTeamScopeTickets(scope).forEach(r=>{
-    if(!matchesAnalysisTeamSeverity(r, state.sev)) return;
-    if(!matchesAnalysisTeamScopeGroup(r, state.root || "all")) return;
+  const selectedSubRcs = ensureAnalysisTeamSubRcSet(scope, metric);
+  const baseRows = getAnalysisTeamScopeTickets(scope).filter(r=>{
+    if(hasAnalysisTeamResumeTime(r)) return false;
+    if(!matchesAnalysisTeamSeverity(r, state.sev)) return false;
     const mins = getAnalysisTeamMetricMinutes(r, metric);
-    if(!Number.isFinite(mins) || mins <= threshold) return;
+    return Number.isFinite(mins) && mins > threshold;
+  });
+  const subRcMeta = buildAnalysisTeamSubRcMeta(baseRows);
+  const dedupe = new Map();
+  baseRows.forEach(r=>{
+    if(selectedSubRcs.size && !selectedSubRcs.has(getAnalysisTeamSubRcKey(r, subRcMeta.thToEn))) return;
+    const mins = getAnalysisTeamMetricMinutes(r, metric);
     const id = getAnalysisTeamTicketId(r) || `__${dedupe.size}`;
     if(!dedupe.has(id) || mins > dedupe.get(id).minutes) dedupe.set(id, { row:r, minutes:mins });
   });
@@ -15398,13 +15527,44 @@ function buildAnalysisTeamGroups(scope, metric){
   })).sort((a,b)=> b.max - a.max || b.avg - a.avg || b.count - a.count || a.team.localeCompare(b.team));
 }
 function renderAnalysisTeamScopeFilter(scope, metric){
-  const active = analysisTeamState[scope][metric].root || "OFC";
-  const items = [
-    { key:"OFC", label:"OFC" },
-    { key:"NODE", label:"NODE" }
-  ];
+  const st = analysisTeamState[scope][metric];
+  const selected = ensureAnalysisTeamSubRcSet(scope, metric);
+  const threshold = metric === "dispatch" ? 60 : 240;
+  const baseRows = getAnalysisTeamScopeTickets(scope).filter(r=>{
+    if(hasAnalysisTeamResumeTime(r)) return false;
+    if(!matchesAnalysisTeamSeverity(r, st.sev)) return false;
+    const mins = getAnalysisTeamMetricMinutes(r, metric);
+    return Number.isFinite(mins) && mins > threshold;
+  });
+  const options = buildAnalysisTeamSubRcMeta(baseRows).options;
+  if(!options.length) return `<div class="srm-ft-ofcnode-filter" style="margin:0 0 12px;"><span class="muted">No Sub Root Cause</span></div>`;
+  const selectedCount = selected.size || options.length;
+  const summaryText = selected.size ? `${selected.size} selected` : `All (${options.length})`;
+  const dropdownId = `analysisTeamSubRc-${scope}-${metric}`;
+  const ofcKeys = options.filter(o=> o.group === "OFC").map(o=> o.key);
+  const nodeKeys = options.filter(o=> o.group === "NODE").map(o=> o.key);
+  const isGroupActive = (keys)=> keys.length && selected.size === keys.length && keys.every(k=> selected.has(k));
+  let lastGroup = null;
+  const optionRows = options.map(opt=>{
+    const checked = !selected.size || selected.has(opt.key);
+    const groupHead = opt.group !== lastGroup
+      ? `<div class="analysis-team-subrc-group">${esc(analysisTeamSubRcGroupLabel(opt.group))}</div>`
+      : "";
+    lastGroup = opt.group;
+    return `${groupHead}<label class="analysis-team-subrc-option">
+      <input type="checkbox" ${checked ? "checked" : ""} onchange="toggleAnalysisTeamSubRcFilter('${scope}','${metric}','${encodeURIComponent(opt.key)}', this.checked)">
+      <span>${esc(opt.label)}</span><span class="seg-count">${opt.count}</span>
+    </label>`;
+  }).join("");
   return `<div class="srm-ft-ofcnode-filter" style="margin:0 0 12px;">
-    ${items.map(item=>`<button type="button" class="btn ${active === item.key ? "primary" : "ghost"}" onclick="setAnalysisTeamScopeFilter('${scope}','${metric}','${item.key}')">${item.label}</button>`).join("")}
+    <span class="flabel">Sub Root Cause</span>
+    <button type="button" class="btn sm ${selected.size ? "ghost" : "primary"}" onclick="clearAnalysisTeamSubRcFilter('${scope}','${metric}')">All</button>
+    <button type="button" class="btn sm ${isGroupActive(ofcKeys) ? "primary" : "ghost"}" onclick="setAnalysisTeamSubRcGroupFilter('${scope}','${metric}','OFC')">OFC</button>
+    <button type="button" class="btn sm ${isGroupActive(nodeKeys) ? "primary" : "ghost"}" onclick="setAnalysisTeamSubRcGroupFilter('${scope}','${metric}','NODE')">NODE</button>
+    <details class="analysis-team-subrc-dropdown" id="${dropdownId}">
+      <summary class="btn ghost sm">Dropdown · ${esc(summaryText)}</summary>
+      <div class="analysis-team-subrc-menu">${optionRows}</div>
+    </details>
   </div>`;
 }
 function renderAnalysisTeamSeverityFilter(scope, metric){
@@ -15480,7 +15640,7 @@ function renderAnalysisTeamSection(scope, metric, title, subTitle){
     </div>
     <div class="table-scroll">
       <table>
-        <thead><tr><th>Team</th><th>WO</th><th>Avg Hour</th><th>Max Hour</th></tr></thead>
+        <thead><tr><th>Team</th><th>WO</th><th>Avg Time</th><th>Max Time</th></tr></thead>
         <tbody>${rows || `<tr><td colspan="4" style="text-align:center;color:var(--muted);">No data</td></tr>`}</tbody>
       </table>
     </div>
@@ -15500,6 +15660,7 @@ function setAnalysisTeamSeverity(scope, metric, sev){
   const st = analysisTeamState[scope]?.[metric];
   if(!st) return;
   st.sev = sev;
+  ensureAnalysisTeamSubRcSet(scope, metric).clear();
   st.page = 1;
   st.team = null;
   renderAnalysisTeamPanel(scope);
@@ -15508,6 +15669,54 @@ function setAnalysisTeamScopeFilter(scope, metric, root){
   const st = analysisTeamState[scope]?.[metric];
   if(!st) return;
   st.root = root;
+  st.page = 1;
+  st.team = null;
+  renderAnalysisTeamPanel(scope);
+}
+function getAnalysisTeamSubRcFilterOptions(scope, metric){
+  const st = analysisTeamState[scope]?.[metric];
+  if(!st) return [];
+  const threshold = metric === "dispatch" ? 60 : 240;
+  const baseRows = getAnalysisTeamScopeTickets(scope).filter(r=>{
+    if(hasAnalysisTeamResumeTime(r)) return false;
+    if(!matchesAnalysisTeamSeverity(r, st.sev)) return false;
+    const mins = getAnalysisTeamMetricMinutes(r, metric);
+    return Number.isFinite(mins) && mins > threshold;
+  });
+  return buildAnalysisTeamSubRcMeta(baseRows).options;
+}
+function toggleAnalysisTeamSubRcFilter(scope, metric, encodedKey, checked){
+  const st = analysisTeamState[scope]?.[metric];
+  if(!st) return;
+  const key = decodeURIComponent(encodedKey || "");
+  const options = getAnalysisTeamSubRcFilterOptions(scope, metric).map(o=> o.key);
+  const selected = ensureAnalysisTeamSubRcSet(scope, metric);
+  if(!selected.size){
+    options.forEach(k=> selected.add(k));
+  }
+  if(checked) selected.add(key);
+  else selected.delete(key);
+  if(selected.size === options.length) selected.clear();
+  st.page = 1;
+  st.team = null;
+  renderAnalysisTeamPanel(scope);
+}
+function clearAnalysisTeamSubRcFilter(scope, metric){
+  const st = analysisTeamState[scope]?.[metric];
+  if(!st) return;
+  ensureAnalysisTeamSubRcSet(scope, metric).clear();
+  st.page = 1;
+  st.team = null;
+  renderAnalysisTeamPanel(scope);
+}
+function setAnalysisTeamSubRcGroupFilter(scope, metric, group){
+  const st = analysisTeamState[scope]?.[metric];
+  if(!st) return;
+  const selected = ensureAnalysisTeamSubRcSet(scope, metric);
+  selected.clear();
+  getAnalysisTeamSubRcFilterOptions(scope, metric)
+    .filter(opt=> opt.group === group)
+    .forEach(opt=> selected.add(opt.key));
   st.page = 1;
   st.team = null;
   renderAnalysisTeamPanel(scope);
