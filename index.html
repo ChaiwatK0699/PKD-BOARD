@@ -498,8 +498,17 @@ body.screenshotting .srm-ft-ofcnode-detail-wrap-collapsed{display:block !importa
 }
 .srm-heat-row{
   position:sticky; left:0; z-index:2; background:var(--panel-2); border-radius:6px;
-  display:flex; align-items:center; padding:0 10px; min-height:32px; font-weight:700; font-size:13px; font-family:'JetBrains Mono'; color:var(--teal);
+  display:flex; align-items:center; gap:6px; padding:0 10px; min-height:32px; font-weight:700; font-size:13px; font-family:'JetBrains Mono'; color:var(--teal);
 }
+.srm-heat-hide-site-btn{
+  width:18px; height:18px; border:1px solid var(--border); border-radius:5px; background:var(--panel);
+  color:var(--muted); cursor:pointer; font-size:12px; line-height:1; display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto;
+}
+.srm-heat-hide-site-btn:hover{border-color:var(--coral); color:var(--coral); background:var(--coral-dim);}
+.srm-heat-hidden-bar{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px; font-size:11px; color:var(--muted);}
+.srm-heat-hidden-chip{border:1px solid var(--border); border-radius:999px; background:var(--panel-2); color:var(--text); padding:4px 9px; font-family:'JetBrains Mono'; cursor:pointer;}
+.srm-heat-hidden-chip:hover{border-color:var(--blue); color:var(--blue);}
+.srm-heat-hidden-all{border-color:var(--coral-dim); color:var(--coral);}
 .srm-heat-cell{
   min-width:52px; min-height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center;
   padding:2px 4px; color:var(--text); transition:transform .12s; background:var(--panel-2); font-weight:700;
@@ -519,6 +528,10 @@ body.screenshotting .srm-ft-ofcnode-detail-wrap-collapsed{display:block !importa
 }
 .srm-heat-daytotal.count{color:var(--blue);}
 .srm-heat-daytotal.dt{color:var(--coral);}
+.srm-heat-daytotal.sortable{cursor:pointer; user-select:none; gap:4px; border:1px solid transparent;}
+.srm-heat-daytotal.sortable:hover{border-color:var(--blue); color:var(--text);}
+.srm-heat-daytotal.sortable.active{border-color:var(--blue); background:var(--blue-dim); color:var(--blue);}
+.srm-heat-sort-arrow{font-size:10px; opacity:.9;}
 .srm-heat-legend{display:flex; align-items:center; gap:8px; margin-top:10px; font-size:11px; color:var(--muted);}
 .srm-heat-legend-bar{width:120px; height:8px; border-radius:4px;}
 .srm-heat-legend-bar.count{background:linear-gradient(90deg, var(--panel-2), rgba(47,128,237,.85));}
@@ -1539,15 +1552,15 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     </div>
     <div id="srmSubMapping">
       <div class="srm-block">
-        <div class="srm-block-title">Keyword Summary · คลิกดู TT</div>
+        <div class="srm-block-title">Keyword Summary · Severity SA · คลิกดู TT</div>
         <div class="srm-kw-panel" id="srmKwPanel"></div>
       </div>
       <div class="srm-block">
-        <div class="srm-block-title">Count TT ต่อวัน</div>
+        <div class="srm-block-title">Count TT ต่อวัน · Severity SA</div>
         <div class="srm-scroll" id="srmCountWrap"></div>
       </div>
       <div class="srm-block">
-        <div class="srm-block-title">Downtime (H:m) · รวม Grand Total ต่อวัน</div>
+        <div class="srm-block-title">Downtime (H:m) · Severity SA · รวม Grand Total ต่อวัน</div>
         <div class="srm-scroll" id="srmDtWrap"></div>
       </div>
     </div>
@@ -1598,6 +1611,9 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div id="srmDashCascadeWrap"></div>
     </div>
     <div id="srmSubAnalysis" class="srm-analysis-view" style="display:none;">
+      <div class="toolbar" style="margin-bottom:12px;">
+        <button type="button" class="btn green sm" onclick="exportAnalysisExcel('srm')">Export Analysis Excel</button>
+      </div>
       <div class="fault-chart-card">
         <div id="srmAnalysisSummaryWrap"></div>
       </div>
@@ -1765,7 +1781,10 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div id="eecSubAnalysis" style="display:none;">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
         <p class="status-msg eec-analysis-period" id="eecAnalysisPeriod" style="margin:0;"></p>
-        <button class="btn green sm" onclick="exportEecAnalysisToPptx()">⭳ Export PowerPoint</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn green sm" onclick="exportAnalysisExcel('eec')">Export Analysis Excel</button>
+          <button class="btn green sm" onclick="exportEecAnalysisToPptx()">⭳ Export PowerPoint</button>
+        </div>
       </div>
       <div class="eec-analysis-summary-wrap" id="eecAnalysisSummaryWrap"></div>
       <div class="eec-analysis-grid" id="eecAnalysisMainGrid"></div>
@@ -1845,6 +1864,9 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       </div>
     </div>
     <div id="cwSubAnalysis" style="display:none;">
+      <div class="toolbar" style="margin-bottom:12px;">
+        <button type="button" class="btn green sm" onclick="exportAnalysisExcel('cw')">Export Analysis Excel</button>
+      </div>
       <div class="eec-analysis-summary-wrap" id="cwAnalysisSummaryWrap"></div>
       <div class="eec-analysis-grid" id="cwAnalysisMainGrid"></div>
     </div>
@@ -1980,6 +2002,9 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       </div>
     </div>
     <div id="faultSubAnalysis" style="display:none;">
+      <div class="toolbar" style="margin-bottom:12px;">
+        <button type="button" class="btn green sm" onclick="exportAnalysisExcel('fault')">Export Analysis Excel</button>
+      </div>
       <div class="fault-chart-card">
         <div id="faultAnalysisSummaryWrap"></div>
       </div>
@@ -2243,6 +2268,7 @@ let CAUSE_OVERS = [];
 const LTR_REST = REST + "/long_time_reasons";
 const SRM_FT_OPTS_REST = REST + "/srm_free_text_options";
 const SRM_FT_ASSIGN_REST = REST + "/srm_free_text_assignments";
+const SRM_MAPPING_HIDDEN_REST = REST + "/srm_mapping_hidden_sites";
 let srmFreeTextDbReady = false;
 let LONG_TIME_REASONS = [];
 let faultOverSlaCauseFilter = null;
@@ -2269,6 +2295,8 @@ let srmSelectedMonth = null;
 let srmDateFrom = "";
 let srmDateTo = "";
 let srmSubTab = "mapping";
+let srmMappingTotalSort = { active:false, dir:"desc" };
+let srmMappingHiddenCountSites = new Set();
 let openPendingSearch = { srm:"", fault:"" };
 let openPendingChartInst = { srm:null, fault:null };
 const SRM_KEYWORDS = [
@@ -3108,6 +3136,25 @@ function applySrmFtAssignToMemory(rows){
     SRM_FREE_TEXT_ASSIGN[site][slot] = label;
   });
 }
+function applySrmMappingHiddenSitesToMemory(rows){
+  srmMappingHiddenCountSites = new Set();
+  (rows || []).forEach(r=>{
+    if(r.hidden === false) return;
+    const site = String(r.site_code || "").trim().toUpperCase();
+    if(site) srmMappingHiddenCountSites.add(site);
+  });
+}
+async function fetchSrmMappingHiddenSitesFromDb(){
+  try{
+    const rows = await fetchAllFromRest(SRM_MAPPING_HIDDEN_REST + "?select=site_code,hidden&hidden=eq.true&order=site_code.asc");
+    applySrmMappingHiddenSitesToMemory(rows);
+    return true;
+  }catch(e){
+    console.error("fetchSrmMappingHiddenSitesFromDb failed:", e);
+    toast("โหลด Hide Site กลางไม่สำเร็จ — รัน scripts/srm_mapping_hidden_sites.sql");
+    return false;
+  }
+}
 async function fetchSrmFreeTextFromDb(){
   try{
     const [opts, assigns] = await Promise.all([
@@ -3251,6 +3298,9 @@ function isFaultNsaSrmSeverity(r){
 }
 function getSrmFtSeverityKey(r){
   return ((r.severity||"").split("-")[0] || "").toUpperCase();
+}
+function isSrmMappingSaSeverity(r){
+  return /^SA[1-6]$/.test(getSrmFtSeverityKey(r));
 }
 function passesSrmDateRange(r){
   if(!r?.closed_time) return false;
@@ -3991,6 +4041,7 @@ function buildSrmMonthOptionsFromTickets(){
   const months = new Set();
   srmTickets.forEach(r=>{
     if(!passesSrmTicketFocus(r)) return;
+    if(!isSrmMappingSaSeverity(r)) return;
     if(!r?.closed_time) return;
     months.add(String(r.closed_time).slice(0, 7));
   });
@@ -4111,6 +4162,7 @@ function buildSiteRepeatData(){
 
   srmTickets.forEach(r=>{
     if(!passesSrmTicketFocus(r)) return;
+    if(!isSrmMappingSaSeverity(r)) return;
     if(!r?.closed_time) return;
     const day = String(r.closed_time).slice(0,10);
     if(!days.includes(day)) return;
@@ -4184,36 +4236,164 @@ function srmCellKeywordDots(site, day, cellTicketsMap){
   });
   return dots.length ? `<div class="srm-kw-dots">${dots.join("")}</div>` : "";
 }
-function srmCellBgStyle(val, alpha, rgba, streak){
+function srmCellKeywordSummary(site, day, cellTicketsMap){
+  const rows = (cellTicketsMap?.[site]?.[day]) || [];
+  const counts = new Map();
+  rows.forEach(r=>{
+    matchSrmKeywords(r).forEach(kw=>{
+      const hit = counts.get(kw.key) || { ...kw, count:0 };
+      hit.count++;
+      counts.set(kw.key, hit);
+    });
+  });
+  const items = [...counts.values()].sort((a,b)=> b.count - a.count || a.label.localeCompare(b.label));
+  return { primary: items[0] || null, items };
+}
+function srmHexToRgb(hex){
+  const s = String(hex || "").replace("#", "").trim();
+  if(!/^[0-9a-f]{6}$/i.test(s)) return null;
+  return {
+    r: parseInt(s.slice(0,2), 16),
+    g: parseInt(s.slice(2,4), 16),
+    b: parseInt(s.slice(4,6), 16)
+  };
+}
+function srmCellBgStyle(val, alpha, rgba, streak, keywordSummary){
+  if(!val) return "";
+  const primary = keywordSummary?.primary;
+  const rgb = srmHexToRgb(primary?.color);
+  if(rgb){
+    const problemAlpha = Math.min(.92, Math.max(.28, .22 + alpha * .46 + Math.min(primary.count || 1, 4) * .05));
+    const streakBorder = streak >= 3
+      ? "box-shadow:inset 0 0 0 2px rgba(217,74,53,.95);"
+      : streak === 2
+        ? "box-shadow:inset 0 0 0 2px rgba(245,158,11,.95);"
+        : "";
+    return `background:rgba(${rgb.r},${rgb.g},${rgb.b},${problemAlpha.toFixed(3)});color:#fff;${streakBorder}`;
+  }
   if(streak >= 3) return "background:rgba(217,74,53,.88);color:#fff";
   if(streak === 2) return "background:rgba(245,158,11,.88);color:#fff";
-  if(!val) return "";
   return `background:${rgba.replace("{a}", alpha.toFixed(3))}`;
 }
 function srmHeatAlpha(val, maxVal){
   if(!val || !maxVal) return 0;
   return Math.min(1, Math.max(0.22, val / maxVal));
 }
+function toggleSrmMappingTotalSort(){
+  if(srmMappingTotalSort.active){
+    srmMappingTotalSort.dir = srmMappingTotalSort.dir === "desc" ? "asc" : "desc";
+  }else{
+    srmMappingTotalSort = { active:true, dir:"desc" };
+  }
+  renderSiteRepeatMapping();
+}
+async function saveSrmMappingHiddenSite(site, hidden){
+  site = String(site || "").trim().toUpperCase();
+  if(!site) return false;
+  if(hidden){
+    const res = await fetch(SRM_MAPPING_HIDDEN_REST + "?on_conflict=site_code", {
+      method:"POST",
+      headers:{ ...HEADERS, Prefer:"resolution=merge-duplicates" },
+      body:JSON.stringify({ site_code:site, hidden:true, updated_at:new Date().toISOString() })
+    });
+    if(!res.ok) throw new Error(await res.text());
+  }else{
+    const res = await fetch(SRM_MAPPING_HIDDEN_REST + `?site_code=eq.${encodeURIComponent(site)}`, {
+      method:"DELETE",
+      headers:HEADERS
+    });
+    if(!res.ok) throw new Error(await res.text());
+  }
+  return true;
+}
+async function hideSrmMappingCountSite(site){
+  site = String(site || "").trim().toUpperCase();
+  if(!site) return;
+  srmMappingHiddenCountSites.add(site);
+  renderSiteRepeatMapping();
+  try{
+    await saveSrmMappingHiddenSite(site, true);
+    toast("ซ่อน Site แล้ว (ทุกคนเห็นเหมือนกัน)");
+  }catch(e){
+    console.error(e);
+    srmMappingHiddenCountSites.delete(site);
+    renderSiteRepeatMapping();
+    toast("บันทึก Hide Site ไม่สำเร็จ — รัน scripts/srm_mapping_hidden_sites.sql");
+  }
+}
+async function showSrmMappingCountSite(site){
+  site = String(site || "").trim().toUpperCase();
+  if(!site) return;
+  srmMappingHiddenCountSites.delete(site);
+  renderSiteRepeatMapping();
+  try{
+    await saveSrmMappingHiddenSite(site, false);
+    toast("แสดง Site แล้ว (ทุกคนเห็นเหมือนกัน)");
+  }catch(e){
+    console.error(e);
+    srmMappingHiddenCountSites.add(site);
+    renderSiteRepeatMapping();
+    toast("บันทึก Show Site ไม่สำเร็จ");
+  }
+}
+async function showAllSrmMappingCountSites(){
+  const prev = new Set(srmMappingHiddenCountSites);
+  srmMappingHiddenCountSites.clear();
+  renderSiteRepeatMapping();
+  try{
+    const res = await fetch(SRM_MAPPING_HIDDEN_REST + "?hidden=eq.true", {
+      method:"DELETE",
+      headers:HEADERS
+    });
+    if(!res.ok) throw new Error(await res.text());
+    toast("แสดง Site ทั้งหมดแล้ว (ทุกคนเห็นเหมือนกัน)");
+  }catch(e){
+    console.error(e);
+    srmMappingHiddenCountSites = prev;
+    renderSiteRepeatMapping();
+    toast("บันทึก Show all ไม่สำเร็จ");
+  }
+}
 function buildSrmHeatGrid(opts){
-  const { sites, days, getVal, fmtVal, maxVal, rgba, dayTotals, rowTotals, grandTotal, dayTotalClass, legendBarClass, legendLabel, streakLen, cellTicketsMap } = opts;
+  const { sites, days, getVal, fmtVal, maxVal, rgba, dayTotals, rowTotals, grandTotal, dayTotalClass, legendBarClass, legendLabel, streakLen, cellTicketsMap, allowHideSite } = opts;
+  const hiddenSites = allowHideSite ? srmMappingHiddenCountSites : new Set();
+  const visibleSites = sites.filter(site=> !hiddenSites.has(String(site).toUpperCase()));
+  const displaySites = srmMappingTotalSort.active
+    ? visibleSites.slice().sort((a,b)=>{
+        const diff = (Number(rowTotals[b] || 0) - Number(rowTotals[a] || 0));
+        return (srmMappingTotalSort.dir === "desc" ? diff : -diff) || String(a).localeCompare(String(b), "th");
+      })
+    : visibleSites;
+  const shownDayTotals = allowHideSite
+    ? Object.fromEntries(days.map(d=>[d, visibleSites.reduce((sum, site)=> sum + Number(getVal(site, d) || 0), 0)]))
+    : dayTotals;
+  const shownGrandTotal = allowHideSite
+    ? visibleSites.reduce((sum, site)=> sum + Number(rowTotals[site] || 0), 0)
+    : grandTotal;
   const gridStyle = `grid-template-columns:104px repeat(${days.length}, minmax(52px, 1fr)) 72px;`;
   let html = `<div class="srm-heat-wrap"><div class="srm-heat-grid" style="${gridStyle}">`;
   html += `<div class="srm-heat-corner">Site</div>`;
   days.forEach(d=>{ html += `<div class="srm-heat-col" title="${esc(d)}">${esc(fmtSrmDayLabel(d))}</div>`; });
-  html += `<div class="srm-heat-daytotal ${dayTotalClass}">Total</div>`;
+  const sortArrow = srmMappingTotalSort.active ? `<span class="srm-heat-sort-arrow">${srmMappingTotalSort.dir === "asc" ? "▲" : "▼"}</span>` : "";
+  html += `<div class="srm-heat-daytotal ${dayTotalClass} sortable${srmMappingTotalSort.active ? " active" : ""}" role="button" tabindex="0" onclick="event.stopPropagation();toggleSrmMappingTotalSort()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();toggleSrmMappingTotalSort()}" title="คลิกเรียง Site ตาม Total">Total${sortArrow}</div>`;
 
-  sites.forEach(site=>{
-    html += `<div class="srm-heat-row">${esc(site)}</div>`;
+  displaySites.forEach(site=>{
+    const hideBtn = allowHideSite
+      ? `<button type="button" class="srm-heat-hide-site-btn" title="Hide ${esc(site)}" onclick="event.stopPropagation();hideSrmMappingCountSite('${esc(site)}')">×</button>`
+      : "";
+    html += `<div class="srm-heat-row">${hideBtn}<span>${esc(site)}</span></div>`;
     days.forEach(d=>{
       const val = getVal(site, d);
       const streak = streakLen?.[site]?.[d] || 0;
       const alpha = srmHeatAlpha(val, maxVal);
-      const bg = srmCellBgStyle(val, alpha, rgba, streak);
+      const keywordSummary = cellTicketsMap ? srmCellKeywordSummary(site, d, cellTicketsMap) : null;
+      const bg = srmCellBgStyle(val, alpha, rgba, streak, keywordSummary);
       const cellCls = val ? "srm-heat-cell srm-heat-clickable" : "srm-heat-cell srm-heat-empty";
       const dataAttrs = val ? ` data-srm-kind="cell" data-site="${esc(site)}" data-day="${esc(d)}"` : "";
       const streakHint = streak >= 3 ? " · ติดกัน 3+ วัน" : streak === 2 ? " · ติดกัน 2 วัน" : "";
+      const problemHint = keywordSummary?.primary ? ` · Problem: ${keywordSummary.items.map(x=>`${x.label} ${x.count}`).join(", ")}` : "";
       const kwDots = cellTicketsMap ? srmCellKeywordDots(site, d, cellTicketsMap) : "";
-      html += `<div class="${cellCls}"${dataAttrs} style="${bg}" title="${esc(site)} · ${esc(fmtSrmDayLabel(d))}${val ? " · " + esc(fmtVal(val)) + streakHint + " · คลิกดู TT" : ""}">${val ? esc(fmtVal(val)) : ""}${kwDots}</div>`;
+      html += `<div class="${cellCls}"${dataAttrs} style="${bg}" title="${esc(site)} · ${esc(fmtSrmDayLabel(d))}${val ? " · " + esc(fmtVal(val)) + problemHint + streakHint + " · คลิกดู TT" : ""}">${val ? esc(fmtVal(val)) : ""}${kwDots}</div>`;
     });
     const rowT = rowTotals[site];
     const rowCls = rowT ? "srm-heat-total srm-heat-clickable" : "srm-heat-total";
@@ -4223,20 +4403,29 @@ function buildSrmHeatGrid(opts){
 
   html += `<div class="srm-heat-row srm-total-row">Grand Total</div>`;
   days.forEach(d=>{
-    const v = dayTotals[d];
+    const v = shownDayTotals[d];
     const dayCls = v ? `srm-heat-daytotal ${dayTotalClass} srm-heat-clickable` : `srm-heat-daytotal ${dayTotalClass}`;
-    const dayAttrs = v ? ` data-srm-kind="day" data-day="${esc(d)}" title="Total ${esc(fmtSrmDayLabel(d))} · คลิกดู TT"` : "";
+    const scopeAttr = allowHideSite ? ` data-srm-scope="count"` : "";
+    const dayAttrs = v ? ` data-srm-kind="day" data-day="${esc(d)}"${scopeAttr} title="Total ${esc(fmtSrmDayLabel(d))} · คลิกดู TT"` : "";
     html += `<div class="${dayCls}"${dayAttrs}>${v ? esc(fmtVal(v)) : ""}</div>`;
   });
-  const grandCls = grandTotal ? "srm-heat-total grand srm-heat-clickable" : "srm-heat-total grand";
-  const grandAttrs = grandTotal ? ` data-srm-kind="grand" title="Grand Total · คลิกดู TT ทั้งเดือน"` : "";
-  html += `<div class="${grandCls}"${grandAttrs}>${grandTotal ? esc(fmtVal(grandTotal)) : ""}</div>`;
+  const grandCls = shownGrandTotal ? "srm-heat-total grand srm-heat-clickable" : "srm-heat-total grand";
+  const grandAttrs = shownGrandTotal ? ` data-srm-kind="grand"${allowHideSite ? ` data-srm-scope="count"` : ""} title="Grand Total · คลิกดู TT ทั้งเดือน"` : "";
+  html += `<div class="${grandCls}"${grandAttrs}>${shownGrandTotal ? esc(fmtVal(shownGrandTotal)) : ""}</div>`;
   html += `</div><div class="srm-heat-legend"><span>น้อย</span><div class="srm-heat-legend-bar ${legendBarClass}"></div><span>มาก (${legendLabel})</span></div>
+  <div class="srm-heat-legend-streaks">
+    ${SRM_KEYWORDS.map(kw=>`<span><i class="srm-heat-legend-swatch" style="background:${kw.color}"></i>${esc(kw.label)}</span>`).join("")}
+  </div>
   <div class="srm-heat-legend-streaks">
     <span><i class="srm-heat-legend-swatch streak2"></i>TT ติดกัน 2 วัน</span>
     <span><i class="srm-heat-legend-swatch streak3"></i>TT ติดกัน 3+ วัน</span>
-  </div></div>`;
+  </div>${allowHideSite ? renderSrmMappingHiddenSitesBar() : ""}</div>`;
   return html;
+}
+function renderSrmMappingHiddenSitesBar(){
+  const sites = [...srmMappingHiddenCountSites].sort((a,b)=> a.localeCompare(b, "th"));
+  if(!sites.length) return "";
+  return `<div class="srm-heat-hidden-bar"><span>Hidden Site:</span>${sites.map(site=>`<button type="button" class="srm-heat-hidden-chip" onclick="event.stopPropagation();showSrmMappingCountSite('${esc(site)}')" title="Show ${esc(site)}">${esc(site)} +</button>`).join("")}<button type="button" class="srm-heat-hidden-chip srm-heat-hidden-all" onclick="event.stopPropagation();showAllSrmMappingCountSites()">Show all</button></div>`;
 }
 function renderSrmKeywordPanel(data){
   const el = document.getElementById("srmKwPanel");
@@ -4263,7 +4452,7 @@ function renderSiteRepeatMapping(){
   if(!countWrap || !dtWrap) return;
   const ctx = getSrmMonthContext();
   const trackNote = PKD_TRACKING_START ? ` · ตั้งแต่ ${fmtSrmDayLabel(PKD_TRACKING_START)}` : "";
-  if(sub) sub.textContent = `SA1–SA6 · NSA1–NSA4 · WO Creator System · ไม่รวม Broadband · ไม่รวม MT · Closed 00:00–23:59 · ช่วงวันที่ ${ctx.monthLabel}${trackNote}`;
+  if(sub) sub.textContent = `Severity SA เท่านั้น · SA1–SA6 · WO Creator System · ไม่รวม Broadband · ไม่รวม MT · Closed 00:00–23:59 · ช่วงวันที่ ${ctx.monthLabel}${trackNote}`;
 
   if(!SITE_SET.size){
     const empty = `<div class="empty-hint" style="padding:24px;">ยังไม่มีรายชื่อ 168 Site — รอโหลด site codes</div>`;
@@ -4304,7 +4493,8 @@ function renderSiteRepeatMapping(){
     rgba: "rgba(47,128,237,{a})",
     dayTotals: dayCount,
     rowTotals: siteRowCount,
-    grandTotal: grandCount
+    grandTotal: grandCount,
+    allowHideSite: true
   });
 
   dtWrap.innerHTML = buildSrmHeatGrid({
@@ -4347,6 +4537,10 @@ function collectSrmDetailRows(kind, params){
   }
   if(params.keyword && kind !== "keyword"){
     rows = rows.filter(r=> matchSrmKeywords(r).some(kw=> kw.key === params.keyword));
+  }
+  rows = rows.filter(isSrmMappingSaSeverity);
+  if(params.scope === "count" && srmMappingHiddenCountSites.size){
+    rows = rows.filter(r=> !srmMappingHiddenCountSites.has(String(extractFaultPlkdSite(r) || "").toUpperCase()));
   }
   return rows.sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
 }
@@ -5337,8 +5531,8 @@ function onSrmViewClick(e){
   const kind = cell.dataset.srmKind;
   if(kind === "cell") openSrmDetail("cell", { site: cell.dataset.site, day: cell.dataset.day });
   else if(kind === "row") openSrmDetail("row", { site: cell.dataset.site });
-  else if(kind === "day") openSrmDetail("day", { day: cell.dataset.day });
-  else if(kind === "grand") openSrmDetail("grand", {});
+  else if(kind === "day") openSrmDetail("day", { day: cell.dataset.day, scope: cell.dataset.srmScope || "" });
+  else if(kind === "grand") openSrmDetail("grand", { scope: cell.dataset.srmScope || "" });
   else if(kind === "keyword") openSrmDetail("keyword", { keyword: cell.dataset.keyword });
 }
 function renderSrmFreeTextTab(){
@@ -8187,10 +8381,20 @@ function buildOpenPendingTrend(rows){
   rows.forEach(r=>{
     const key = openPendingCreatedDay(r);
     if(!key) return;
-    byDay.set(key, (byDay.get(key) || 0) + 1);
+    if(!byDay.has(key)) byDay.set(key, { sa:0, nsa:0, total:0 });
+    const slot = byDay.get(key);
+    const fam = getSrmFtSeverityKey(r);
+    if(fam.startsWith("SA")) slot.sa++;
+    else if(fam.startsWith("NSA")) slot.nsa++;
+    slot.total++;
   });
   const dayKeys = buildOpenPendingDayKeys(rows);
-  return { dayKeys, counts:dayKeys.map(k=>byDay.get(k) || 0) };
+  return {
+    dayKeys,
+    saCounts:dayKeys.map(k=>byDay.get(k)?.sa || 0),
+    nsaCounts:dayKeys.map(k=>byDay.get(k)?.nsa || 0),
+    totals:dayKeys.map(k=>byDay.get(k)?.total || 0)
+  };
 }
 function renderOpenPendingTrendChart(scope, rows){
   const canvas = document.getElementById(`${scope}OpenPendingChart`);
@@ -8201,29 +8405,112 @@ function renderOpenPendingTrendChart(scope, rows){
     openPendingChartInst[scope].destroy();
     openPendingChartInst[scope] = null;
   }
-  if(legend) legend.innerHTML = `<span class="legend-dot" style="background:var(--amber)"></span>Open Pending <strong>${rows.length}</strong>`;
+  const saColor = "#d94a35";
+  const nsaColor = "#2f9e44";
+  const totalColor = "#7c4fd6";
+  const saTotal = trend.saCounts.reduce((a,n)=>a+n,0);
+  const nsaTotal = trend.nsaCounts.reduce((a,n)=>a+n,0);
+  const totalAll = trend.totals.reduce((a,n)=>a+n,0);
+  const legendParts = scope === "srm"
+    ? [
+        `<span><i style="background:${saColor}"></i>SA · ${saTotal} TT</span>`,
+        `<span><i style="background:${nsaColor}"></i>NSA · ${nsaTotal} TT</span>`,
+        `<span><i style="background:${totalColor}"></i>Total Ticket · <strong>${totalAll}</strong></span>`
+      ]
+    : [
+        `<span><i style="background:${saColor}"></i>SA · ${saTotal} TT</span>`,
+        `<span><i style="background:${totalColor}"></i>Total Ticket · <strong>${totalAll}</strong></span>`
+      ];
+  if(legend) legend.innerHTML = legendParts.join("");
+  const datasets = scope === "srm"
+    ? [
+        {
+          type:"bar",
+          label:"SA",
+          data:trend.saCounts,
+          backgroundColor:saColor,
+          stack:"tickets",
+          yAxisID:"yCount",
+          order:2
+        },
+        {
+          type:"bar",
+          label:"NSA",
+          data:trend.nsaCounts,
+          backgroundColor:nsaColor,
+          stack:"tickets",
+          yAxisID:"yCount",
+          order:2
+        }
+      ]
+    : [{
+        type:"bar",
+        label:"SA",
+        data:trend.saCounts,
+        backgroundColor:saColor,
+        stack:"tickets",
+        yAxisID:"yCount",
+        order:2
+      }];
+  datasets.push({
+    type:"line",
+    label:"Total Ticket",
+    data:trend.totals,
+    borderColor:totalColor,
+    backgroundColor:"transparent",
+    borderWidth:2.5,
+    tension:.3,
+    pointRadius:5,
+    pointBackgroundColor:totalColor,
+    pointBorderColor:"#ffffff",
+    pointBorderWidth:2,
+    fill:false,
+    yAxisID:"yCount",
+    order:1
+  });
+  const countMax = faultCountAxisMax(trend.totals);
+  const countStep = faultCountAxisStep(countMax);
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
   openPendingChartInst[scope] = new Chart(canvas, {
     type:"bar",
     data:{
       labels:fmtEecTrendDayLabels(trend.dayKeys),
-      datasets:[{
-        label:"Open Pending",
-        data:trend.counts,
-        backgroundColor:"rgba(255,176,32,.75)",
-        borderColor:"#d97706",
-        borderWidth:1,
-        borderRadius:5
-      }]
+      datasets
     },
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      plugins:{ legend:{display:false} },
+      layout:{padding:{top:44, bottom:8, right:8}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label(ctx){
+              return ` ${ctx.dataset.label}: ${ctx.formattedValue} TT`;
+            }
+          }
+        }
+      },
       scales:{
-        x:{ ticks:{color:"#868e96"}, grid:{display:false} },
-        y:{ beginAtZero:true, ticks:{precision:0, color:"#868e96"}, grid:{color:"rgba(134,142,150,.18)"} }
+        x:{
+          stacked:true,
+          ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}},
+          grid:{color:gridColor}
+        },
+        yCount:{
+          stacked:true,
+          position:"left",
+          beginAtZero:true,
+          min:0,
+          max:countMax,
+          title:{display:true, text:"จำนวน Ticket", color:textColor, font:{size:13, weight:"bold"}},
+          ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}},
+          grid:{color:gridColor}
+        }
       }
-    }
+    },
+    plugins:[faultBarLabelPlugin]
   });
 }
 function openPendingRowHtml(r){
@@ -8641,7 +8928,9 @@ const faultBarLabelPlugin = {
     const chartId = chart.canvas?.id;
     const isLtr = chartId === "faultLtrSlaChart" || chartId === "eecLtrChart";
     const isOverview = chartId === "faultOverviewChart";
+    const isOpenPending = chartId === "srmOpenPendingChart" || chartId === "faultOpenPendingChart";
     const isSrmFtSev = chartId === "srmFtSevChart" || chartId === "srmFtOfcNodeChart"
+      || chartId === "srmOpenPendingChart" || chartId === "faultOpenPendingChart"
       || chartId === "eecSevChart" || chartId === "eecOfcNodeChart" || chartId === "eecProvChart"
       || chartId === "eecOverSlaChart" || chartId === "cwSevChart" || chartId === "cwOfcNodeChart";
     const useOverviewLabels = isOverview || isSrmFtSev;
@@ -8677,7 +8966,7 @@ const faultBarLabelPlugin = {
       meta.data.forEach((bar, i)=>{
         if(bar.hidden || bar.skip) return;
         if(isLtr) drawFaultLtrSegmentLabel(ctx, bar, dataset.data[i]);
-        else if(isOverview || isSrmFtSev) drawFaultOverviewBarLabel(ctx, bar, dataset.data[i]);
+        else if(isOverview || isSrmFtSev || isOpenPending) drawFaultOverviewBarLabel(ctx, bar, dataset.data[i]);
       });
     });
     ctx.restore();
@@ -10648,6 +10937,19 @@ function mapOpenPendingImportRow(r){
   });
   return payload.work_order_id ? payload : null;
 }
+function openPendingImportSkipReason(r){
+  const raw = mapFaultImportRow(r);
+  if(!raw) return "missing Work Order ID";
+  if(!rowHasWoCreatorColumn(r)) raw.wo_creator = "System";
+  if(isSrmMaintenanceWo(raw)) return "MT";
+  if(!isFaultSrmSeverity(raw)) return "severity";
+  if(isFaultBroadbandTicket(raw)) return "Broadband";
+  if(!isPlkdFaultTicket(raw)) return "not PLKD";
+  if(!isFaultSystemWoCreator(raw)) return "non-System WO Creator";
+  if(!hasFaultSourceTicketId(raw)) return "missing Source Ticket ID";
+  if(!raw.created_time) return "missing Created Time";
+  return "";
+}
 function mapSvcAvaImportRow(r){
   const get = (k)=> (r[k]!==undefined && r[k]!=="") ? String(r[k]).trim() : "";
   const ids = parseFaultTicketIds(get);
@@ -10771,9 +11073,16 @@ function readWorkOrderUploadRows(file, cb){
 function handleOpenPendingUpload(evt, scope){
   const file = evt.target.files[0];
   if(!file) return;
+  const statusEl = document.getElementById(scope === "srm" ? "statusMsgSrm" : "statusMsgFault");
   readWorkOrderUploadRows(file, async rows=>{
-    await bulkInsertOpenPendingTickets(rows, scope);
-    evt.target.value = "";
+    try{
+      await bulkInsertOpenPendingTickets(rows, scope);
+    }catch(err){
+      console.error(err);
+      if(statusEl) statusEl.textContent = `Open Pending upload failed: ${String(err?.message || err).slice(0, 220)}`;
+    }finally{
+      evt.target.value = "";
+    }
   });
 }
 async function refreshSiteRepeatMapping(){
@@ -10782,7 +11091,10 @@ async function refreshSiteRepeatMapping(){
   resetSrmPageState();
   try{
     srmTickets = await fetchAllFromRest(SRM_REST + "?select=*&order=created_time.asc");
-    await fetchSrmFreeTextFromDb();
+    await Promise.all([
+      fetchSrmFreeTextFromDb(),
+      fetchSrmMappingHiddenSitesFromDb()
+    ]);
     await ensureFaultPlkdFieldIndex();
     const ctx = getSrmMonthContext();
     const data = buildSiteRepeatData();
@@ -10902,15 +11214,26 @@ async function bulkInsertOpenPendingTickets(rows, scope){
   const statusEl = document.getElementById(scope === "srm" ? "statusMsgSrm" : "statusMsgFault");
   if(!statusEl) return;
   statusEl.textContent = `Processing Open Pending ${rows.length} rows...`;
+  if(!SITE_SET.size){
+    statusEl.textContent = "Loading PLKD site list...";
+    await fetchSiteCodes();
+  }
   let skipped = 0;
+  const skipReasons = {};
   const payloads = [];
   rows.forEach(r=>{
     const p = mapOpenPendingImportRow(r);
-    if(!p){ skipped++; return; }
+    if(!p){
+      skipped++;
+      const reason = openPendingImportSkipReason(r) || "unknown";
+      skipReasons[reason] = (skipReasons[reason] || 0) + 1;
+      return;
+    }
     payloads.push(p);
   });
   if(payloads.length === 0){
-    statusEl.textContent = "No valid Open Pending rows (need PLKD + SA/NSA + System + Source Ticket ID + Created Time).";
+    const reasonText = Object.entries(skipReasons).map(([k,v])=>`${k}: ${v}`).join(", ");
+    statusEl.textContent = `No valid Open Pending rows. ${reasonText || "Need PLKD + SA/NSA + System + Source Ticket ID + Created Time."}`.slice(0, 300);
     return;
   }
   const CHUNK = 40;
@@ -10936,7 +11259,8 @@ async function bulkInsertOpenPendingTickets(rows, scope){
   await loadOpenPendingTickets(false);
   if(scope === "srm") switchSrmSubTab("open-pending");
   else switchFaultSubTab("open-pending");
-  statusEl.textContent = `Synced ${synced} Open Pending row(s)${skipped ? ` - skipped ${skipped}` : ""}`;
+  const reasonText = Object.entries(skipReasons).map(([k,v])=>`${k}: ${v}`).join(", ");
+  statusEl.textContent = `Synced ${synced} Open Pending row(s)${skipped ? ` - skipped ${skipped}${reasonText ? ` (${reasonText})` : ""}` : ""}`.slice(0, 320);
 }
 function groupFaultImportPayloads(payloads){
   const groups = new Map();
@@ -11024,6 +11348,174 @@ async function exportSrmDetailExcel(){
   XLSX.utils.book_append_sheet(wb, ws, "SRM Detail");
   XLSX.writeFile(wb, `PLKD-SRM-SubRootCause-All-${dateVal}.xlsx`);
   toast(`Exported ${rows.length} row(s)`);
+}
+function analysisSheetName(name, used){
+  let base = String(name || "Sheet").replace(/[\\/*?:[\]]/g, " ").replace(/\s+/g, " ").trim().slice(0, 31) || "Sheet";
+  let out = base;
+  let n = 2;
+  while(used.has(out)){
+    const suffix = ` ${n++}`;
+    out = base.slice(0, 31 - suffix.length) + suffix;
+  }
+  used.add(out);
+  return out;
+}
+function appendAnalysisSheet(wb, used, name, rows){
+  const data = rows && rows.length ? rows : [{ Info:"No data" }];
+  const ws = XLSX.utils.json_to_sheet(data);
+  const headers = Object.keys(data[0] || {});
+  ws["!cols"] = headers.map(h=>({ wch: Math.max(12, Math.min(42, String(h).length + 6)) }));
+  XLSX.utils.book_append_sheet(wb, ws, analysisSheetName(name, used));
+}
+function analysisUniqueTickets(rows){
+  const seen = new Set();
+  const out = [];
+  (rows || []).forEach(r=>{
+    const key = String(r?.work_order_id || r?.incident_id || r?.source_ticket_id || out.length);
+    if(seen.has(key)) return;
+    seen.add(key);
+    out.push(r);
+  });
+  return out;
+}
+function analysisTicketSite(scope, r){
+  if(scope === "eec") return getEecAnalysisSiteKey(r) || r?.site_id || "";
+  if(scope === "cw") return extractCwSite(r) || r?.site_id || "";
+  return extractFaultPlkdSite(r);
+}
+function analysisTicketRows(scope, rows, topic){
+  return analysisUniqueTickets(rows).map(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    return {
+      Topic: topic || "",
+      Site: analysisTicketSite(scope, r),
+      "Source Ticket ID": r.source_ticket_id || r.tt_number || r.sdm_tt || "",
+      "Work Order ID": r.work_order_id || r.incident_id || "",
+      Severity: r.severity || "",
+      Status: r.status || r.wo_status || "",
+      Province: r.province || "",
+      Team: r.team || r.raw_team || "",
+      "Created Time": fmtFaultRawDT(r.created_time),
+      "Closed Time": fmtFaultRawDT(r.closed_time),
+      "Downtime": fmtFaultDowntime(c.downtimeMinutes),
+      "Root Cause": r.root_cause || "",
+      "Sub Root Cause": r.sub_root_cause || "",
+      "Close Description": r.close_description || r.remedy || "",
+      Subject: r.subject || ""
+    };
+  });
+}
+function analysisNote(scope, rowKey, field, fallback, dash){
+  if(scope === "fault") return getFaultAnalysisSummaryField(rowKey, field, fallback || "");
+  if(scope === "srm") return getSrmAnalysisSummaryField(rowKey, field, fallback || "");
+  if(scope === "eec"){
+    if(field === "solution") return getEecAnalysisSummarySolution(rowKey, dash, fallback || "");
+    return getEecAnalysisSummaryField(rowKey, field, fallback || "");
+  }
+  if(field === "owner") return fallback || "Region";
+  if(field === "commitDate") return fallback || "TBD";
+  return fallback || "";
+}
+function analysisSummaryExportRows(scope, rows, dash){
+  return (rows || []).map(row=>{
+    const defaultSol = scope === "fault" ? buildFaultAnalysisSummaryDefaultSolution(row)
+      : scope === "srm" ? buildSrmAnalysisSummaryDefaultSolution(row)
+      : "";
+    return {
+      "Group Problem": row.label || row.key || "",
+      WO: row.wo || 0,
+      "จำนวน Site": row.site || 0,
+      Solution: analysisNote(scope, row.key, "solution", defaultSol, dash),
+      Owner: analysisNote(scope, row.key, "owner", "Region", dash),
+      "Commit Date": analysisNote(scope, row.key, "commitDate", "TBD", dash),
+      "Update Progress": analysisNote(scope, row.key, "progress", "", dash),
+      Remark: analysisNote(scope, row.key, "remark", "", dash)
+    };
+  });
+}
+function analysisBatteryExportRows(scope, rows, dash){
+  return (rows || []).map(row=>{
+    const key = `battery:${row.id || row.key}`;
+    const label = String(row.label || row.key || "").replace(/^\d+\.\s*/, "");
+    const defaultSol = row.wo > 0
+      ? (scope === "fault" ? buildFaultAnalysisSummaryDefaultSolution({ ...row, key })
+        : scope === "srm" ? buildSrmAnalysisSummaryDefaultSolution({ ...row, key })
+        : scope === "eec" ? buildEecAnalysisSolutionWithExamples(row.wo, row.site || 0, row.tickets || [], { exampleLimit:3 })
+        : "")
+      : "";
+    return {
+      "Battery Topic": label,
+      WO: row.wo || 0,
+      "จำนวน Site": row.site || 0,
+      Solution: analysisNote(scope, key, "solution", defaultSol, dash),
+      Owner: analysisNote(scope, key, "owner", "Region", dash),
+      "Commit Date": analysisNote(scope, key, "commitDate", "TBD", dash),
+      "Update Progress": analysisNote(scope, key, "progress", "", dash),
+      Remark: analysisNote(scope, key, "remark", "", dash)
+    };
+  });
+}
+function analysisOfcSectionRows(sections){
+  return (sections || []).map(row=>({
+    "Site Section": row.section || row.sectionKey || row.key || "",
+    WO: row.wo || 0,
+    "จำนวน Site": row.site || row.sites?.size || 0,
+    "Top Sub Root Cause": row.subRc || "",
+    Repeat: row.repeat ? "Yes" : "No",
+    "Network / Node": (row.networkLabels || []).join(", ")
+  }));
+}
+function getAnalysisExportModel(scope){
+  if(scope === "fault"){
+    const dash = buildFaultAnalysisDashboard();
+    return { label:"Fault PLKD", dash, summaryRows:dash.summaryRows, batteryRows:dash.batteryRows, allTickets:getFaultAnalysisAllTickets() };
+  }
+  if(scope === "srm"){
+    const dash = buildSrmAnalysisDashboard();
+    return { label:"SRM", dash, summaryRows:dash.summaryRows, batteryRows:dash.batteryRows, ofcSections:dash.ofcSections, allTickets:getSrmAnalysisAllTickets() };
+  }
+  if(scope === "eec"){
+    const dash = buildEecAnalysisDashboard();
+    const summaryRows = [
+      { key:"battery", label:"Battery", ...dash.batteryTotal },
+      { key:"stolen_ofc", label:"Stolen OFC", ...dash.stolenOfc },
+      { key:"stolen_node", label:"Stolen NODE", ...dash.stolenNode },
+      { key:"hardware", label:"Hardware", ...dash.hardwareTotal },
+      { key:"ofc", label:"OFC", wo:dash.ofcTotal || 0, site:dash.ofcRepeat?.siteCount || 0, tickets:(dash.ofcSections || []).flatMap(s=>s.tickets || []) }
+    ];
+    return { label:"EEC", dash, summaryRows, batteryRows:dash.batteryRows, ofcSections:dash.ofcSections, allTickets:getEecAnalysisScopeTickets() };
+  }
+  if(scope === "cw"){
+    const dash = buildCwAnalysisDashboard();
+    const summaryRows = [
+      { key:"stolen_ofc", label:"Stolen OFC", ...dash.stolenOfc },
+      { key:"stolen_node", label:"Stolen NODE", ...dash.stolenNode },
+      { key:"hardware", label:"Hardware", ...dash.hardware },
+      { key:"ofc", label:"OFC Section Repeat", wo:dash.ofcRepeat?.repeatWo || 0, site:dash.ofcRepeat?.siteCount || 0, tickets:(dash.ofcRepeat?.sections || []).flatMap(s=>s.tickets || []) }
+    ];
+    return { label:"CW", dash, summaryRows, batteryRows:dash.batteryRows, ofcSections:dash.ofcSections, allTickets:dash.rows };
+  }
+  return null;
+}
+function exportAnalysisExcel(scope){
+  const model = getAnalysisExportModel(scope);
+  if(!model){ toast("Unknown analysis scope"); return; }
+  const wb = XLSX.utils.book_new();
+  const used = new Set();
+  const dash = model.dash;
+  appendAnalysisSheet(wb, used, "Summary", analysisSummaryExportRows(scope, model.summaryRows, dash));
+  appendAnalysisSheet(wb, used, "Battery", analysisBatteryExportRows(scope, model.batteryRows, dash));
+  if(model.ofcSections?.length) appendAnalysisSheet(wb, used, "OFC Sections", analysisOfcSectionRows(model.ofcSections));
+  appendAnalysisSheet(wb, used, "Raw All", analysisTicketRows(scope, model.allTickets, "All"));
+  (model.summaryRows || []).forEach(row=>{
+    if(row.tickets?.length) appendAnalysisSheet(wb, used, `Raw ${row.label || row.key}`, analysisTicketRows(scope, row.tickets, row.label || row.key));
+  });
+  if(model.batteryRows?.some(r=>r.tickets?.length)){
+    appendAnalysisSheet(wb, used, "Raw Battery", analysisTicketRows(scope, model.batteryRows.flatMap(r=>r.tickets || []), "Battery"));
+  }
+  const dateVal = document.getElementById("boardDate")?.value || fmtIsoLocalDate(new Date());
+  XLSX.writeFile(wb, `PLKD-${model.label}-Analysis-${dateVal}.xlsx`);
+  toast(`Exported ${model.label} Analysis Excel`);
 }
 
 /* ── EEC Site tab (ตารางแยก eec_sites + eec_site_tickets) ── */
@@ -17287,7 +17779,10 @@ function toast(msg){
 }
 (async function init(){
   try{
-    const srmFtLoad = fetchSrmFreeTextFromDb();
+    const srmFtLoad = Promise.all([
+      fetchSrmFreeTextFromDb(),
+      fetchSrmMappingHiddenSitesFromDb()
+    ]);
     await fetchSiteCodes();
     await fetchTeamMap();
     await loadAll();
