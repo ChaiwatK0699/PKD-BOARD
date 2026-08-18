@@ -655,6 +655,9 @@ body.screenshotting .srm-ft-ofcnode-detail-wrap-collapsed{display:block !importa
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
   border-radius:12px; padding:18px 20px; border:1px solid transparent; min-height:108px;
 }
+.srm-ft-sev-card.clickable{cursor:pointer; position:relative; transition:transform .12s ease, box-shadow .12s ease, filter .12s ease, opacity .12s ease;}
+.srm-ft-sev-card.clickable:hover{transform:translateY(-1px); box-shadow:0 8px 18px var(--shadow);}
+.srm-ft-sev-card.clickable:not(.active){opacity:.62; filter:saturate(.8);}
 .srm-ft-sev-card.sa{background:var(--coral-dim); border-color:var(--coral); color:var(--coral);}
 .srm-ft-sev-card.nsa{background:var(--teal-dim); border-color:var(--teal); color:var(--teal);}
 .srm-ft-sev-card.over{background:#f3e8ff; border-color:#9333ea; color:#9333ea;}
@@ -2353,6 +2356,8 @@ let EEC_SITE_REGEX = null;
 let eecProvinceFilter = "";
 let eecProvSevFilter = "all";
 let eecLtrSevFilter = "all";
+let eecTrendSevCardFilter = "all";
+let eecOverSlaSevCardFilter = "all";
 let eecOfcNodeTrendGroup = "OFC";
 let eecOfcNodeDetailCollapsed = false;
 let eecOfcNodeExpandRc = null;
@@ -2400,6 +2405,7 @@ let eecTeamSearchQuery = "";
 let eecSiteSearchDateFrom = "";
 let eecSiteSearchDateTo = "";
 let eecMappingCellTickets = {};
+let srmFtSevCardFilter = "all";
 let cwSiteTickets = [];
 let cwSiteTicketsLoaded = false;
 let cwSiteTicketsLoadingPromise = null;
@@ -3582,18 +3588,49 @@ function renderSrmFtOfcNodeChart(stats){
 function destroySrmFtSevChart(){
   if(srmFtSevChartInst){ srmFtSevChartInst.destroy(); srmFtSevChartInst = null; }
 }
+function filterSaNsaTrendStats(stats, filter){
+  if(!stats || filter === "all") return stats;
+  const zero = (stats.totals || []).map(()=>0);
+  const next = { ...stats };
+  if(filter === "sa"){
+    next.nsaCounts = zero.slice();
+    next.nsaTotal = 0;
+    if(next.nsaOverCounts) next.nsaOverCounts = zero.slice();
+    if(next.nsaOverTotal != null) next.nsaOverTotal = 0;
+  }else if(filter === "nsa"){
+    next.saCounts = zero.slice();
+    next.saTotal = 0;
+    if(next.saOverCounts) next.saOverCounts = zero.slice();
+    if(next.saOverTotal != null) next.saOverTotal = 0;
+  }
+  next.totals = (stats.totals || []).map((_, i)=>
+    (next.saCounts?.[i] || 0) + (next.nsaCounts?.[i] || 0) +
+    (next.saOverCounts?.[i] || 0) + (next.nsaOverCounts?.[i] || 0)
+  );
+  return next;
+}
+function renderSevFilterCards(wrapId, stats, filter, setFnName, opts){
+  const wrap = document.getElementById(wrapId);
+  if(!wrap) return;
+  opts = opts || {};
+  const saTotal = opts.saTotal != null ? opts.saTotal : (stats.saTotal || 0);
+  const nsaTotal = opts.nsaTotal != null ? opts.nsaTotal : (stats.nsaTotal || 0);
+  wrap.innerHTML = `
+    <div class="srm-ft-sev-card clickable sa ${filter === "all" || filter === "sa" ? "active" : ""}" onclick="${setFnName}('sa')" role="button" tabindex="0" title="กดเพื่อโชว์เฉพาะ SA · กดซ้ำเพื่อโชว์ทั้งหมด">
+      <span class="srm-ft-sev-card-lbl">SA</span><span class="srm-ft-sev-card-val">${saTotal}</span>
+    </div>
+    <div class="srm-ft-sev-card clickable nsa ${filter === "all" || filter === "nsa" ? "active" : ""}" onclick="${setFnName}('nsa')" role="button" tabindex="0" title="กดเพื่อโชว์เฉพาะ NSA · กดซ้ำเพื่อโชว์ทั้งหมด">
+      <span class="srm-ft-sev-card-lbl">NSA</span><span class="srm-ft-sev-card-val">${nsaTotal}</span>
+    </div>`;
+}
+function setSrmFtSevCardFilter(filter){
+  srmFtSevCardFilter = srmFtSevCardFilter === filter ? "all" : (filter === "sa" || filter === "nsa" ? filter : "all");
+  renderSrmFtSeverityPanel();
+}
 function renderSrmFtSeverityCards(stats){
   const wrap = document.getElementById("srmFtSevCards");
   if(!wrap) return;
-  wrap.innerHTML = `
-    <div class="srm-ft-sev-card sa">
-      <span class="srm-ft-sev-card-lbl">SA</span>
-      <span class="srm-ft-sev-card-val">${stats.saTotal}</span>
-    </div>
-    <div class="srm-ft-sev-card nsa">
-      <span class="srm-ft-sev-card-lbl">NSA</span>
-      <span class="srm-ft-sev-card-val">${stats.nsaTotal}</span>
-    </div>`;
+  renderSevFilterCards("srmFtSevCards", stats, srmFtSevCardFilter, "setSrmFtSevCardFilter");
 }
 function renderSrmFtSeverityChart(stats){
   const canvas = document.getElementById("srmFtSevChart");
@@ -3830,7 +3867,7 @@ function renderSrmFtSeverityPanel(){
   }
   const stats = buildSrmFtSeverityStats();
   renderSrmFtSeverityCards(stats);
-  renderSrmFtSeverityChart(stats);
+  renderSrmFtSeverityChart(filterSaNsaTrendStats(stats, srmFtSevCardFilter));
   refreshSrmOfcNodeTrendPanel();
 }
 function buildSrmFreeTextSiteRows(){
@@ -12581,15 +12618,22 @@ function renderEecStackedSevChart(canvasId, legendId, stats, instRef){
 function renderEecOverSlaCards(stats){
   const wrap = document.getElementById("eecOverSlaCards");
   if(!wrap) return;
-  wrap.innerHTML = `
-    <div class="srm-ft-sev-card sa"><span class="srm-ft-sev-card-lbl">SA</span><span class="srm-ft-sev-card-val">${stats.saTotal}</span></div>
-    <div class="srm-ft-sev-card nsa"><span class="srm-ft-sev-card-lbl">NSA</span><span class="srm-ft-sev-card-val">${stats.nsaTotal}</span></div>`;
+  renderSevFilterCards("eecOverSlaCards", stats, eecOverSlaSevCardFilter, "setEecOverSlaSevCardFilter");
+}
+function setEecOverSlaSevCardFilter(filter){
+  eecOverSlaSevCardFilter = eecOverSlaSevCardFilter === filter ? "all" : (filter === "sa" || filter === "nsa" ? filter : "all");
+  renderEecOverSlaPanel();
+}
+function filterEecRowsBySevCard(rows, filter){
+  if(filter === "sa") return rows.filter(isFaultSaSeverity);
+  if(filter === "nsa") return rows.filter(isFaultNsaSrmSeverity);
+  return rows;
 }
 function renderEecOverSlaPanel(){
   const stats = buildEecOverSlaStats();
   renderEecOverSlaCards(stats);
-  renderEecStackedSevChart("eecOverSlaChart", "eecOverSlaLegend", stats, "over-sla");
-  const tickets = getEecOverTickets();
+  renderEecStackedSevChart("eecOverSlaChart", "eecOverSlaLegend", filterSaNsaTrendStats(stats, eecOverSlaSevCardFilter), "over-sla");
+  const tickets = filterEecRowsBySevCard(getEecOverTickets(), eecOverSlaSevCardFilter);
   renderEecOverSlaSiteAnalysisTable(buildEecOverSlaSiteAnalysis(tickets));
   renderEecOverSlaRcAnalysisTable(buildEecOverSlaRcAnalysis(tickets));
 }
@@ -12845,14 +12889,19 @@ function renderEecSeverityCards(stats){
   const wrap = document.getElementById("eecSevCards");
   if(!wrap) return;
   wrap.classList.remove("cols-3","cols-4");
-  wrap.innerHTML = `
-    <div class="srm-ft-sev-card sa"><span class="srm-ft-sev-card-lbl">SA</span><span class="srm-ft-sev-card-val">${stats.saTotal + stats.saOverTotal}</span></div>
-    <div class="srm-ft-sev-card nsa"><span class="srm-ft-sev-card-lbl">NSA</span><span class="srm-ft-sev-card-val">${stats.nsaTotal + stats.nsaOverTotal}</span></div>`;
+  renderSevFilterCards("eecSevCards", stats, eecTrendSevCardFilter, "setEecTrendSevCardFilter", {
+    saTotal: (stats.saTotal || 0) + (stats.saOverTotal || 0),
+    nsaTotal: (stats.nsaTotal || 0) + (stats.nsaOverTotal || 0)
+  });
+}
+function setEecTrendSevCardFilter(filter){
+  eecTrendSevCardFilter = eecTrendSevCardFilter === filter ? "all" : (filter === "sa" || filter === "nsa" ? filter : "all");
+  renderEecSeverityPanel();
 }
 function renderEecSeverityPanel(){
   const stats = buildEecSeverityStats();
   renderEecSeverityCards(stats);
-  renderEecSeverityTrendChart(stats);
+  renderEecSeverityTrendChart(filterSaNsaTrendStats(stats, eecTrendSevCardFilter));
 }
 function renderEecProvinceChart(stats){
   const canvas = document.getElementById("eecProvChart");
