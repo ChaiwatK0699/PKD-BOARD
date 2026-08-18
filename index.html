@@ -1673,6 +1673,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     <div class="tabs" id="tabsEecSub" style="margin-bottom:16px;">
       <div class="tab-indicator" id="tabIndicatorEecSub"></div>
       <button class="tab-btn active" id="eecSubChartsBtn" onclick="switchEecSubTab('charts')">Trend</button>
+      <button class="tab-btn" id="eecSubMappingBtn" onclick="switchEecSubTab('mapping')">Mapping</button>
       <button class="tab-btn" id="eecSubOverSlaBtn" onclick="switchEecSubTab('over-sla')">Over SLA</button>
       <button class="tab-btn" id="eecSubLtrBtn" onclick="switchEecSubTab('ltr')">Long time Repair</button>
       <button class="tab-btn" id="eecSubSiteSearchBtn" onclick="switchEecSubTab('site-search')">Search</button>
@@ -1703,6 +1704,18 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       </div>
       <div class="table-scroll" id="eecOfcNodeDetailWrap" onclick="onEecOfcNodeDetailClick(event)"></div>
     </div>
+    </div>
+    <div id="eecSubMapping" style="display:none;" onclick="onEecMappingClick(event)">
+      <div class="srm-map-card">
+        <div class="fault-section-title">Mapping · Count TT ต่อวัน</div>
+        <p class="status-msg" style="margin:0 0 12px;text-transform:none;font-size:12px;">Scope: EEC Site · Severity SA + NSA · นับตาม Closed Time</p>
+        <div id="eecMappingCountWrap"></div>
+      </div>
+      <div class="srm-map-card" style="margin-top:16px;">
+        <div class="fault-section-title">Mapping · Downtime (H:m)</div>
+        <p class="status-msg" style="margin:0 0 12px;text-transform:none;font-size:12px;">Downtime คำนวณจาก Create Time ถึง Closed Time</p>
+        <div id="eecMappingDtWrap"></div>
+      </div>
     </div>
     <div id="eecSubOverSla" style="display:none;">
       <div class="srm-ft-sev-cards" id="eecOverSlaCards"></div>
@@ -2386,6 +2399,7 @@ let eecSiteSearchQuery = "";
 let eecTeamSearchQuery = "";
 let eecSiteSearchDateFrom = "";
 let eecSiteSearchDateTo = "";
+let eecMappingCellTickets = {};
 let cwSiteTickets = [];
 let cwSiteTicketsLoaded = false;
 let cwSiteTicketsLoadingPromise = null;
@@ -11938,6 +11952,156 @@ function getEecFilteredTickets(){
     return true;
   });
 }
+function getEecMappingTickets(){
+  return getEecBaseTickets().filter(r=> isFaultSaSeverity(r) || isFaultNsaSrmSeverity(r));
+}
+function buildEecMappingData(){
+  const tickets = getEecMappingTickets();
+  const daysSet = new Set();
+  const siteSet = new Set();
+  const cellTickets = {};
+  tickets.forEach(r=>{
+    const site = extractEecSite(r);
+    const day = getEecClosedDay(r);
+    if(!site || !day) return;
+    daysSet.add(day);
+    siteSet.add(site);
+    if(!cellTickets[site]) cellTickets[site] = {};
+    if(!cellTickets[site][day]) cellTickets[site][day] = [];
+    cellTickets[site][day].push(r);
+  });
+  const days = fillDayKeysRange([...daysSet]);
+  const sites = [...siteSet].sort((a,b)=> a.localeCompare(b, "th"));
+  const count = {}, downtime = {}, dayCount = {}, dayDt = {}, siteRowCount = {}, siteRowDt = {};
+  let grandCount = 0, grandDt = 0, maxCellCount = 0, maxCellDt = 0;
+  sites.forEach(site=>{
+    count[site] = {};
+    downtime[site] = {};
+    siteRowCount[site] = 0;
+    siteRowDt[site] = 0;
+    days.forEach(day=>{
+      const rows = (cellTickets[site]?.[day] || []);
+      const c = rows.length;
+      const dt = rows.reduce((sum, r)=> sum + (calcFaultDowntimeMinutes(r) || 0), 0);
+      count[site][day] = c;
+      downtime[site][day] = dt;
+      dayCount[day] = (dayCount[day] || 0) + c;
+      dayDt[day] = (dayDt[day] || 0) + dt;
+      siteRowCount[site] += c;
+      siteRowDt[site] += dt;
+      if(c > maxCellCount) maxCellCount = c;
+      if(dt > maxCellDt) maxCellDt = dt;
+    });
+    grandCount += siteRowCount[site];
+    grandDt += siteRowDt[site];
+  });
+  return { tickets, sites, days, cellTickets, count, downtime, dayCount, dayDt, siteRowCount, siteRowDt, grandCount, grandDt, maxCellCount, maxCellDt };
+}
+function renderEecMapping(){
+  const countWrap = document.getElementById("eecMappingCountWrap");
+  const dtWrap = document.getElementById("eecMappingDtWrap");
+  if(!countWrap || !dtWrap) return;
+  if(!EEC_SITE_SET.size){
+    const empty = `<div class="empty-hint" style="padding:24px;">ยังไม่มีรายชื่อ EEC Site — รอโหลด site list</div>`;
+    countWrap.innerHTML = empty;
+    dtWrap.innerHTML = empty;
+    eecMappingCellTickets = {};
+    return;
+  }
+  const data = buildEecMappingData();
+  eecMappingCellTickets = data.cellTickets;
+  const { sites, days, count, downtime, dayCount, dayDt, siteRowCount, siteRowDt, grandCount, grandDt, maxCellCount, maxCellDt } = data;
+  if(!sites.length || !days.length){
+    const empty = `<div class="empty-hint" style="padding:24px;">ไม่มี TT ตามเงื่อนไข EEC Site · SA + NSA</div>`;
+    countWrap.innerHTML = empty;
+    dtWrap.innerHTML = empty;
+    return;
+  }
+  const gridOpts = { sites, days, cellTicketsMap: eecMappingCellTickets, streakLen: {}, allowHideSite:false };
+  countWrap.innerHTML = buildSrmHeatGrid({
+    ...gridOpts,
+    getVal: (site, d)=> count[site][d],
+    fmtVal: v=> String(v),
+    maxVal: maxCellCount,
+    rgba: "rgba(47,128,237,{a})",
+    dayTotals: dayCount,
+    rowTotals: siteRowCount,
+    grandTotal: grandCount,
+    legendLabel: "TT"
+  });
+  dtWrap.innerHTML = buildSrmHeatGrid({
+    ...gridOpts,
+    getVal: (site, d)=> downtime[site][d],
+    fmtVal: v=> fmtHM(v),
+    maxVal: maxCellDt,
+    rgba: "rgba(217,74,53,{a})",
+    dayTotals: dayDt,
+    rowTotals: siteRowDt,
+    grandTotal: grandDt,
+    dayTotalClass: "dt",
+    legendBarClass: "dt",
+    legendLabel: "H:m"
+  });
+}
+function collectEecMappingDetailRows(kind, params){
+  params = params || {};
+  let rows = [];
+  if(kind === "cell"){
+    rows = ((eecMappingCellTickets[params.site] && eecMappingCellTickets[params.site][params.day]) || []).slice();
+  }else if(kind === "row"){
+    Object.values(eecMappingCellTickets[params.site] || {}).forEach(part=> rows.push(...part));
+  }else if(kind === "day"){
+    Object.keys(eecMappingCellTickets).forEach(site=> rows.push(...(eecMappingCellTickets[site][params.day] || [])));
+  }else if(kind === "grand"){
+    rows = getEecMappingTickets().slice();
+  }
+  return rows.sort((a,b)=> String(a.closed_time||"").localeCompare(String(b.closed_time||"")));
+}
+function openEecMappingDetail(kind, params){
+  const rows = collectEecMappingDetailRows(kind, params);
+  let title = "EEC Mapping Detail";
+  if(kind === "cell") title = `EEC · ${params.site} · ${fmtSrmDayLabel(params.day)} · ${rows.length} ticket(s)`;
+  else if(kind === "row") title = `EEC · ${params.site} · Total · ${rows.length} ticket(s)`;
+  else if(kind === "day") title = `EEC · ${fmtSrmDayLabel(params.day)} · Total · ${rows.length} ticket(s)`;
+  else if(kind === "grand") title = `EEC · Grand Total · ${rows.length} ticket(s)`;
+  document.getElementById("srmDetailTitle").textContent = title;
+  const body = document.getElementById("srmDetailBody");
+  if(!rows.length){
+    body.innerHTML = `<div class="modal-empty">ไม่มี ticket</div>`;
+  }else{
+    body.innerHTML = rows.map(r=>{
+      const tt = r.source_ticket_id || r.sdm_tt || "-";
+      const wo = r.incident_id || r.work_order_id || "";
+      const site = extractEecSite(r);
+      const downtime = calcFaultDowntimeMinutes(r);
+      const subj = extractFaultSubjectDetail(r) || r.subject || "-";
+      return `<div class="srm-detail-card">
+        <div class="srm-detail-head">
+          <span class="srm-detail-tt">${esc(tt)}</span>
+          ${wo && wo !== tt ? `<span class="srm-detail-wo">${esc(wo)}</span>` : ""}
+          <span class="sev-badge">${esc(r.severity||"-")}</span>
+          ${site ? `<span class="site-plkd-cell" style="font-size:12px;">${esc(site)}</span>` : ""}
+        </div>
+        <div class="srm-detail-subj">${esc(subj)}</div>
+        <div class="srm-detail-meta">
+          <span>Created: ${esc(fmtFaultRawDT(r.created_time)||"-")}</span>
+          <span>Closed: ${esc(fmtFaultRawDT(r.closed_time)||"-")}</span>
+          <span>Downtime: ${downtime!=null ? esc(fmtHMText(downtime)) : "-"}</span>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  document.getElementById("srmDetailModal").classList.add("open");
+}
+function onEecMappingClick(e){
+  const cell = e.target.closest("[data-srm-kind]");
+  if(!cell) return;
+  const kind = cell.dataset.srmKind;
+  if(kind === "cell") openEecMappingDetail("cell", { site: cell.dataset.site, day: cell.dataset.day });
+  else if(kind === "row") openEecMappingDetail("row", { site: cell.dataset.site });
+  else if(kind === "day") openEecMappingDetail("day", { day: cell.dataset.day });
+  else if(kind === "grand") openEecMappingDetail("grand", {});
+}
 function getEecOfcNodeTrendTickets(){
   return getEecFilteredTickets();
 }
@@ -16537,21 +16701,24 @@ function toggleAnalysisTeamDetail(scope, metric, teamKey){
   renderAnalysisTeamPanel(scope);
 }
 function switchEecSubTab(tab){
-  if(!["charts","over-sla","ltr","site-search","analysis","team"].includes(tab)) return;
+  if(!["charts","mapping","over-sla","ltr","site-search","analysis","team"].includes(tab)) return;
   eecSubTab = tab;
   document.getElementById("eecSubChartsBtn")?.classList.toggle("active", tab === "charts");
+  document.getElementById("eecSubMappingBtn")?.classList.toggle("active", tab === "mapping");
   document.getElementById("eecSubOverSlaBtn")?.classList.toggle("active", tab === "over-sla");
   document.getElementById("eecSubLtrBtn")?.classList.toggle("active", tab === "ltr");
   document.getElementById("eecSubSiteSearchBtn")?.classList.toggle("active", tab === "site-search");
   document.getElementById("eecSubAnalysisBtn")?.classList.toggle("active", tab === "analysis");
   document.getElementById("eecSubTeamBtn")?.classList.toggle("active", tab === "team");
   const chartsEl = document.getElementById("eecSubCharts");
+  const mappingEl = document.getElementById("eecSubMapping");
   const overSlaEl = document.getElementById("eecSubOverSla");
   const ltrEl = document.getElementById("eecSubLtr");
   const siteSearchEl = document.getElementById("eecSubSiteSearch");
   const analysisEl = document.getElementById("eecSubAnalysis");
   const teamEl = document.getElementById("eecSubTeam");
   if(chartsEl) chartsEl.style.display = tab === "charts" ? "block" : "none";
+  if(mappingEl) mappingEl.style.display = tab === "mapping" ? "block" : "none";
   if(overSlaEl) overSlaEl.style.display = tab === "over-sla" ? "block" : "none";
   if(ltrEl) ltrEl.style.display = tab === "ltr" ? "block" : "none";
   if(siteSearchEl) siteSearchEl.style.display = tab === "site-search" ? "block" : "none";
@@ -16569,7 +16736,8 @@ function moveEecSubTabIndicator(){
 }
 function renderEecTab(){
   if(currentTab !== "eec") return;
-  if(eecSubTab === "ltr") renderEecLtrPanel();
+  if(eecSubTab === "mapping") renderEecMapping();
+  else if(eecSubTab === "ltr") renderEecLtrPanel();
   else if(eecSubTab === "over-sla") renderEecOverSlaPanel();
   else if(eecSubTab === "site-search") renderEecSiteSearchPanel();
   else if(eecSubTab === "analysis") renderEecAnalysisPanel();
