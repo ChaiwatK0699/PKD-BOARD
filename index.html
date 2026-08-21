@@ -12299,7 +12299,7 @@ function onEecMappingClick(e){
   else if(kind === "grand") openEecMappingDetail("grand", {});
 }
 function getEecOfcNodeTrendTickets(){
-  return getEecFilteredTickets();
+  return getEecFilteredTickets().filter(eecTicketMatchesTrendCardSev);
 }
 function buildEecOverSlaStats(){
   const tickets = getEecOverTickets();
@@ -12447,6 +12447,16 @@ function buildEecOpenAlarmRows(){
 function getEecActiveProvinces(){
   return eecProvinceFilter ? [eecProvinceFilter] : [...EEC_PROVINCES];
 }
+function getEecTrendEffectiveSeverityFilter(){
+  return eecTrendSevCardFilter === "sa" || eecTrendSevCardFilter === "nsa"
+    ? eecTrendSevCardFilter
+    : eecProvSevFilter;
+}
+function eecTicketMatchesTrendCardSev(r){
+  if(eecTrendSevCardFilter === "sa") return isFaultSaSeverity(r);
+  if(eecTrendSevCardFilter === "nsa") return isFaultNsaSrmSeverity(r);
+  return isFaultSaSeverity(r) || isFaultNsaSrmSeverity(r);
+}
 function getEecProvinceTrendTickets(){
   return getEecBaseTickets().filter(eecTicketMatchesProvSev).filter(r=>{
     if(!eecProvinceFilter) return true;
@@ -12454,14 +12464,16 @@ function getEecProvinceTrendTickets(){
   });
 }
 function eecTicketMatchesProvSev(r){
-  if(eecProvSevFilter === "sa") return isFaultSaSeverity(r);
-  if(eecProvSevFilter === "nsa") return isFaultNsaSrmSeverity(r);
+  const f = getEecTrendEffectiveSeverityFilter();
+  if(f === "sa") return isFaultSaSeverity(r);
+  if(f === "nsa") return isFaultNsaSrmSeverity(r);
   return isFaultSaSeverity(r) || isFaultNsaSrmSeverity(r);
 }
 function buildEecProvinceStats(){
   const tickets = getEecProvinceTrendTickets();
   const activeProvinces = getEecActiveProvinces();
-  const splitSev = eecProvSevFilter === "all";
+  const sevFilter = getEecTrendEffectiveSeverityFilter();
+  const splitSev = sevFilter === "all";
   const daysSet = new Set();
   const byDayProv = new Map();
   tickets.forEach(r=>{
@@ -12492,7 +12504,7 @@ function buildEecProvinceStats(){
       const slot = byDayProv.get(`${day}|${prov}`) || { sa:0, nsa:0 };
       provSaCounts[prov].push(slot.sa);
       provNsaCounts[prov].push(slot.nsa);
-      const n = splitSev ? slot.sa + slot.nsa : (eecProvSevFilter === "sa" ? slot.sa : slot.nsa);
+      const n = splitSev ? slot.sa + slot.nsa : (sevFilter === "sa" ? slot.sa : slot.nsa);
       provCounts[prov].push(n);
       provTotals[prov] += n;
     });
@@ -13133,7 +13145,11 @@ function renderEecSeverityCards(stats){
 function setEecTrendSevCardFilter(filter){
   eecTrendSevCardFilter = eecTrendSevCardFilter === filter ? "all" : (filter === "sa" || filter === "nsa" ? filter : "all");
   if(eecSubTab === "open") renderEecOpenPanel();
-  else renderEecSeverityPanel();
+  else{
+    renderEecSeverityPanel();
+    renderEecProvincePanel();
+    refreshEecOfcNodeTrendPanel();
+  }
 }
 function renderEecSeverityPanel(){
   const stats = buildEecSeverityStats();
