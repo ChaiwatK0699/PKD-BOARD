@@ -1671,11 +1671,23 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <button class="btn ghost" onclick="document.getElementById('fileInputEec').click()">⭱ Upload EEC Site List</button>
       <input type="file" id="fileInputEec" accept=".csv,.xlsx,.xls" onchange="handleEecUpload(event)" style="display:none;">
       <button class="btn ghost sm" onclick="loadEecSiteTickets(true, true)">↻ Refresh</button>
+      <button class="btn ghost sm" id="eecFocusSiteFilterBtn" onclick="toggleEecFocusSiteFilter()">40 Site</button>
+      <div class="fgroup">
+        <label class="flabel" for="eecDateFrom">วันที่เลือก</label>
+        <input type="date" id="eecDateFrom" class="date-input" onchange="onEecDateRangeChange()">
+      </div>
+      <div class="fgroup">
+        <label class="flabel" for="eecDateTo">วันที่เลือก</label>
+        <input type="date" id="eecDateTo" class="date-input" onchange="onEecDateRangeChange()">
+      </div>
+      <button class="btn ghost sm" onclick="clearEecDateRange()">Clear Date</button>
+      <span class="status-msg" id="eecFocusSiteFilterCount"></span>
       <span class="status-msg" id="statusMsgEec"></span>
     </div>
     <div class="tabs" id="tabsEecSub" style="margin-bottom:16px;">
       <div class="tab-indicator" id="tabIndicatorEecSub"></div>
       <button class="tab-btn active" id="eecSubChartsBtn" onclick="switchEecSubTab('charts')">Trend</button>
+      <button class="tab-btn" id="eecSubOpenBtn" onclick="switchEecSubTab('open')">Ticket Open</button>
       <button class="tab-btn" id="eecSubMappingBtn" onclick="switchEecSubTab('mapping')">Mapping</button>
       <button class="tab-btn" id="eecSubOverSlaBtn" onclick="switchEecSubTab('over-sla')">Over SLA</button>
       <button class="tab-btn" id="eecSubLtrBtn" onclick="switchEecSubTab('ltr')">Long time Repair</button>
@@ -1707,6 +1719,19 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       </div>
       <div class="table-scroll" id="eecOfcNodeDetailWrap" onclick="onEecOfcNodeDetailClick(event)"></div>
     </div>
+    </div>
+    <div id="eecSubOpen" style="display:none;">
+      <div class="srm-ft-sev-cards" id="eecOpenSevCards"></div>
+      <div class="fault-chart-card srm-ft-sev-chart-card">
+        <div class="fault-chart-title">Severity Trend · Ticket Open</div>
+        <div class="fault-legend" id="eecOpenSevLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="eecOpenSevChart"></canvas></div>
+      </div>
+      <div class="fault-chart-card srm-ft-sev-chart-card">
+        <div class="fault-chart-title">Detail Alarm</div>
+        <p class="status-msg" style="margin:0 0 10px;text-transform:none;font-size:11px;">อิง Create Time · ดึง Detail Alarm จาก Subject</p>
+        <div class="table-scroll" id="eecOpenAlarmDetailWrap"></div>
+      </div>
     </div>
     <div id="eecSubMapping" style="display:none;" onclick="onEecMappingClick(event)">
       <div class="srm-map-card">
@@ -2143,7 +2168,7 @@ function isBroadbandRow(r){
   const closeDesc = r.close_description ?? get("Close Description");
   const rootCause = r.root_cause ?? get("Root Cause");
   const hay = `${subject||""} ${workType||""} ${closeDesc||""} ${rootCause||""}`.toUpperCase();
-  return hay.includes("BROADBAND") || /\bBROAD\b/.test(hay) || /NOC-NW-BROAD\b/.test(hay);
+  return hay.includes("BROADBAND") || hay.includes("BOARDBAND") || /\bBROAD\b/.test(hay) || /NOC-NW-BROAD\b/.test(hay);
 }
 function isCancelled(r){ return isCancelStatus(r?.wo_status); }
 
@@ -2230,12 +2255,20 @@ const SRM_REST = REST + "/srm_tickets";
 const OPEN_PENDING_REST = REST + "/open_pending_tickets";
 const EEC_REST = REST + "/eec_site_tickets";
 const EEC_SITES_REST = REST + "/eec_sites";
+const EEC_FOCUS_SITES_REST = REST + "/eec_focus_sites";
 const CW_REST = REST + "/cw_report_tickets";
 const EEC_PROVINCES = ["CHON BURI", "RAYONG", "CHACHOENGSAO"];
 const EEC_PROVINCE_COLORS = {"CHON BURI":"#2f80ed", "RAYONG":"#d97706", "CHACHOENGSAO":"#7c3aed"};
 const EEC_PROVINCE_SA_COLORS = {"CHON BURI":"#1c6ed4", "RAYONG":"#c45c00", "CHACHOENGSAO":"#6d28d9"};
 const EEC_PROVINCE_NSA_COLORS = {"CHON BURI":"#74b9ff", "RAYONG":"#fbbf24", "CHACHOENGSAO":"#c4b5fd"};
 const EEC_PROVINCE_SHORT = {"CHON BURI":"CBI", "RAYONG":"RYG", "CHACHOENGSAO":"CHS"};
+const EEC_FOCUS_SITE_SEED = [
+  "CBR0167","CBR6056","CBR0375","CBR0054","CBR0168","RYGEV40","CBR0238","CBR0145",
+  "CBRA009","CBR7199","CBR1327","CBR0572","CCS0144","CCS0214","CBRC034","CBR6072",
+  "CCS7104","CBR8704","RYGEV42","CCS0318","CBR7147","CBR3516","CBR0039","CBR6752",
+  "CCS6703","CBR6746","CBR1447","CCS0107","CBRC116","CBR6758","CBR3001","CBR0635",
+  "RYG7310","CBR6704","RYG0357","CCS8524","CCS0434","CBR7448","CBR4011","CBR4028"
+];
 const FAULT_BUCKET_COLORS = {"1-2 Hrs.":"#2f9e44","2-6 Hrs.":"#e6b800","6-12 Hrs.":"#e88b6a",">12 Hrs.":"#d94a35"};
 const FAULT_LTR_BUCKETS = ["1-2 Hrs.","2-6 Hrs.","6-12 Hrs.",">12 Hrs."];
 let faultTickets = [];
@@ -2340,6 +2373,8 @@ let eecSiteTickets = [];
 let eecSiteTicketsLoaded = false;
 let eecSiteTicketsLoadingPromise = null;
 let eecSitesLoadingPromise = null;
+let eecFocusSitesLoadingPromise = null;
+let eecFocusSitesLoaded = false;
 let eecBaseTicketsCache = null;
 let eecClassifiedCache = null;
 let faultFilteredCacheKey = null;
@@ -2349,11 +2384,15 @@ let faultTrendChartCache = null;
 let faultRegionBarKey = null;
 let EEC_SITE_MAP = {};
 let EEC_SITE_SET = new Set();
+let EEC_FOCUS_SITE_SET = new Set(EEC_FOCUS_SITE_SEED);
 let EEC_WO_CREATOR_MAP = {};
 let EEC_FAULT_FIELD_MAP = {};
 let EEC_FAULT_SUBRC_BY_TT = {};
 let EEC_SITE_REGEX = null;
 let eecProvinceFilter = "";
+let eecFocusSiteFilterEnabled = false;
+let eecDateFrom = "";
+let eecDateTo = "";
 let eecProvSevFilter = "all";
 let eecLtrSevFilter = "all";
 let eecTrendSevCardFilter = "all";
@@ -2367,6 +2406,11 @@ let eecPowerOutageDetailCollapsed = false;
 let eecPowerOutageExpandCat = null;
 let eecPowerOutageExpandSite = null;
 let eecSevChartInst = null;
+let eecOpenSevChartInst = null;
+let eecOpenAlarmExpandKey = null;
+let eecOpenAlarmSiteExpandKey = null;
+let eecOpenAlarmPage = 1;
+const EEC_OPEN_ALARM_PAGE_SIZE = 10;
 let eecOverSlaChartInst = null;
 let eecOverSlaRcExpand = null;
 let eecOverSlaSiteExpand = null;
@@ -2745,7 +2789,7 @@ function switchTab(tab){
   if(tab==="fault") renderFault();
   if(tab==="srm") renderSiteRepeatMapping();
   if(tab==="eec"){
-    Promise.all([fetchEecSites(), loadEecSiteTickets(false)]).then(()=> renderEecTab()).catch(e=>{
+    Promise.all([fetchEecSites(), fetchEecFocusSites(), loadEecSiteTickets(false)]).then(()=> renderEecTab()).catch(e=>{
       console.warn("EEC tab load failed:", e);
       renderEecTab();
     });
@@ -11599,6 +11643,33 @@ async function fetchEecSites(force){
     eecSitesLoadingPromise = null;
   }
 }
+async function fetchEecFocusSites(force){
+  if(eecFocusSitesLoaded && EEC_FOCUS_SITE_SET.size && !force) return EEC_FOCUS_SITE_SET;
+  if(eecFocusSitesLoadingPromise && !force) return eecFocusSitesLoadingPromise;
+  const run = (async()=>{
+    try{
+      const rows = await fetchAllFromRest(EEC_FOCUS_SITES_REST + "?select=site_code&order=site_code.asc");
+      const next = new Set();
+      rows.forEach(r=>{
+        const code = String(r.site_code || "").toUpperCase().trim();
+        if(code) next.add(code);
+      });
+      if(next.size) EEC_FOCUS_SITE_SET = next;
+      eecFocusSitesLoaded = true;
+    }catch(e){
+      console.warn("fetchEecFocusSites failed; using embedded 40-site seed:", e);
+      EEC_FOCUS_SITE_SET = new Set(EEC_FOCUS_SITE_SEED);
+      eecFocusSitesLoaded = true;
+    }
+    return EEC_FOCUS_SITE_SET;
+  })();
+  eecFocusSitesLoadingPromise = run;
+  try{
+    return await run;
+  }finally{
+    eecFocusSitesLoadingPromise = null;
+  }
+}
 function collectEecSitesFromText(text){
   if(!text || !EEC_SITE_SET.size) return [];
   const upper = String(text).toUpperCase();
@@ -11623,6 +11694,84 @@ function extractEecSite(r){
   if(site && EEC_SITE_SET.has(site)) return site;
   return findEecSiteInText(r?.subject) || null;
 }
+function isEecFocusSiteTicket(r){
+  const site = extractEecSite(r);
+  return !!(site && EEC_FOCUS_SITE_SET.has(site));
+}
+function getEecDateRange(){
+  let from = String(eecDateFrom || "").trim();
+  let to = String(eecDateTo || "").trim();
+  if(from && to && from > to) [from, to] = [to, from];
+  return { from, to };
+}
+function dayKeyFromEecTime(value){
+  const d = parseFaultTs(value);
+  if(!d) return "";
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${mo}-${day}`;
+}
+function passesEecDateRange(r){
+  const { from, to } = getEecDateRange();
+  if(!from && !to) return true;
+  const day = getEecClosedDay(r);
+  if(!day) return false;
+  if(from && day < from) return false;
+  if(to && day > to) return false;
+  return true;
+}
+function passesEecOpenDateRange(r){
+  const { from, to } = getEecDateRange();
+  if(!from && !to) return true;
+  const day = dayKeyFromEecTime(r?.created_time);
+  if(!day) return false;
+  if(from && day < from) return false;
+  if(to && day > to) return false;
+  return true;
+}
+function onEecDateRangeChange(){
+  eecDateFrom = document.getElementById("eecDateFrom")?.value || "";
+  eecDateTo = document.getElementById("eecDateTo")?.value || "";
+  invalidateEecCache();
+  renderEecTab();
+}
+function clearEecDateRange(){
+  eecDateFrom = "";
+  eecDateTo = "";
+  const fromEl = document.getElementById("eecDateFrom");
+  const toEl = document.getElementById("eecDateTo");
+  if(fromEl) fromEl.value = "";
+  if(toEl) toEl.value = "";
+  invalidateEecCache();
+  renderEecTab();
+}
+function renderEecDateRangeState(){
+  const fromEl = document.getElementById("eecDateFrom");
+  const toEl = document.getElementById("eecDateTo");
+  if(fromEl && fromEl.value !== eecDateFrom) fromEl.value = eecDateFrom;
+  if(toEl && toEl.value !== eecDateTo) toEl.value = eecDateTo;
+}
+function toggleEecFocusSiteFilter(){
+  eecFocusSiteFilterEnabled = !eecFocusSiteFilterEnabled;
+  invalidateEecCache();
+  renderEecTab();
+}
+function renderEecFocusSiteFilterState(){
+  const btn = document.getElementById("eecFocusSiteFilterBtn");
+  const countEl = document.getElementById("eecFocusSiteFilterCount");
+  if(btn){
+    btn.classList.toggle("primary", eecFocusSiteFilterEnabled);
+    btn.classList.toggle("ghost", !eecFocusSiteFilterEnabled);
+    btn.textContent = eecFocusSiteFilterEnabled ? "40 Site: ON" : "40 Site";
+  }
+  if(countEl){
+    const match = getEecAllTickets().filter(isEecFocusSiteTicket).length;
+    countEl.textContent = eecFocusSiteFilterEnabled
+      ? `กรอง ${match} TT จาก ${EEC_FOCUS_SITE_SET.size} Site`
+      : `${EEC_FOCUS_SITE_SET.size} Site filter`;
+  }
+}
 function passesEecSystemWoCreator(r){
   return isSystemWoCreatorValue(getEecWoCreatorForTicket(r));
 }
@@ -11643,6 +11792,12 @@ function formatEecStatusMessage(){
   if(!sites) return "";
   const audit = getEecWoCreatorAudit();
   let msg = `${n} TT · ${sites} EEC Site · WO Creator System`;
+  if(eecFocusSiteFilterEnabled) msg += ` · กรอง 40 Site`;
+  const range = getEecDateRange();
+  if(range.from || range.to){
+    const dateBasis = eecSubTab === "open" ? "Create Time" : "Closed Time";
+    msg += ` · วันที่ ${range.from || "เริ่มต้น"} - ${range.to || "ล่าสุด"} (${dateBasis})`;
+  }
   if(audit.excludedTotal > 0){
     const breakdown = Object.entries(audit.byCreator).map(([c, cnt])=> `${c} (${cnt})`).join(", ");
     msg += ` · ตัดออก ${audit.excludedTotal} ใบ (ไม่ใช่ System${breakdown ? `: ${breakdown}` : ""})`;
@@ -11971,6 +12126,7 @@ function isEecClosedTicket(r){
   if(!getEecClosedDay(r)) return false;
   if(!isEecClosedStatus(r)) return false;
   if(!isFaultSaSeverity(r) && !isFaultNsaSrmSeverity(r)) return false;
+  if(isEecBroadbandFtthTicket(r)) return false;
   const site = extractEecSite(r);
   return !!(site && EEC_SITE_SET.has(site));
 }
@@ -11981,7 +12137,10 @@ function getEecAllTickets(){
   return eecBaseTicketsCache;
 }
 function getEecBaseTickets(){
-  return getEecAllTickets();
+  let rows = getEecAllTickets();
+  if(eecFocusSiteFilterEnabled) rows = rows.filter(isEecFocusSiteTicket);
+  if(eecDateFrom || eecDateTo) rows = rows.filter(passesEecDateRange);
+  return rows;
 }
 function getEecFilteredTickets(){
   return getEecBaseTickets().filter(r=>{
@@ -12177,7 +12336,11 @@ const EEC_SEV_NSA_OVER_COLOR = "#087f5b";
 function buildEecSeverityStats(){
   const daysSet = new Set();
   const byDay = new Map();
-  getEecClassifiedTickets().forEach(r=>{
+  getEecClassifiedTickets().filter(r=>{
+    if(eecFocusSiteFilterEnabled && !isEecFocusSiteTicket(r)) return false;
+    if((eecDateFrom || eecDateTo) && !passesEecDateRange(r)) return false;
+    return true;
+  }).forEach(r=>{
     const d = getEecClosedDay(r);
     if(!d) return;
     daysSet.add(d);
@@ -12209,6 +12372,77 @@ function buildEecSeverityStats(){
     saOverTotal: saOverCounts.reduce((a,n)=> a + n, 0),
     nsaOverTotal: nsaOverCounts.reduce((a,n)=> a + n, 0)
   };
+}
+function getEecOpenTickets(){
+  let rows = getEecAllTickets();
+  if(eecFocusSiteFilterEnabled) rows = rows.filter(isEecFocusSiteTicket);
+  if(eecDateFrom || eecDateTo) rows = rows.filter(passesEecOpenDateRange);
+  return rows.filter(r=> dayKeyFromEecTime(r?.created_time));
+}
+function buildEecOpenSeverityStats(){
+  const daysSet = new Set();
+  const byDay = new Map();
+  getEecOpenTickets().forEach(r=>{
+    const d = dayKeyFromEecTime(r.created_time);
+    if(!d) return;
+    daysSet.add(d);
+    if(!byDay.has(d)) byDay.set(d, { sa:0, nsa:0 });
+    const slot = byDay.get(d);
+    if(isFaultSaSeverity(r)) slot.sa++;
+    else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
+  });
+  const dayKeys = fillDayKeysRange([...daysSet]);
+  const labels = fmtEecTrendDayLabels(dayKeys);
+  const saCounts = [], nsaCounts = [], totals = [];
+  dayKeys.forEach(day=>{
+    const slot = byDay.get(day) || { sa:0, nsa:0 };
+    saCounts.push(slot.sa);
+    nsaCounts.push(slot.nsa);
+    totals.push(slot.sa + slot.nsa);
+  });
+  return {
+    labels, dayKeys, saCounts, nsaCounts, totals,
+    saTotal: saCounts.reduce((a,n)=> a + n, 0),
+    nsaTotal: nsaCounts.reduce((a,n)=> a + n, 0)
+  };
+}
+function normalizeEecOpenAlarmKey(text){
+  let s = String(text || "").replace(/\s+/g, " ").trim();
+  if(!s) return "";
+  s = s.replace(/^\s*(?:CBR|CCS|RYG)[A-Z0-9]+(?:_[A-Z0-9]+)?(?:\s*\([^)]*\))?\s*[:：\-–—|/]\s*/i, "");
+  const sitePattern = /\b(?:CBR|CCS|RYG)[A-Z0-9]+(?:_[A-Z0-9]+)?\b/gi;
+  s = s
+    .replace(sitePattern, " ")
+    .replace(/\([^)]*(?:FLASH|RETAIN|RET[A-Z]*|SIGNAL|SIG|SECTOR|CELL)[^)]*\)\s*[:：\-–—|/]?\s*/gi, " ")
+    .replace(/\(\s*\)/g, " ")
+    .replace(/\[\s*\]/g, " ")
+    .replace(/\s*[-–—|/:]\s*$/g, " ")
+    .replace(/^\s*[-–—|/:]\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if(s.length > 120) s = s.slice(0, 120) + "…";
+  return s || "(ไม่มี Alarm / Subject)";
+}
+function buildEecOpenAlarmRows(){
+  const byAlarm = new Map();
+  getEecOpenTickets().forEach(r=>{
+    const alarm = normalizeEecOpenAlarmKey(extractEecSubjectAlarm(r));
+    const key = alarm || "(ไม่มี Alarm / Subject)";
+    if(!byAlarm.has(key)){
+      byAlarm.set(key, { alarm:key, tickets:[], sites:new Set(), sa:0, nsa:0, latest:"" });
+    }
+    const slot = byAlarm.get(key);
+    slot.tickets.push(r);
+    const site = extractEecSite(r);
+    if(site) slot.sites.add(site);
+    if(isFaultSaSeverity(r)) slot.sa++;
+    else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
+    const created = String(r.created_time || "");
+    if(created && created > slot.latest) slot.latest = created;
+  });
+  return [...byAlarm.values()]
+    .map(x=>({ ...x, count:x.tickets.length, siteCount:x.sites.size }))
+    .sort((a,b)=> b.count - a.count || a.alarm.localeCompare(b.alarm, "th"));
 }
 function getEecActiveProvinces(){
   return eecProvinceFilter ? [eecProvinceFilter] : [...EEC_PROVINCES];
@@ -12537,6 +12771,7 @@ function renderEecStackedSevChart(canvasId, legendId, stats, instRef){
   const isCwChart = instRef && String(instRef).startsWith("cw-");
   if(!canvas || typeof Chart === "undefined") return null;
   if(instRef === "sev") destroyEecSevChart();
+  else if(instRef === "eec-open" && eecOpenSevChartInst){ eecOpenSevChartInst.destroy(); eecOpenSevChartInst = null; }
   else if(instRef === "ofc") destroyEecOfcNodeChart();
   else if(instRef === "over-sla") destroyEecOverSlaChart();
   else if(instRef === "cw-sev" && cwSevChartInst){ cwSevChartInst.destroy(); cwSevChartInst = null; }
@@ -12608,6 +12843,7 @@ function renderEecStackedSevChart(canvasId, legendId, stats, instRef){
     plugins:[faultBarLabelPlugin]
   });
   if(instRef === "sev") eecSevChartInst = chart;
+  else if(instRef === "eec-open") eecOpenSevChartInst = chart;
   else if(instRef === "ofc") eecOfcNodeChartInst = chart;
   else if(instRef === "over-sla") eecOverSlaChartInst = chart;
   else if(instRef === "cw-sev") cwSevChartInst = chart;
@@ -12896,12 +13132,195 @@ function renderEecSeverityCards(stats){
 }
 function setEecTrendSevCardFilter(filter){
   eecTrendSevCardFilter = eecTrendSevCardFilter === filter ? "all" : (filter === "sa" || filter === "nsa" ? filter : "all");
-  renderEecSeverityPanel();
+  if(eecSubTab === "open") renderEecOpenPanel();
+  else renderEecSeverityPanel();
 }
 function renderEecSeverityPanel(){
   const stats = buildEecSeverityStats();
   renderEecSeverityCards(stats);
   renderEecSeverityTrendChart(filterSaNsaTrendStats(stats, eecTrendSevCardFilter));
+}
+function renderEecOpenSeverityCards(stats){
+  const wrap = document.getElementById("eecOpenSevCards");
+  if(!wrap) return;
+  wrap.classList.remove("cols-3","cols-4");
+  renderSevFilterCards("eecOpenSevCards", stats, eecTrendSevCardFilter, "setEecTrendSevCardFilter", {
+    saTotal: stats.saTotal || 0,
+    nsaTotal: stats.nsaTotal || 0
+  });
+}
+function toggleEecOpenAlarmExpand(key){
+  eecOpenAlarmExpandKey = eecOpenAlarmExpandKey === key ? null : key;
+  eecOpenAlarmSiteExpandKey = null;
+  renderEecOpenAlarmDetailTable();
+}
+function toggleEecOpenAlarmSiteExpand(key){
+  eecOpenAlarmSiteExpandKey = eecOpenAlarmSiteExpandKey === key ? null : key;
+  renderEecOpenAlarmDetailTable();
+}
+function buildEecOpenAlarmSiteRows(rows, alarmKey){
+  const bySite = new Map();
+  rows.forEach(r=>{
+    const site = extractEecSite(r) || "-";
+    if(!bySite.has(site)){
+      bySite.set(site, { site, tickets:[], sa:0, nsa:0, latest:"", alarmKey });
+    }
+    const slot = bySite.get(site);
+    slot.tickets.push(r);
+    if(isFaultSaSeverity(r)) slot.sa++;
+    else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
+    const created = String(r.created_time || "");
+    if(created && created > slot.latest) slot.latest = created;
+  });
+  return [...bySite.values()]
+    .map(x=>({ ...x, count:x.tickets.length }))
+    .sort((a,b)=> b.count - a.count || a.site.localeCompare(b.site, "th"));
+}
+function eecOpenAlarmProximityStyle(proximity){
+  return proximity?.hasWarning ? ` style="background:rgba(245,159,0,.12);"` : "";
+}
+function renderEecOpenAlarmProximityBadge(proximity){
+  if(!proximity?.hasWarning) return "";
+  const same = proximity.pairs.filter(p=> p.type === "same").length;
+  const adjacent = proximity.pairs.filter(p=> p.type === "adjacent").length;
+  const parts = [];
+  if(same) parts.push(`วันเดียวกัน ${same}`);
+  if(adjacent) parts.push(`วันติดกัน ${adjacent}`);
+  return ` <span class="eec-rc-prox-badge warn">${esc(parts.join(" · ") || "Created ใกล้กัน")}</span>`;
+}
+function renderEecOpenAlarmTicketDetail(rows){
+  const proximity = analyzeEecPowerOutageProximity(rows);
+  const sorted = [...rows].sort((a,b)=>
+    String(b.created_time || "").localeCompare(String(a.created_time || "")) ||
+    String(a.incident_id || "").localeCompare(String(b.incident_id || ""))
+  );
+  const body = sorted.map(r=>{
+    const tt = String(r.source_ticket_id || "").trim();
+    const wo = String(r.incident_id || "").trim();
+    const ticketCell = tt && wo && tt !== wo ? `${esc(tt)}<br><span class="muted">${esc(wo)}</span>` : esc(wo || tt || "-");
+    const site = extractEecSite(r) || "-";
+    const alarm = extractEecSubjectAlarm(r);
+    const nearText = proximity.formatRemark(getEecTicketRowKey(r));
+    const rowStyle = nearText ? ` style="background:rgba(245,159,0,.12);"` : "";
+    return `<tr${rowStyle}>
+      <td>${ticketCell}</td>
+      <td><span class="site-plkd-cell">${esc(site)}</span></td>
+      <td><span class="sev-badge">${esc(r.severity || "-")}</span></td>
+      <td class="dt-cell">${esc(fmtFaultRawDT(r.created_time) || "-")}</td>
+      <td class="dt-cell">${esc(fmtFaultRawDT(r.closed_time) || "-")}</td>
+      <td class="subject-cell">${esc(alarm)}</td>
+      <td class="subject-cell">${esc(getEecSubRootCauseForTicket(r) || "-")}</td>
+      <td class="subject-cell">${esc(getEecClosedDescription(r) || "-")}${nearText ? `<div class="eec-rc-prox-badge warn" style="margin-top:4px;">${esc(nearText)}</div>` : ""}</td>
+    </tr>`;
+  }).join("");
+  return `<table class="svcava-table fault-data-table eec-detail-table" style="margin:0">
+    <thead><tr><th>Ticket / WO</th><th>Site</th><th>Severity</th><th>Create Time</th><th>Closed</th><th>Detail Alarm</th><th>Sub Root Cause</th><th>Closed Description</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
+}
+function renderEecOpenAlarmSiteTable(row){
+  const sites = buildEecOpenAlarmSiteRows(row.tickets, encodeURIComponent(row.alarm));
+  const body = sites.flatMap(siteRow=>{
+    const siteKey = `${encodeURIComponent(row.alarm)}|${encodeURIComponent(siteRow.site)}`;
+    const isOpen = eecOpenAlarmSiteExpandKey === siteKey;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const proximity = analyzeEecPowerOutageProximity(siteRow.tickets);
+    const main = `<tr class="eec-open-alarm-site-row srm-ofcnode-rc-row" data-site-key="${esc(siteKey)}"${eecOpenAlarmProximityStyle(proximity)}>
+      <td>${chevron}<span class="site-plkd-cell">${esc(siteRow.site)}</span></td>
+      <td class="srm-ofcnode-rc-count">${siteRow.count}</td>
+      <td><span class="eec-rc-same-alarm-badge">Alarm เดิม ${siteRow.count} ใบ</span>${renderEecOpenAlarmProximityBadge(proximity)}</td>
+      <td>${renderEecOpenAlarmSeverityCell(siteRow)}</td>
+      <td class="mono">${esc(fmtFaultRawDT(siteRow.latest) || "-")}</td>
+    </tr>`;
+    const detail = isOpen
+      ? `<tr class="srm-ofcnode-expand-row"><td colspan="5">${renderEecOpenAlarmTicketDetail(siteRow.tickets)}</td></tr>`
+      : "";
+    return [main, detail].filter(Boolean);
+  }).join("");
+  return `<div class="table-scroll" style="margin:0">
+    <table class="srm-ft-ofcnode-detail-table">
+      <thead><tr><th>Site</th><th>Alarm เดิม</th><th>Summary</th><th>Severity</th><th>Latest Create</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+  </div>`;
+}
+function onEecOpenAlarmDetailClick(e){
+  const siteRow = e.target.closest(".eec-open-alarm-site-row[data-site-key]");
+  if(siteRow){
+    toggleEecOpenAlarmSiteExpand(siteRow.getAttribute("data-site-key"));
+    return;
+  }
+  const row = e.target.closest(".eec-open-alarm-row[data-alarm-key]");
+  if(!row) return;
+  toggleEecOpenAlarmExpand(row.getAttribute("data-alarm-key"));
+}
+function setEecOpenAlarmPage(page){
+  eecOpenAlarmPage = Math.max(1, Number(page) || 1);
+  eecOpenAlarmExpandKey = null;
+  eecOpenAlarmSiteExpandKey = null;
+  renderEecOpenAlarmDetailTable();
+}
+function renderEecOpenAlarmSeverityCell(row){
+  const parts = [];
+  if(row.sa > 0) parts.push(`<span class="sev-badge">SA ${row.sa}</span>`);
+  if(row.nsa > 0) parts.push(`<span class="sev-badge">NSA ${row.nsa}</span>`);
+  return parts.join(" ") || `<span class="muted">-</span>`;
+}
+function renderEecOpenAlarmPagination(rows){
+  const pages = Math.max(1, Math.ceil(rows.length / EEC_OPEN_ALARM_PAGE_SIZE));
+  eecOpenAlarmPage = Math.min(Math.max(1, eecOpenAlarmPage || 1), pages);
+  if(pages <= 1) return "";
+  const buttons = Array.from({ length: pages }, (_, i)=>{
+    const p = i + 1;
+    const pageRows = rows.slice(i * EEC_OPEN_ALARM_PAGE_SIZE, (i + 1) * EEC_OPEN_ALARM_PAGE_SIZE);
+    const hasRepeat = pageRows.some(r=> r.count > 1);
+    const style = hasRepeat ? ` style="border-color:var(--coral);color:var(--coral);background:var(--coral-dim);"` : "";
+    return `<button type="button" class="srm-ft-ofcnode-btn ${p === eecOpenAlarmPage ? "active" : ""}"${style} onclick="setEecOpenAlarmPage(${p})">Page ${p}</button>`;
+  }).join("");
+  return `<div class="srm-ft-ofcnode-filter" style="margin-top:10px;">${buttons}</div>`;
+}
+function renderEecOpenAlarmDetailTable(){
+  const wrap = document.getElementById("eecOpenAlarmDetailWrap");
+  if(!wrap) return;
+  const rows = buildEecOpenAlarmRows().filter(r=> r.count > 1);
+  if(!rows.length){
+    wrap.innerHTML = `<div class="empty-hint" style="padding:18px;">ไม่มี Detail Alarm ที่เกิดซ้ำตามเงื่อนไข</div>`;
+    return;
+  }
+  const pages = Math.max(1, Math.ceil(rows.length / EEC_OPEN_ALARM_PAGE_SIZE));
+  eecOpenAlarmPage = Math.min(Math.max(1, eecOpenAlarmPage || 1), pages);
+  const start = (eecOpenAlarmPage - 1) * EEC_OPEN_ALARM_PAGE_SIZE;
+  const pageRows = rows.slice(start, start + EEC_OPEN_ALARM_PAGE_SIZE);
+  const body = pageRows.flatMap((r, idx)=>{
+    const key = encodeURIComponent(r.alarm);
+    const isOpen = eecOpenAlarmExpandKey === key;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const topSites = [...r.sites].sort().slice(0, 5).join(", ");
+    const mainRow = `<tr class="eec-open-alarm-row srm-ofcnode-rc-row" data-alarm-key="${esc(key)}">
+      <td class="mono">${start + idx + 1}</td>
+      <td class="subject-cell">${chevron}${renderEecAlarmDot(idx)} ${esc(r.alarm)}</td>
+      <td class="srm-ofcnode-rc-count">${r.count}</td>
+      <td class="srm-ofcnode-rc-count">${r.siteCount}</td>
+      <td>${renderEecOpenAlarmSeverityCell(r)}</td>
+      <td class="mono">${esc(fmtFaultRawDT(r.latest) || "-")}</td>
+      <td class="subject-cell">${esc(topSites || "-")}</td>
+    </tr>`;
+    const detailRow = isOpen
+      ? `<tr class="srm-ofcnode-expand-row"><td colspan="7">${renderEecOpenAlarmSiteTable(r)}</td></tr>`
+      : "";
+    return [mainRow, detailRow].filter(Boolean);
+  }).join("");
+  wrap.innerHTML = `<table class="srm-ft-ofcnode-detail-table">
+    <thead><tr><th>#</th><th>Detail Alarm</th><th>Ticket Open</th><th>Site</th><th>Severity</th><th>Latest Create</th><th>Top Site</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>${renderEecOpenAlarmPagination(rows)}`;
+  wrap.onclick = onEecOpenAlarmDetailClick;
+}
+function renderEecOpenPanel(){
+  const stats = buildEecOpenSeverityStats();
+  renderEecOpenSeverityCards(stats);
+  renderEecStackedSevChart("eecOpenSevChart", "eecOpenSevLegend", filterSaNsaTrendStats(stats, eecTrendSevCardFilter), "eec-open");
+  renderEecOpenAlarmDetailTable();
 }
 function renderEecProvinceChart(stats){
   const canvas = document.getElementById("eecProvChart");
@@ -12947,7 +13366,7 @@ function renderEecProvinceChart(stats){
       (stats.provSaCounts[p][i] || 0) + (stats.provNsaCounts[p][i] || 0)
     ))
   );
-  const countMax = faultCountAxisMax(stats.splitSev ? stackMaxes : stats.totals);
+  const countMax = faultCountAxisMax(stats.splitSev ? stackMaxes.concat(stats.totals || []) : stats.totals);
   const countStep = faultCountAxisStep(countMax);
   const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
   const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
@@ -16750,9 +17169,10 @@ function toggleAnalysisTeamDetail(scope, metric, teamKey){
   renderAnalysisTeamPanel(scope);
 }
 function switchEecSubTab(tab){
-  if(!["charts","mapping","over-sla","ltr","site-search","analysis","team"].includes(tab)) return;
+  if(!["charts","open","mapping","over-sla","ltr","site-search","analysis","team"].includes(tab)) return;
   eecSubTab = tab;
   document.getElementById("eecSubChartsBtn")?.classList.toggle("active", tab === "charts");
+  document.getElementById("eecSubOpenBtn")?.classList.toggle("active", tab === "open");
   document.getElementById("eecSubMappingBtn")?.classList.toggle("active", tab === "mapping");
   document.getElementById("eecSubOverSlaBtn")?.classList.toggle("active", tab === "over-sla");
   document.getElementById("eecSubLtrBtn")?.classList.toggle("active", tab === "ltr");
@@ -16760,6 +17180,7 @@ function switchEecSubTab(tab){
   document.getElementById("eecSubAnalysisBtn")?.classList.toggle("active", tab === "analysis");
   document.getElementById("eecSubTeamBtn")?.classList.toggle("active", tab === "team");
   const chartsEl = document.getElementById("eecSubCharts");
+  const openEl = document.getElementById("eecSubOpen");
   const mappingEl = document.getElementById("eecSubMapping");
   const overSlaEl = document.getElementById("eecSubOverSla");
   const ltrEl = document.getElementById("eecSubLtr");
@@ -16767,6 +17188,7 @@ function switchEecSubTab(tab){
   const analysisEl = document.getElementById("eecSubAnalysis");
   const teamEl = document.getElementById("eecSubTeam");
   if(chartsEl) chartsEl.style.display = tab === "charts" ? "block" : "none";
+  if(openEl) openEl.style.display = tab === "open" ? "block" : "none";
   if(mappingEl) mappingEl.style.display = tab === "mapping" ? "block" : "none";
   if(overSlaEl) overSlaEl.style.display = tab === "over-sla" ? "block" : "none";
   if(ltrEl) ltrEl.style.display = tab === "ltr" ? "block" : "none";
@@ -16785,7 +17207,10 @@ function moveEecSubTabIndicator(){
 }
 function renderEecTab(){
   if(currentTab !== "eec") return;
-  if(eecSubTab === "mapping") renderEecMapping();
+  renderEecDateRangeState();
+  renderEecFocusSiteFilterState();
+  if(eecSubTab === "open") renderEecOpenPanel();
+  else if(eecSubTab === "mapping") renderEecMapping();
   else if(eecSubTab === "ltr") renderEecLtrPanel();
   else if(eecSubTab === "over-sla") renderEecOverSlaPanel();
   else if(eecSubTab === "site-search") renderEecSiteSearchPanel();
@@ -16810,7 +17235,7 @@ async function loadEecSiteTickets(showToast, force){
   }
   const run = (async()=>{
     try{
-      await fetchEecSites();
+      await Promise.all([fetchEecSites(), fetchEecFocusSites()]);
       const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,resume_time,wo_creator,created_at";
       try{
         eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + select + "&order=closed_time.asc");
