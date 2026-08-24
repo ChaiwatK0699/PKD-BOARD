@@ -563,6 +563,12 @@ body.screenshotting .srm-ft-ofcnode-detail-wrap-collapsed{display:block !importa
 .srm-kw-hint{font-family:'JetBrains Mono'; font-size:10.5px; opacity:.75;}
 .srm-kw-dots{display:flex; flex-wrap:wrap; gap:2px; justify-content:center; margin-top:3px; min-height:8px;}
 .srm-kw-dot{width:7px; height:7px; border-radius:50%; flex-shrink:0;}
+.srm-search-panel{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px;}
+.srm-search-head{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+.srm-search-hint{font-size:12px; color:var(--muted); font-family:'JetBrains Mono';}
+.srm-search-controls{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.srm-search-input{width:min(420px, 52vw);}
+.srm-search-summary{margin-top:10px; font-family:'JetBrains Mono'; font-size:12px; color:var(--muted);}
 .srm-heat-total.srm-heat-clickable,
 .srm-heat-daytotal.srm-heat-clickable{cursor:pointer; transition:transform .12s, box-shadow .15s;}
 .srm-heat-total.srm-heat-clickable:hover,
@@ -1548,6 +1554,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="tab-indicator" id="tabIndicatorSrmSub"></div>
       <button class="tab-btn active" id="srmSubMappingBtn" onclick="switchSrmSubTab('mapping')">Mapping</button>
       <button class="tab-btn" id="srmSubFreeTextBtn" onclick="switchSrmSubTab('freetext')">Detail</button>
+      <button class="tab-btn" id="srmSubSearchBtn" onclick="switchSrmSubTab('search')">Search</button>
       <button class="tab-btn" id="srmSubAnalysisBtn" onclick="switchSrmSubTab('analysis')">Analysis</button>
       <button class="tab-btn" id="srmSubTeamBtn" onclick="switchSrmSubTab('team')">Analysis Team</button>
       <button class="tab-btn" id="srmSubOpenPendingBtn" onclick="switchSrmSubTab('open-pending')">Open Pending</button>
@@ -1607,6 +1614,36 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <div class="srm-block-title">TT ที่ซ่อนจาก Dashboard <span id="srmFtHiddenCount">0</span></div>
         <div class="srm-ft-hidden-hint">กด + เพื่อนำกลับมาแสดงใน Dashboard · ทุกคนเห็นเหมือนกัน</div>
         <div id="srmFtHiddenWrap"></div>
+      </div>
+    </div>
+    <div id="srmSubSearch" style="display:none;">
+      <div class="fault-chart-card">
+        <div class="fault-overview-toolbar" style="margin-bottom:12px;">
+          <div>
+            <div class="fault-chart-title" style="margin:0">Search · Ticket Lookup</div>
+            <p class="status-msg" id="srmSearchHint" style="margin:4px 0 0;text-transform:none;font-size:12px;">พิมพ์ Site ID หรือคำค้นหาเพื่อค้นหา WO</p>
+          </div>
+          <div class="fgroup" style="min-width:260px;">
+            <label class="flabel" for="srmSearchSiteInput">Site ID</label>
+            <input type="text" id="srmSearchSiteInput" class="search-input" placeholder="เช่น RYG0135" oninput="onSrmSearchSiteInput(this.value)">
+          </div>
+          <div class="fgroup" style="min-width:320px;">
+            <label class="flabel" for="srmSearchInput">Search</label>
+            <input type="search" id="srmSearchInput" class="search-input" placeholder="TT / WO / Subject / Sub Root Cause / Team" oninput="onSrmSearchInput(this.value)">
+          </div>
+          <div class="fgroup" style="min-width:120px;">
+            <label class="flabel" for="srmSearchSeverity">Severity</label>
+            <select id="srmSearchSeverity" class="sev-select" onchange="onSrmSearchSeverityChange(this.value)">
+              <option value="all">All</option>
+              <option value="sa">SA</option>
+              <option value="nsa">NSA</option>
+            </select>
+          </div>
+          <button type="button" class="btn ghost sm" onclick="resetSrmSearch()">Clear</button>
+        </div>
+        <div class="srm-ft-ofcnode-filter" id="srmSearchSuggestions"></div>
+        <div class="status-msg" id="srmSearchSummary" style="margin:10px 0;text-transform:none;font-size:12px;"></div>
+        <div id="srmSearchResults"></div>
       </div>
     </div>
     <div id="srmSubDashboard" style="display:none;">
@@ -1726,6 +1763,13 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <div class="fault-chart-title">Severity Trend · Ticket Open</div>
         <div class="fault-legend" id="eecOpenSevLegend"></div>
         <div class="fault-chart-wrap"><canvas id="eecOpenSevChart"></canvas></div>
+      </div>
+      <div class="filterbar" style="margin-bottom:12px;">
+        <div class="fgroup">
+          <label class="flabel" for="eecOpenSearchInput">Search</label>
+          <input type="search" id="eecOpenSearchInput" class="search-box" placeholder="Site / Ticket / Alarm / Team" oninput="onEecOpenSearchInput(this.value)">
+        </div>
+        <button class="btn ghost sm" onclick="clearEecOpenSearch()">Clear Search</button>
       </div>
       <div class="fault-chart-card srm-ft-sev-chart-card">
         <div class="fault-chart-title">Detail Alarm</div>
@@ -2346,6 +2390,9 @@ let srmDateTo = "";
 let srmSubTab = "mapping";
 let srmMappingTotalSort = { active:false, dir:"desc" };
 let srmMappingHiddenCountSites = new Set();
+let srmSearchSiteQuery = "";
+let srmSearchQuery = "";
+let srmSearchSeverity = "all";
 let openPendingSearch = { srm:"", fault:"" };
 let openPendingChartInst = { srm:null, fault:null };
 const SRM_KEYWORDS = [
@@ -2407,6 +2454,7 @@ let eecPowerOutageExpandCat = null;
 let eecPowerOutageExpandSite = null;
 let eecSevChartInst = null;
 let eecOpenSevChartInst = null;
+let eecOpenSearchQuery = "";
 let eecOpenAlarmExpandKey = null;
 let eecOpenAlarmSiteExpandKey = null;
 let eecOpenAlarmPage = 1;
@@ -4060,10 +4108,158 @@ function passesSrmFreeTextFilters(r){
 function getActiveSrmFtLabels(slot){
   return (SRM_FREE_TEXT_OPTS[slot]||[]).filter(o=>o.is_active !== false).map(o=>o.label);
 }
+function normalizeSrmSearchSiteValue(v){
+  return String(v || "").trim().toUpperCase();
+}
+function normalizeSrmSearchText(v){
+  return String(v || "").trim().toUpperCase().replace(/\s+/g, " ");
+}
+function compactSrmSearchText(v){
+  return normalizeSrmSearchText(v).replace(/[^A-Z0-9ก-๙]/g, "");
+}
+function getSrmSearchSite(r){
+  const site = extractFaultPlkdSite(r);
+  return normalizeSrmSearchSiteValue(site && site !== "-" ? site : "");
+}
+function getSrmSearchText(r){
+  return normalizeSrmSearchText([
+    getSrmSearchSite(r),
+    r?.work_order_id,
+    r?.source_ticket_id,
+    r?.sdm_tt,
+    r?.subject,
+    extractFaultSubjectDetail(r),
+    r?.severity,
+    r?.team,
+    ...buildEecTeamLines(r?.team),
+    r?.wo_creator,
+    r?.region,
+    r?.province,
+    getSrmSubRootCauseLabel(r),
+    r?.root_cause,
+    r?.close_description,
+    r?.group_problem_free_text,
+    r?.cause_over,
+    r?.long_time_reason,
+    r?.inoc_log
+  ].filter(Boolean).join(" "));
+}
+function getSrmSearchBaseRows(){
+  if(!srmTickets.length && !srmMonthTickets.length) buildSiteRepeatData();
+  return (srmTickets || []).filter(r=>{
+    if(!passesSrmTicketFocus(r)) return false;
+    if(!passesSrmDateRange(r)) return false;
+    const site = getSrmSearchSite(r);
+    if(!site || !SITE_SET.has(site)) return false;
+    if(srmSearchSeverity === "sa" && !isSrmMappingSaSeverity(r)) return false;
+    if(srmSearchSeverity === "nsa" && !isFaultNsaSrmSeverity(r)) return false;
+    return true;
+  });
+}
+function getSrmSearchRows(){
+  const siteQ = normalizeSrmSearchSiteValue(srmSearchSiteQuery);
+  const q = normalizeSrmSearchText(srmSearchQuery);
+  if(!siteQ && !q) return [];
+  const compactQ = compactSrmSearchText(q);
+  return getSrmSearchBaseRows().filter(r=>{
+    const site = getSrmSearchSite(r);
+    const siteOk = siteQ ? (site === siteQ || site.includes(siteQ)) : true;
+    if(!siteOk) return false;
+    if(!q) return true;
+    const hay = getSrmSearchText(r);
+    const compactHay = compactSrmSearchText(hay);
+    return hay.includes(q) || (compactQ && compactHay.includes(compactQ));
+  }).sort((a,b)=> String(b.closed_time || b.created_time || "").localeCompare(String(a.closed_time || a.created_time || "")));
+}
+function getSrmSearchSuggestions(){
+  const siteQ = normalizeSrmSearchSiteValue(srmSearchSiteQuery);
+  if(!siteQ) return [];
+  const counts = {};
+  getSrmSearchBaseRows().forEach(r=>{
+    const site = getSrmSearchSite(r);
+    if(!site || !site.includes(siteQ)) return;
+    counts[site] = (counts[site] || 0) + 1;
+  });
+  return Object.entries(counts)
+    .map(([site, count])=>({ site, count }))
+    .sort((a,b)=> b.count - a.count || a.site.localeCompare(b.site))
+    .slice(0, 12);
+}
+function onSrmSearchSiteInput(value){
+  srmSearchSiteQuery = value || "";
+  renderSrmSearchTab();
+}
+function onSrmSearchInput(value){
+  srmSearchQuery = value || "";
+  renderSrmSearchTab();
+}
+function onSrmSearchSeverityChange(value){
+  srmSearchSeverity = ["all","sa","nsa"].includes(value) ? value : "all";
+  renderSrmSearchTab();
+}
+function setSrmSearchSite(site){
+  srmSearchSiteQuery = site || "";
+  const input = document.getElementById("srmSearchSiteInput");
+  if(input) input.value = srmSearchSiteQuery;
+  renderSrmSearchTab();
+}
+function resetSrmSearch(){
+  srmSearchSiteQuery = "";
+  srmSearchQuery = "";
+  srmSearchSeverity = "all";
+  renderSrmSearchTab();
+}
+function renderSrmSearchTab(){
+  const siteInput = document.getElementById("srmSearchSiteInput");
+  const input = document.getElementById("srmSearchInput");
+  const sev = document.getElementById("srmSearchSeverity");
+  const suggestionsEl = document.getElementById("srmSearchSuggestions");
+  const summaryEl = document.getElementById("srmSearchSummary");
+  const wrap = document.getElementById("srmSearchResults");
+  if(!wrap) return;
+  if(siteInput && siteInput.value !== srmSearchSiteQuery) siteInput.value = srmSearchSiteQuery;
+  if(input && input.value !== srmSearchQuery) input.value = srmSearchQuery;
+  if(sev && sev.value !== srmSearchSeverity) sev.value = srmSearchSeverity;
+  const siteQ = normalizeSrmSearchSiteValue(srmSearchSiteQuery);
+  const q = normalizeSrmSearchText(srmSearchQuery);
+  if(!siteQ && !q){
+    if(suggestionsEl) suggestionsEl.innerHTML = "";
+    if(summaryEl) summaryEl.textContent = "ใส่ Site ID หรือคำค้นหาเพื่อค้นหา Ticket / WO ของ Site Repeat Mapping";
+    wrap.innerHTML = `<div class="empty-hint" style="padding:16px;">ยังไม่ได้ค้นหา</div>`;
+    return;
+  }
+  const rows = getSrmSearchRows();
+  const suggestions = getSrmSearchSuggestions();
+  if(suggestionsEl){
+    suggestionsEl.innerHTML = suggestions.length
+      ? `<span class="flabel">Matched Site</span><div class="srm-ft-ofcnode-seg">${suggestions.map(s=> `<button type="button" class="srm-ft-ofcnode-btn ${s.site === siteQ ? "active" : ""}" onclick="setSrmSearchSite('${esc(s.site)}')">${esc(s.site)}<span class="seg-count">${s.count}</span></button>`).join("")}</div>`
+      : "";
+  }
+  const exactCount = siteQ ? rows.filter(r=> getSrmSearchSite(r) === siteQ).length : 0;
+  const sa = rows.filter(isSrmMappingSaSeverity).length;
+  const nsa = rows.filter(isFaultNsaSrmSeverity).length;
+  const sevText = srmSearchSeverity === "all" ? "" : ` · ${srmSearchSeverity.toUpperCase()} only`;
+  const range = ensureSrmDateRange();
+  const dateText = range.from || range.to ? ` · Date ${range.from || "..."} - ${range.to || "..."}` : "";
+  const searchParts = [siteQ ? `Site ${siteQ}` : "", q ? `Search ${q}` : ""].filter(Boolean);
+  if(summaryEl){
+    summaryEl.textContent = `${searchParts.join(" · ")} · ${rows.length} matched WO · SA ${sa} · NSA ${nsa}${siteQ && exactCount ? ` · ${exactCount} exact Site WO` : ""}${sevText}${dateText}`;
+  }
+  wrap.innerHTML = rows.length
+    ? renderSrmFtTicketTableHtml(rows, {
+        detailSlots:[],
+        showTeamIdName:true,
+        showSubRootCause:true,
+        showDepartedArrived:false,
+        showRootCause:false,
+        showPeaWorking:false
+      })
+    : `<div class="empty-hint" style="padding:16px;">ไม่พบ Ticket / WO ที่ตรงกับเงื่อนไข</div>`;
+}
 function moveSrmSubTabIndicator(){
   const tabs = document.getElementById("tabsSrmSub");
   const ind = document.getElementById("tabIndicatorSrmSub");
-  const btnIds = { mapping:"srmSubMappingBtn", freetext:"srmSubFreeTextBtn", analysis:"srmSubAnalysisBtn", team:"srmSubTeamBtn", "open-pending":"srmSubOpenPendingBtn", dashboard:"srmSubDashboardBtn" };
+  const btnIds = { mapping:"srmSubMappingBtn", freetext:"srmSubFreeTextBtn", search:"srmSubSearchBtn", analysis:"srmSubAnalysisBtn", team:"srmSubTeamBtn", "open-pending":"srmSubOpenPendingBtn", dashboard:"srmSubDashboardBtn" };
   const btn = document.getElementById(btnIds[srmSubTab] || "srmSubMappingBtn");
   if(!tabs || !ind || !btn) return;
   ind.style.left = btn.offsetLeft + "px";
@@ -4076,30 +4272,33 @@ async function reloadSrmFtAssignmentsFromDb(){
 }
 function renderSrmActiveSubTab(){
   if(srmSubTab === "freetext") renderSrmFreeTextTab();
+  else if(srmSubTab === "search") renderSrmSearchTab();
   else if(srmSubTab === "analysis") renderSrmAnalysisPanel();
   else if(srmSubTab === "team") renderAnalysisTeamPanel("srm");
   else if(srmSubTab === "open-pending") renderOpenPendingPanel("srm");
   else if(srmSubTab === "dashboard") renderSrmDashboardTab();
 }
 function isSrmRenderableSubTab(){
-  return ["freetext","analysis","team","open-pending","dashboard"].includes(srmSubTab);
+  return ["freetext","search","analysis","team","open-pending","dashboard"].includes(srmSubTab);
 }
 function switchSrmSubTab(tab){
   srmSubTab = tab;
   document.getElementById("srmSubMappingBtn")?.classList.toggle("active", tab==="mapping");
   document.getElementById("srmSubFreeTextBtn")?.classList.toggle("active", tab==="freetext");
+  document.getElementById("srmSubSearchBtn")?.classList.toggle("active", tab==="search");
   document.getElementById("srmSubAnalysisBtn")?.classList.toggle("active", tab==="analysis");
   document.getElementById("srmSubTeamBtn")?.classList.toggle("active", tab==="team");
   document.getElementById("srmSubOpenPendingBtn")?.classList.toggle("active", tab==="open-pending");
   document.getElementById("srmSubDashboardBtn")?.classList.toggle("active", tab==="dashboard");
   document.getElementById("srmSubMapping").style.display = tab==="mapping" ? "block" : "none";
   document.getElementById("srmSubFreeText").style.display = tab==="freetext" ? "block" : "none";
+  document.getElementById("srmSubSearch").style.display = tab==="search" ? "block" : "none";
   document.getElementById("srmSubAnalysis").style.display = tab==="analysis" ? "block" : "none";
   document.getElementById("srmSubTeam").style.display = tab==="team" ? "block" : "none";
   document.getElementById("srmSubOpenPending").style.display = tab==="open-pending" ? "block" : "none";
   document.getElementById("srmSubDashboard").style.display = tab==="dashboard" ? "block" : "none";
   moveSrmSubTabIndicator();
-  if(["freetext","analysis","team","open-pending","dashboard"].includes(tab)){
+  if(["freetext","search","analysis","team","open-pending","dashboard"].includes(tab)){
     if(!srmMonthTickets.length) buildSiteRepeatData();
     Promise.all([
       reloadSrmFtAssignmentsFromDb(),
@@ -4119,6 +4318,9 @@ function resetSrmPageState(){
   srmDashOpenSlot = null;
   resetSrmDashSelectedPath();
   srmDashTableExpand = null;
+  srmSearchSiteQuery = "";
+  srmSearchQuery = "";
+  srmSearchSeverity = "all";
   srmFtSiteIndex = {};
   srmAnalysisSubRcKey = null;
   srmAnalysisSiteKey = null;
@@ -12027,13 +12229,23 @@ function getEecClassifiedTickets(){
   }
   return eecClassifiedCache;
 }
+function getEecScopedAllTickets(){
+  let rows = getEecAllTickets();
+  if(eecFocusSiteFilterEnabled) rows = rows.filter(isEecFocusSiteTicket);
+  return rows;
+}
+function getEecScopedClassifiedTickets(){
+  let rows = getEecClassifiedTickets();
+  if(eecFocusSiteFilterEnabled) rows = rows.filter(isEecFocusSiteTicket);
+  return rows;
+}
 function getEecOverTickets(){
-  return getEecClassifiedTickets()
+  return getEecScopedClassifiedTickets()
     .filter(r=> r._fault.slaStatus === "Over SLA")
     .sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")) || String(a.incident_id||"").localeCompare(String(b.incident_id||"")));
 }
 function getEecLtrTickets(){
-  return getEecClassifiedTickets().filter(r=>{
+  return getEecScopedClassifiedTickets().filter(r=>{
     const c = r._fault || classifyFaultTicket(r);
     return c.slaStatus === "Within SLA" && !!c.bucket;
   });
@@ -12336,8 +12548,7 @@ const EEC_SEV_NSA_OVER_COLOR = "#087f5b";
 function buildEecSeverityStats(){
   const daysSet = new Set();
   const byDay = new Map();
-  getEecClassifiedTickets().filter(r=>{
-    if(eecFocusSiteFilterEnabled && !isEecFocusSiteTicket(r)) return false;
+  getEecScopedClassifiedTickets().filter(r=>{
     if((eecDateFrom || eecDateTo) && !passesEecDateRange(r)) return false;
     return true;
   }).forEach(r=>{
@@ -12374,10 +12585,45 @@ function buildEecSeverityStats(){
   };
 }
 function getEecOpenTickets(){
-  let rows = getEecAllTickets();
-  if(eecFocusSiteFilterEnabled) rows = rows.filter(isEecFocusSiteTicket);
+  let rows = getEecScopedAllTickets();
   if(eecDateFrom || eecDateTo) rows = rows.filter(passesEecOpenDateRange);
+  if(eecOpenSearchQuery) rows = rows.filter(matchesEecOpenSearch);
   return rows.filter(r=> dayKeyFromEecTime(r?.created_time));
+}
+function matchesEecOpenSearch(r){
+  const q = String(eecOpenSearchQuery || "").trim().toUpperCase();
+  if(!q) return true;
+  const site = extractEecSite(r) || "";
+  const hay = [
+    site,
+    r?.incident_id,
+    r?.source_ticket_id,
+    r?.severity,
+    r?.team,
+    r?.subject,
+    extractEecSubjectAlarm(r),
+    normalizeEecOpenAlarmKey(extractEecSubjectAlarm(r)),
+    getEecSubRootCauseForTicket(r),
+    getEecClosedDescription(r)
+  ].map(v=> String(v || "").toUpperCase()).join(" ");
+  return hay.includes(q);
+}
+function onEecOpenSearchInput(value){
+  eecOpenSearchQuery = String(value || "").trim();
+  eecOpenAlarmPage = 1;
+  eecOpenAlarmExpandKey = null;
+  eecOpenAlarmSiteExpandKey = null;
+  renderEecOpenPanel();
+}
+function clearEecOpenSearch(){
+  eecOpenSearchQuery = "";
+  const el = document.getElementById("eecOpenSearchInput");
+  if(el) el.value = "";
+  onEecOpenSearchInput("");
+}
+function syncEecOpenSearchInput(){
+  const el = document.getElementById("eecOpenSearchInput");
+  if(el && el.value !== eecOpenSearchQuery) el.value = eecOpenSearchQuery;
 }
 function buildEecOpenSeverityStats(){
   const daysSet = new Set();
@@ -12425,7 +12671,7 @@ function normalizeEecOpenAlarmKey(text){
 }
 function buildEecOpenAlarmRows(){
   const byAlarm = new Map();
-  getEecOpenTickets().forEach(r=>{
+  getEecOpenTickets().filter(eecTicketMatchesTrendCardSev).forEach(r=>{
     const alarm = normalizeEecOpenAlarmKey(extractEecSubjectAlarm(r));
     const key = alarm || "(ไม่มี Alarm / Subject)";
     if(!byAlarm.has(key)){
@@ -13333,6 +13579,7 @@ function renderEecOpenAlarmDetailTable(){
   wrap.onclick = onEecOpenAlarmDetailClick;
 }
 function renderEecOpenPanel(){
+  syncEecOpenSearchInput();
   const stats = buildEecOpenSeverityStats();
   renderEecOpenSeverityCards(stats);
   renderEecStackedSevChart("eecOpenSevChart", "eecOpenSevLegend", filterSaNsaTrendStats(stats, eecTrendSevCardFilter), "eec-open");
