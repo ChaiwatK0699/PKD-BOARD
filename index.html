@@ -1766,6 +1766,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       </div>
       <div class="fault-chart-card srm-ft-sev-chart-card">
         <div class="fault-chart-title">Trend Open · Province</div>
+        <div class="srm-ft-ofcnode-filter" id="eecOpenProvinceFilter"></div>
         <div class="fault-legend" id="eecOpenProvLegend"></div>
         <div class="fault-chart-wrap"><canvas id="eecOpenProvChart"></canvas></div>
       </div>
@@ -2460,6 +2461,7 @@ let eecPowerOutageExpandSite = null;
 let eecSevChartInst = null;
 let eecOpenSevChartInst = null;
 let eecOpenProvChartInst = null;
+let eecOpenProvinceFilter = "";
 let eecOpenSearchQuery = "";
 let eecOpenAlarmExpandKey = null;
 let eecOpenAlarmSiteExpandKey = null;
@@ -12680,7 +12682,7 @@ function buildEecOpenSeverityStats(){
 }
 function buildEecOpenProvinceStats(){
   const tickets = getEecOpenTickets().filter(eecTicketMatchesTrendCardSev);
-  const activeProvinces = [...EEC_PROVINCES];
+  const activeProvinces = eecOpenProvinceFilter ? [eecOpenProvinceFilter] : [...EEC_PROVINCES];
   const splitSev = eecTrendSevCardFilter === "all";
   const daysSet = new Set();
   const byDayProv = new Map();
@@ -12716,6 +12718,29 @@ function buildEecOpenProvinceStats(){
   });
   const totals = dayKeys.map((_, i)=> activeProvinces.reduce((s,p)=> s + provCounts[p][i], 0));
   return { labels, dayKeys, activeProvinces, splitSev, provCounts, provSaCounts, provNsaCounts, provTotals, totals };
+}
+function setEecOpenProvinceFilter(prov){
+  const next = prov === eecOpenProvinceFilter ? "" : prov;
+  if(next === eecOpenProvinceFilter) return;
+  eecOpenProvinceFilter = next;
+  renderEecOpenPanel();
+}
+function renderEecOpenProvinceFilterButtons(){
+  const el = document.getElementById("eecOpenProvinceFilter");
+  if(!el) return;
+  const tickets = getEecOpenTickets().filter(eecTicketMatchesTrendCardSev);
+  const counts = {};
+  EEC_PROVINCES.forEach(p=>{ counts[p] = 0; });
+  tickets.forEach(r=>{
+    const p = getEecProvinceForTicket(r);
+    if(counts[p] != null) counts[p]++;
+  });
+  el.innerHTML = `
+    <span class="flabel">Province</span>
+    <div class="srm-ft-ofcnode-seg">
+      <button type="button" class="srm-ft-ofcnode-btn eec-prov-btn ${!eecOpenProvinceFilter ? "active" : ""}" onclick="setEecOpenProvinceFilter('')">ทั้งหมด<span class="seg-count">${tickets.length}</span></button>
+      ${EEC_PROVINCES.map(p=> `<button type="button" class="srm-ft-ofcnode-btn eec-prov-btn ${eecOpenProvinceFilter === p ? "active" : ""}" onclick="setEecOpenProvinceFilter('${p}')">${esc(p)}<span class="seg-count">${counts[p] || 0}</span></button>`).join("")}
+    </div>`;
 }
 function normalizeEecOpenAlarmKey(text){
   let s = String(text || "").replace(/\s+/g, " ").trim();
@@ -13538,22 +13563,6 @@ function renderEecOpenProvinceChart(stats){
               order:2
             }))
         ),
-        ...activeProvinces.map(prov=>({
-          label:`${prov} · Total`,
-          data:stats.provCounts[prov],
-          type:"line",
-          borderColor:EEC_PROVINCE_COLORS[prov],
-          backgroundColor:"transparent",
-          borderDash:[6, 4],
-          tension:.25,
-          pointRadius:3,
-          pointBackgroundColor:EEC_PROVINCE_COLORS[prov],
-          pointBorderColor:"#ffffff",
-          pointBorderWidth:1.5,
-          borderWidth:2,
-          yAxisID:"yCount",
-          order:1
-        })),
         {
           label:"Total Open", data:stats.totals, type:"line", borderColor:"#7c4fd6",
           backgroundColor:"transparent", tension:.3, pointRadius:5, pointBackgroundColor:"#7c4fd6",
@@ -13750,6 +13759,7 @@ function renderEecOpenPanel(){
   const stats = buildEecOpenSeverityStats();
   renderEecOpenSeverityCards(stats);
   renderEecStackedSevChart("eecOpenSevChart", "eecOpenSevLegend", filterSaNsaTrendStats(stats, eecTrendSevCardFilter), "eec-open");
+  renderEecOpenProvinceFilterButtons();
   renderEecOpenProvinceChart(buildEecOpenProvinceStats());
   renderEecOpenAlarmDetailTable();
 }
