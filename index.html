@@ -9085,7 +9085,7 @@ function drawFaultOverviewLineLabels(chart, ctx, dataset, meta){
   const n = meta.data.length;
   const isSa = dataset.label === "Service Availability";
   const isSaAvg = dataset.label === "Service Availability Avg.";
-  const isTotal = dataset.label === "Total Ticket" || dataset.label === "Total WO";
+  const isTotal = dataset.label === "Total Ticket" || dataset.label === "Total WO" || dataset.label === "Total Open";
 
   meta.data.forEach((pt, i)=>{
     const val = dataset.data[i];
@@ -9254,7 +9254,7 @@ const faultBarLabelPlugin = {
     const isOpenPending = chartId === "srmOpenPendingChart" || chartId === "faultOpenPendingChart";
     const isSrmFtSev = chartId === "srmFtSevChart" || chartId === "srmFtOfcNodeChart"
       || chartId === "srmOpenPendingChart" || chartId === "faultOpenPendingChart"
-      || chartId === "eecSevChart" || chartId === "eecOfcNodeChart" || chartId === "eecProvChart"
+      || chartId === "eecSevChart" || chartId === "eecOpenSevChart" || chartId === "eecOfcNodeChart" || chartId === "eecProvChart" || chartId === "eecOpenProvChart"
       || chartId === "eecOverSlaChart" || chartId === "cwSevChart" || chartId === "cwOfcNodeChart";
     const useOverviewLabels = isOverview || isSrmFtSev;
     if(useOverviewLabels) chart._faultOverviewLabelBoxes = [];
@@ -9262,7 +9262,7 @@ const faultBarLabelPlugin = {
     if(useOverviewLabels){
       const lineOrder = isOverview
         ? ["Total Ticket", "Service Availability", "Service Availability Avg."]
-        : ["Total Ticket", "Total WO"];
+        : ["Total Ticket", "Total WO", "Total Open"];
       lineOrder.forEach(label=>{
         const di = chart.data.datasets.findIndex(d=> d.label === label);
         if(di < 0) return;
@@ -13485,9 +13485,14 @@ function renderEecOpenProvinceChart(stats){
   const activeProvinces = stats.activeProvinces || EEC_PROVINCES;
   const totalAll = (stats.totals || []).reduce((a,n)=> a + n, 0);
   if(legendEl){
-    legendEl.innerHTML = activeProvinces.map(p=>
-      `<span><i style="background:${EEC_PROVINCE_COLORS[p]}"></i>${p} · ${stats.provTotals[p] || 0} TT</span>`
-    ).join("") + `<span><i style="background:#7c4fd6"></i>Total Open · <strong>${totalAll}</strong></span>`;
+    legendEl.innerHTML = stats.splitSev
+      ? activeProvinces.flatMap(p=>[
+          `<span><i style="background:${EEC_PROVINCE_SA_COLORS[p]}"></i>${p} · SA · ${(stats.provSaCounts[p] || []).reduce((a,n)=> a + n, 0)} TT</span>`,
+          `<span><i style="background:${EEC_PROVINCE_NSA_COLORS[p]}"></i>${p} · NSA · ${(stats.provNsaCounts[p] || []).reduce((a,n)=> a + n, 0)} TT</span>`
+        ]).join("") + `<span><i style="background:#7c4fd6"></i>Total Open · <strong>${totalAll}</strong></span>`
+      : activeProvinces.map(p=>
+          `<span><i style="background:${EEC_PROVINCE_COLORS[p]}"></i>${p} · ${stats.provTotals[p] || 0} TT</span>`
+        ).join("") + `<span><i style="background:#7c4fd6"></i>Total Open · <strong>${totalAll}</strong></span>`;
   }
   if(!stats.labels.length){
     if(chartWrap){
@@ -13506,7 +13511,12 @@ function renderEecOpenProvinceChart(stats){
   }
   chartWrap?.querySelector(".eec-open-prov-empty")?.remove();
   canvas.style.display = "block";
-  const countMax = faultCountAxisMax(stats.totals);
+  const stackMaxes = stats.labels.map((_, i)=>
+    Math.max(0, ...activeProvinces.map(p=>
+      (stats.provSaCounts[p][i] || 0) + (stats.provNsaCounts[p][i] || 0)
+    ))
+  );
+  const countMax = faultCountAxisMax(stats.splitSev ? stackMaxes.concat(stats.totals || []) : stats.totals);
   const countStep = faultCountAxisStep(countMax);
   const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
   const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
@@ -13515,12 +13525,34 @@ function renderEecOpenProvinceChart(stats){
     data:{
       labels:stats.labels,
       datasets:[
+        ...(stats.splitSev
+          ? activeProvinces.flatMap(prov=>[
+              { label:`${prov} · SA`, data:stats.provSaCounts[prov], backgroundColor:EEC_PROVINCE_SA_COLORS[prov], stack:prov, yAxisID:"yCount", order:2 },
+              { label:`${prov} · NSA`, data:stats.provNsaCounts[prov], backgroundColor:EEC_PROVINCE_NSA_COLORS[prov], stack:prov, yAxisID:"yCount", order:2 }
+            ])
+          : activeProvinces.map(prov=>({
+              label:prov,
+              data:stats.provCounts[prov],
+              backgroundColor:EEC_PROVINCE_COLORS[prov],
+              yAxisID:"yCount",
+              order:2
+            }))
+        ),
         ...activeProvinces.map(prov=>({
-          label:prov,
+          label:`${prov} · Total`,
           data:stats.provCounts[prov],
-          backgroundColor:EEC_PROVINCE_COLORS[prov],
+          type:"line",
+          borderColor:EEC_PROVINCE_COLORS[prov],
+          backgroundColor:"transparent",
+          borderDash:[6, 4],
+          tension:.25,
+          pointRadius:3,
+          pointBackgroundColor:EEC_PROVINCE_COLORS[prov],
+          pointBorderColor:"#ffffff",
+          pointBorderWidth:1.5,
+          borderWidth:2,
           yAxisID:"yCount",
-          order:2
+          order:1
         })),
         {
           label:"Total Open", data:stats.totals, type:"line", borderColor:"#7c4fd6",
@@ -13534,9 +13566,9 @@ function renderEecOpenProvinceChart(stats){
       layout:{padding:{top:44, bottom:8, right:8}},
       plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label(ctx){ return ` ${ctx.dataset.label}: ${ctx.formattedValue} TT`; } } } },
       scales:{
-        x:{ ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor} },
+        x:{ stacked:!!stats.splitSev, ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor} },
         yCount:{
-          position:"left", beginAtZero:true, min:0, max:countMax,
+          stacked:!!stats.splitSev, position:"left", beginAtZero:true, min:0, max:countMax,
           title:{display:true, text:"จำนวน Ticket Open", color:textColor, font:{size:13, weight:"bold"}},
           ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}}, grid:{color:gridColor}
         }
