@@ -1764,6 +1764,11 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <div class="fault-legend" id="eecOpenSevLegend"></div>
         <div class="fault-chart-wrap"><canvas id="eecOpenSevChart"></canvas></div>
       </div>
+      <div class="fault-chart-card srm-ft-sev-chart-card">
+        <div class="fault-chart-title">Trend Open · Province</div>
+        <div class="fault-legend" id="eecOpenProvLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="eecOpenProvChart"></canvas></div>
+      </div>
       <div class="filterbar" style="margin-bottom:12px;">
         <div class="fgroup">
           <label class="flabel" for="eecOpenSearchInput">Search</label>
@@ -2454,6 +2459,7 @@ let eecPowerOutageExpandCat = null;
 let eecPowerOutageExpandSite = null;
 let eecSevChartInst = null;
 let eecOpenSevChartInst = null;
+let eecOpenProvChartInst = null;
 let eecOpenSearchQuery = "";
 let eecOpenAlarmExpandKey = null;
 let eecOpenAlarmSiteExpandKey = null;
@@ -3422,6 +3428,12 @@ function passesSrmDateRange(r){
   if(to && day > to) return false;
   return true;
 }
+function passesSrmTrendDateWindow(r){
+  if(!r?.closed_time) return false;
+  const day = String(r.closed_time).slice(0, 10);
+  const today = fmtIsoLocalDate(new Date());
+  return !!day && day <= today;
+}
 function getSrmFtFilteredTickets(){
   if(!srmMonthTickets.length) buildSiteRepeatData();
   return srmMonthTickets.filter(r=>{
@@ -3455,7 +3467,7 @@ function getSrmFtCountableTickets(){
 /** OFC/NODE Trend + Detail Sub Root Cause — ทุกวันที่มีข้อมูล (ไม่จำกัดเดือนที่เลือก) */
 function getSrmOfcNodeTrendTickets(){
   const filterSite = r=>{
-    if(!passesSrmDateRange(r)) return false;
+    if(!passesSrmTrendDateWindow(r)) return false;
     const site = extractFaultPlkdSite(r);
     if(!site || site === "-") return false;
     return passesSrmFreeTextSiteFilters(site);
@@ -3475,7 +3487,7 @@ function getSrmFtTrendSaTickets(){
   return faultTickets.filter(r=>{
     if(!passesFaultPlkdFocus(r)) return false;
     if(!passesPkdTrackingStart(r)) return false;
-    if(!passesSrmDateRange(r)) return false;
+    if(!passesSrmTrendDateWindow(r)) return false;
     return !!r.closed_time;
   });
 }
@@ -3485,10 +3497,24 @@ function getSrmFtTrendNsaTickets(){
     if(!passesSrmTicketFocus(r)) return false;
     if(!isFaultNsaSrmSeverity(r)) return false;
     if(!passesPkdTrackingStart(r)) return false;
-    if(!passesSrmDateRange(r)) return false;
+    if(!passesSrmTrendDateWindow(r)) return false;
     const site = extractFaultPlkdSite(r);
     if(!site || !SITE_SET.has(site)) return false;
     return true;
+  });
+}
+function buildSrmTrendDayKeysFromRows(rows){
+  const days = [];
+  const today = fmtIsoLocalDate(new Date());
+  rows.forEach(r=>{
+    const day = r?.closed_time ? String(r.closed_time).slice(0, 10) : "";
+    if(day && day <= today) days.push(day);
+  });
+  if(!days.length) return [];
+  const first = [...days].sort()[0];
+  return buildFaultDayLabels({
+    start: new Date(first + "T00:00:00"),
+    end: new Date(today + "T00:00:00")
   });
 }
 function fmtSrmTrendDayLabels(dayKeys){
@@ -3498,7 +3524,7 @@ function fmtSrmTrendDayLabels(dayKeys){
 function buildSrmFtSeverityStats(){
   const saTickets = getSrmFtTrendSaTickets();
   const nsaTickets = getSrmFtTrendNsaTickets();
-  const dayKeys = buildFaultDayLabelsFromRows([...saTickets, ...nsaTickets]);
+  const dayKeys = buildSrmTrendDayKeysFromRows([...saTickets, ...nsaTickets]);
   const labels = fmtSrmTrendDayLabels(dayKeys);
   const saCounts = [];
   const nsaCounts = [];
@@ -3535,7 +3561,7 @@ function getSrmOfcNodeGroupTotals(){
 function buildSrmOfcNodeStats(group){
   const gFilter = group || srmOfcNodeTrendGroup;
   const tickets = getSrmOfcNodeTrendTickets().filter(r=> classifySrmRootCauseGroup(r) === gFilter);
-  const dayKeys = buildFaultDayLabelsFromRows(tickets);
+  const dayKeys = buildSrmTrendDayKeysFromRows(tickets);
   const labels = fmtSrmTrendDayLabels(dayKeys);
   const saCounts = [];
   const nsaCounts = [];
@@ -6778,7 +6804,7 @@ function prepareScreenshotCharts(){
   [
     faultOverviewChartInst, faultLtrSlaChartInst,
     srmFtSevChartInst, srmFtOfcNodeChartInst,
-    eecSevChartInst, eecOverSlaChartInst, eecLtrChartInst, eecProvChartInst, eecOfcNodeChartInst,
+    eecSevChartInst, eecOpenProvChartInst, eecOverSlaChartInst, eecLtrChartInst, eecProvChartInst, eecOfcNodeChartInst,
     cwSevChartInst, cwOverSlaChartInst, cwLtrChartInst, cwOfcNodeChartInst
   ].forEach(inst=>{
     if(!inst) return;
@@ -12652,6 +12678,45 @@ function buildEecOpenSeverityStats(){
     nsaTotal: nsaCounts.reduce((a,n)=> a + n, 0)
   };
 }
+function buildEecOpenProvinceStats(){
+  const tickets = getEecOpenTickets().filter(eecTicketMatchesTrendCardSev);
+  const activeProvinces = [...EEC_PROVINCES];
+  const splitSev = eecTrendSevCardFilter === "all";
+  const daysSet = new Set();
+  const byDayProv = new Map();
+  tickets.forEach(r=>{
+    const d = dayKeyFromEecTime(r.created_time);
+    const prov = getEecProvinceForTicket(r);
+    if(!d || !activeProvinces.includes(prov)) return;
+    daysSet.add(d);
+    const key = `${d}|${prov}`;
+    if(!byDayProv.has(key)) byDayProv.set(key, { sa:0, nsa:0 });
+    const slot = byDayProv.get(key);
+    if(isFaultSaSeverity(r)) slot.sa++;
+    else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
+  });
+  const dayKeys = fillDayKeysRange([...daysSet]);
+  const labels = fmtEecTrendDayLabels(dayKeys);
+  const provCounts = {}, provSaCounts = {}, provNsaCounts = {}, provTotals = {};
+  activeProvinces.forEach(p=>{
+    provCounts[p] = [];
+    provSaCounts[p] = [];
+    provNsaCounts[p] = [];
+    provTotals[p] = 0;
+  });
+  dayKeys.forEach(day=>{
+    activeProvinces.forEach(prov=>{
+      const slot = byDayProv.get(`${day}|${prov}`) || { sa:0, nsa:0 };
+      provSaCounts[prov].push(slot.sa);
+      provNsaCounts[prov].push(slot.nsa);
+      const n = splitSev ? slot.sa + slot.nsa : (eecTrendSevCardFilter === "sa" ? slot.sa : slot.nsa);
+      provCounts[prov].push(n);
+      provTotals[prov] += n;
+    });
+  });
+  const totals = dayKeys.map((_, i)=> activeProvinces.reduce((s,p)=> s + provCounts[p][i], 0));
+  return { labels, dayKeys, activeProvinces, splitSev, provCounts, provSaCounts, provNsaCounts, provTotals, totals };
+}
 function normalizeEecOpenAlarmKey(text){
   let s = String(text || "").replace(/\s+/g, " ").trim();
   if(!s) return "";
@@ -13411,6 +13476,76 @@ function renderEecOpenSeverityCards(stats){
     nsaTotal: stats.nsaTotal || 0
   });
 }
+function renderEecOpenProvinceChart(stats){
+  const canvas = document.getElementById("eecOpenProvChart");
+  const legendEl = document.getElementById("eecOpenProvLegend");
+  const chartWrap = canvas?.closest(".fault-chart-wrap");
+  if(!canvas || typeof Chart === "undefined") return null;
+  if(eecOpenProvChartInst){ eecOpenProvChartInst.destroy(); eecOpenProvChartInst = null; }
+  const activeProvinces = stats.activeProvinces || EEC_PROVINCES;
+  const totalAll = (stats.totals || []).reduce((a,n)=> a + n, 0);
+  if(legendEl){
+    legendEl.innerHTML = activeProvinces.map(p=>
+      `<span><i style="background:${EEC_PROVINCE_COLORS[p]}"></i>${p} · ${stats.provTotals[p] || 0} TT</span>`
+    ).join("") + `<span><i style="background:#7c4fd6"></i>Total Open · <strong>${totalAll}</strong></span>`;
+  }
+  if(!stats.labels.length){
+    if(chartWrap){
+      let emptyEl = chartWrap.querySelector(".eec-open-prov-empty");
+      if(!emptyEl){
+        emptyEl = document.createElement("div");
+        emptyEl.className = "empty-hint eec-open-prov-empty";
+        emptyEl.style.padding = "48px 16px";
+        chartWrap.appendChild(emptyEl);
+      }
+      emptyEl.textContent = "ไม่มี Ticket Open ตามเงื่อนไข";
+      emptyEl.style.display = "block";
+    }
+    canvas.style.display = "none";
+    return null;
+  }
+  chartWrap?.querySelector(".eec-open-prov-empty")?.remove();
+  canvas.style.display = "block";
+  const countMax = faultCountAxisMax(stats.totals);
+  const countStep = faultCountAxisStep(countMax);
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  eecOpenProvChartInst = new Chart(canvas, {
+    type:"bar",
+    data:{
+      labels:stats.labels,
+      datasets:[
+        ...activeProvinces.map(prov=>({
+          label:prov,
+          data:stats.provCounts[prov],
+          backgroundColor:EEC_PROVINCE_COLORS[prov],
+          yAxisID:"yCount",
+          order:2
+        })),
+        {
+          label:"Total Open", data:stats.totals, type:"line", borderColor:"#7c4fd6",
+          backgroundColor:"transparent", tension:.3, pointRadius:5, pointBackgroundColor:"#7c4fd6",
+          pointBorderColor:"#ffffff", pointBorderWidth:2, borderWidth:2.5, yAxisID:"yCount", order:1
+        }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:44, bottom:8, right:8}},
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label(ctx){ return ` ${ctx.dataset.label}: ${ctx.formattedValue} TT`; } } } },
+      scales:{
+        x:{ ticks:{color:textColor, font:{family:"JetBrains Mono", size:11}}, grid:{color:gridColor} },
+        yCount:{
+          position:"left", beginAtZero:true, min:0, max:countMax,
+          title:{display:true, text:"จำนวน Ticket Open", color:textColor, font:{size:13, weight:"bold"}},
+          ticks:{color:textColor, stepSize:countStep, precision:0, font:{size:11}}, grid:{color:gridColor}
+        }
+      }
+    },
+    plugins:[faultBarLabelPlugin]
+  });
+  return eecOpenProvChartInst;
+}
 function toggleEecOpenAlarmExpand(key){
   eecOpenAlarmExpandKey = eecOpenAlarmExpandKey === key ? null : key;
   eecOpenAlarmSiteExpandKey = null;
@@ -13583,6 +13718,7 @@ function renderEecOpenPanel(){
   const stats = buildEecOpenSeverityStats();
   renderEecOpenSeverityCards(stats);
   renderEecStackedSevChart("eecOpenSevChart", "eecOpenSevLegend", filterSaNsaTrendStats(stats, eecTrendSevCardFilter), "eec-open");
+  renderEecOpenProvinceChart(buildEecOpenProvinceStats());
   renderEecOpenAlarmDetailTable();
 }
 function renderEecProvinceChart(stats){
@@ -13746,6 +13882,7 @@ function buildEecOfcNodeSubRootCauseDetail(){
     subRootCause: pickEecSubRcDisplayLabel(Object.values(g.variants)),
     group: g.group,
     count: g.count,
+    siteCount: new Set(g.tickets.map(extractEecSite).filter(Boolean)).size,
     tickets: g.tickets
   })).sort((a,b)=> b.count - a.count || a.subRootCause.localeCompare(b.subRootCause, "th"));
 }
@@ -14660,15 +14797,15 @@ function renderEecOfcNodeDetailTable(detailRows){
     : g === "NODE" ? `<span class="srm-ofcnode-group-badge node">NODE</span>`
     : `<span class="srm-ofcnode-group-badge other">OTHER</span>`;
   wrap.innerHTML = `<table class="srm-ft-ofcnode-detail-table"><thead><tr>
-      <th>Sub Root Cause</th><th>กลุ่ม</th><th>จำนวน TT</th>
+      <th>Sub Root Cause</th><th>กลุ่ม</th><th>จำนวน TT</th><th>จำนวน Site</th>
     </tr></thead><tbody>${detailRows.map(row=>{
       const isOpen = eecOfcNodeExpandRc === row.subRootCause;
       const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
       const expandHtml = isOpen
-        ? `<tr class="srm-ofcnode-expand-row"><td colspan="3">${renderEecSubRcSiteScopeHtml(row.tickets, row.subRootCause)}</td></tr>`
+        ? `<tr class="srm-ofcnode-expand-row"><td colspan="4">${renderEecSubRcSiteScopeHtml(row.tickets, row.subRootCause)}</td></tr>`
         : "";
       return `<tr class="eec-rc-main-row srm-ofcnode-rc-row" data-rc="${esc(row.subRootCause)}">
-        <td>${chevron}${esc(row.subRootCause)}</td><td>${groupBadge(row.group)}</td><td class="srm-ofcnode-rc-count">${row.count}</td>
+        <td>${chevron}${esc(row.subRootCause)}</td><td>${groupBadge(row.group)}</td><td class="srm-ofcnode-rc-count">${row.count}</td><td class="srm-ofcnode-rc-count">${row.siteCount || 0}</td>
       </tr>${expandHtml}`;
     }).join("")}</tbody></table>`;
 }
@@ -16366,7 +16503,9 @@ function renderEecAnalysisSummaryTable(dash){
     </table></div>`;
 }
 function toggleEecAnalysisBattDetailExpand(rowId){
+  if(eecAnalysisBattDetailExpandRow !== rowId) eecAnalysisBatteryExpandSite = null;
   eecAnalysisBattDetailExpandRow = (eecAnalysisBattDetailExpandRow === rowId) ? null : rowId;
+  if(!eecAnalysisBattDetailExpandRow) eecAnalysisBatteryExpandSite = null;
   renderEecAnalysisPanel();
 }
 function cleanEecExcelSheetName(name, fallback){
@@ -16471,8 +16610,10 @@ function renderEecAnalysisBatteryDetailTable(dash){
       <td onclick="event.stopPropagation()">${renderEecAnalysisSummaryEditable(noteKey, "progress", "", { placeholder: "Update Progress…" })}</td>
       <td onclick="event.stopPropagation()">${renderEecAnalysisSummaryEditable(noteKey, "remark", "", { placeholder: "Remark…" })}</td>
     </tr>`;
+    const detailKey = `battdetail:${row.id}`;
+    const detailOpts = { statusCol:"battery", powerCascadeMeta: dash.batteryPowerCascade?.metaByKey, configMeta: dash.batteryConfig?.metaByKey };
     const expand = isOpen
-      ? `<tr class="eec-analysis-summary-expand"><td colspan="8">${renderEecAnalysisTicketDetailTable(row.tickets, undefined, { statusCol:"battery", powerCascadeMeta: dash.batteryPowerCascade?.metaByKey, configMeta: dash.batteryConfig?.metaByKey })}</td></tr>`
+      ? `<tr class="eec-analysis-summary-expand"><td colspan="8"><div class="eec-analysis-detail-wrap" onclick="onEecAnalysisDetailClick(event)">${renderEecAnalysisBatterySiteTable(row.tickets, detailKey, detailOpts)}</div></td></tr>`
       : "";
     return [main, expand].filter(Boolean);
   }).join("");
