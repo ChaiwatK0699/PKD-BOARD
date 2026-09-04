@@ -626,6 +626,14 @@ body.screenshotting .srm-ft-ofcnode-detail-wrap-collapsed{display:block !importa
 .srm-ft-table th.srm-ft-sort-th:hover{color:var(--text);}
 .srm-ft-table th.srm-ft-sort-th.active{color:var(--blue);}
 .srm-ft-table th.srm-ft-sort-th .sort-arrow{font-size:10px; opacity:.85; margin-left:2px;}
+th.srm-ft-sort-th{cursor:pointer; user-select:none; white-space:nowrap; transition:color .12s;}
+th.srm-ft-sort-th:hover{color:var(--text);}
+th.srm-ft-sort-th.active{color:var(--blue);}
+th.srm-ft-sort-th .sort-arrow{font-size:10px; opacity:.85; margin-left:2px;}
+.srm-ft-pagination{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.srm-ft-page-btn{border:1px solid var(--border); background:var(--panel); color:var(--muted); border-radius:6px; padding:6px 10px; font:700 11px var(--mono); cursor:pointer;}
+.srm-ft-page-btn:hover{border-color:var(--blue); color:var(--text);}
+.srm-ft-page-btn.active{border-color:var(--blue); background:var(--blue-dim); color:var(--blue);}
 .srm-ft-table tbody td{padding:10px 12px; border-bottom:1px solid var(--border-soft); vertical-align:middle;}
 .srm-ft-table th:first-child,
 .srm-ft-table td:first-child{min-width:120px; width:120px;}
@@ -671,6 +679,31 @@ body.screenshotting .srm-ft-ofcnode-detail-wrap-collapsed{display:block !importa
 .srm-ft-sev-card.nsa-over{background:#d3f9d8; border-color:#087f5b; color:#087f5b;}
 .srm-ft-sev-card-lbl{font-family:'Barlow Condensed'; font-weight:700; font-size:16px; letter-spacing:.06em; text-transform:uppercase;}
 .srm-ft-sev-card-val{font-family:'JetBrains Mono'; font-weight:700; font-size:40px; line-height:1;}
+#eecOnlineCards{
+  grid-template-columns:repeat(5,minmax(110px,1fr));
+  gap:8px;
+  margin-bottom:10px;
+}
+#eecOnlineCards .srm-ft-sev-card{
+  min-height:62px;
+  padding:8px 10px;
+  gap:3px;
+  border-radius:8px;
+}
+#eecOnlineCards .srm-ft-sev-card-lbl{
+  font-size:12px;
+  letter-spacing:.03em;
+  white-space:nowrap;
+}
+#eecOnlineCards .srm-ft-sev-card-val{
+  font-size:24px;
+}
+#eecOnlineCards .muted{
+  font-size:10.5px;
+  line-height:1.1;
+}
+@media(max-width:980px){#eecOnlineCards{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:640px){#eecOnlineCards{grid-template-columns:repeat(2,minmax(0,1fr));}}
 .srm-ft-sev-chart-card{margin-bottom:0;}
 .srm-ft-site-td{position:relative; padding-top:16px !important;}
 .srm-ft-new-badge{position:absolute; top:2px; left:2px; background:#e03131; color:#fff; font-family:'Barlow Condensed'; font-weight:700; font-size:9px; letter-spacing:.04em; line-height:1; padding:2px 5px; border-radius:4px 0 4px 0; box-shadow:0 1px 3px rgba(0,0,0,.25); z-index:1;}
@@ -717,6 +750,9 @@ body.screenshotting .srm-ft-ofcnode-detail-wrap-collapsed{display:block !importa
 .eec-analysis-summary-wo{font-family:'JetBrains Mono'; font-weight:700; text-align:center;}
 .eec-analysis-summary-ta{display:block; width:100%; min-height:56px; border:1px solid var(--border-soft); border-radius:6px; padding:6px 8px; font-size:12px; font-family:inherit; line-height:1.45; background:var(--panel); color:var(--text); resize:vertical;}
 .eec-analysis-summary-ta:focus{outline:none; box-shadow:0 0 0 2px rgba(28,126,214,.25);}
+.eec-analysis-template-table{margin-bottom:16px;}
+.eec-analysis-template-q{font-weight:700; color:var(--text); line-height:1.5; white-space:normal;}
+.eec-analysis-template-ta{min-height:92px;}
 .eec-analysis-summary-input{display:block; width:100%; border:1px solid var(--border-soft); border-radius:6px; padding:5px 8px; font-size:12px; background:var(--panel); color:var(--text);}
 .eec-analysis-summary-expand td{padding:0 !important; background:var(--panel-2); border-top:none;}
 .eec-analysis-summary-expand-inner{padding:12px 14px;}
@@ -1438,7 +1474,6 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <button class="tab-btn fault" id="tabFaultBtn" onclick="switchTab('fault')" title="Fault PLKD"><span class="tab-ico">F</span><span class="tab-text">Fault PLKD</span></button>
         <button class="tab-btn srm" id="tabSrmBtn" onclick="switchTab('srm')" title="Site Repeat Mapping"><span class="tab-ico">SR</span><span class="tab-text">Site Repeat Mapping</span></button>
         <button class="tab-btn eec" id="tabEecBtn" onclick="switchTab('eec')" title="EEC Site"><span class="tab-ico">E</span><span class="tab-text">EEC Site</span></button>
-        <button class="tab-btn cw" id="tabCwBtn" onclick="switchTab('cw')" title="CW Report"><span class="tab-ico">CW</span><span class="tab-text">CW Report</span></button>
       </div>
     </div>
     <div class="sidebar-section">
@@ -1452,7 +1487,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
     </div>
   </nav>
   <div class="sidebar-footer">
-    <div class="datebox"><label>Date</label><input type="date" id="boardDate" onchange="loadAll()"><span class="upload-ts" id="uploadTs"></span></div>
+    <div class="datebox"><label>Date</label><input type="date" id="boardDate" onchange="handleBoardDateChange()"><span class="upload-ts" id="uploadTs"></span></div>
     <button type="button" class="btn-screenshot" id="screenshotBtn" onclick="captureScreenshot()" title="Snapshot ทั้งหน้า — ข้อมูลครบ — คัดลอกไป Clipboard วางได้เลย">
       <span class="shot-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24"><path d="M4 8h3l2-2h6l2 2h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z"/><circle cx="12" cy="14" r="4"/></svg>
@@ -1700,13 +1735,13 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
   <div id="eecView" class="tab-view" style="display:none;">
     <div class="srm-head">
       <h2>EEC Site</h2>
-      <p>ชลบุรี · ระยอง · ฉะเชิงเทรา · WO Creator System · Ticket จาก Upload Work Order · นับตามวันที่ Closed</p>
+      <p>ชลบุรี · ระยอง · ฉะเชิงเทรา · WO Creator System · Ticket จาก Upload Work Order / Open Ticket · Trend ปิดนับ Closed Time และ Ticket Open นับ Create Time</p>
     </div>
     <div class="toolbar" style="margin-bottom:14px;">
       <button class="btn primary" onclick="document.getElementById('fileInputEecWo').click()">⭱ Upload Work Order</button>
       <input type="file" id="fileInputEecWo" accept=".csv,.xlsx,.xls" onchange="handleEecWoUpload(event)" style="display:none;">
-      <button class="btn ghost" onclick="document.getElementById('fileInputEec').click()">⭱ Upload EEC Site List</button>
-      <input type="file" id="fileInputEec" accept=".csv,.xlsx,.xls" onchange="handleEecUpload(event)" style="display:none;">
+      <button class="btn ghost" onclick="document.getElementById('fileInputEecOpenTicket').click()">⭱ Upload EEC Open Ticket</button>
+      <input type="file" id="fileInputEecOpenTicket" accept=".csv,.xlsx,.xls" onchange="handleEecOpenTicketUpload(event)" style="display:none;">
       <button class="btn ghost sm" onclick="loadEecSiteTickets(true, true)">↻ Refresh</button>
       <button class="btn ghost sm" id="eecFocusSiteFilterBtn" onclick="toggleEecFocusSiteFilter()">40 Site</button>
       <div class="fgroup">
@@ -1725,6 +1760,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="tab-indicator" id="tabIndicatorEecSub"></div>
       <button class="tab-btn active" id="eecSubChartsBtn" onclick="switchEecSubTab('charts')">Trend</button>
       <button class="tab-btn" id="eecSubOpenBtn" onclick="switchEecSubTab('open')">Ticket Open</button>
+      <button class="tab-btn" id="eecSubOnlineBtn" onclick="switchEecSubTab('online')">Trend Online</button>
       <button class="tab-btn" id="eecSubMappingBtn" onclick="switchEecSubTab('mapping')">Mapping</button>
       <button class="tab-btn" id="eecSubOverSlaBtn" onclick="switchEecSubTab('over-sla')">Over SLA</button>
       <button class="tab-btn" id="eecSubLtrBtn" onclick="switchEecSubTab('ltr')">Long time Repair</button>
@@ -1738,6 +1774,7 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
       <div class="fault-chart-title">Severity Trend · SA / NSA</div>
       <div class="fault-legend" id="eecSevLegend"></div>
       <div class="fault-chart-wrap"><canvas id="eecSevChart"></canvas></div>
+      <div class="table-scroll" id="eecSevDetailWrap" style="margin-top:12px;"></div>
     </div>
     <div class="fault-chart-card srm-ft-sev-chart-card">
       <div class="fault-chart-title">Trend Province · EEC</div>
@@ -1783,7 +1820,32 @@ table.svcava-table thead th .th-sub{display:block; font-family:'JetBrains Mono';
         <div class="table-scroll" id="eecOpenAlarmDetailWrap"></div>
       </div>
     </div>
-    <div id="eecSubMapping" style="display:none;" onclick="onEecMappingClick(event)">
+    <div id="eecSubOnline" style="display:none;">
+      <div class="srm-ft-sev-cards" id="eecOnlineCards"></div>
+      <div class="fault-chart-card srm-ft-sev-chart-card">
+        <div class="fault-chart-title">Trend Closed , Over</div>
+        <p class="status-msg" style="margin:0 0 10px;text-transform:none;font-size:11px;">Subject มี Broadband / Boardband · กรองเฉพาะ SA · ขาปิดนับ Closed Time และแยก Over SLA</p>
+        <div class="fault-legend" id="eecOnlineClosedOverLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="eecOnlineClosedOverChart"></canvas></div>
+      </div>
+      <div class="fault-chart-card srm-ft-sev-chart-card" style="margin-top:16px;">
+        <div class="fault-chart-title">Trend Closed , Create Time</div>
+        <p class="status-msg" style="margin:0 0 10px;text-transform:none;font-size:11px;">Trend เส้นภูเขา · เส้นเขียว Closed / เส้นแดง Create Time</p>
+        <div class="fault-legend" id="eecOnlineLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="eecOnlineChart"></canvas></div>
+      </div>
+      <div class="fault-chart-card srm-ft-sev-chart-card" style="margin-top:16px;">
+        <div class="fault-chart-title">Trend Province</div>
+        <p class="status-msg" style="margin:0 0 10px;text-transform:none;font-size:11px;">แยก Province จาก Online Broadband SA</p>
+        <div class="filterbar" id="eecOnlineProvinceFilter" style="margin:0 0 10px;"></div>
+        <div class="fault-legend" id="eecOnlineProvLegend"></div>
+        <div class="fault-chart-wrap"><canvas id="eecOnlineProvChart"></canvas></div>
+      </div>
+      <div class="fault-chart-card srm-ft-sev-chart-card" style="margin-top:16px;">
+        <div class="fault-chart-title">Detail Sub Root Cause · Online Broadband</div>
+        <div class="table-scroll" id="eecOnlineSubRcWrap"></div>
+      </div>
+    </div>    <div id="eecSubMapping" style="display:none;" onclick="onEecMappingClick(event)">
       <div class="srm-map-card">
         <div class="fault-section-title">Mapping · Count TT ต่อวัน</div>
         <p class="status-msg" style="margin:0 0 12px;text-transform:none;font-size:12px;">Scope: EEC Site · Severity SA + NSA · นับตาม Closed Time</p>
@@ -2374,6 +2436,8 @@ let faultOverSlaCauseFilter = null;
 let faultLtrSlaReasonFilter = null;
 let faultOverviewDayFilter = null;
 let faultOverviewStatusFilter = null;
+let faultDateStartFilter = "";
+let faultDateEndFilter = "";
 const FAULT_SUB_TAB_MAP = {
   overview: { btn: "faultSubOverviewBtn", view: "faultSubOverview" },
   "over-sla": { btn: "faultSubOverSlaBtn", view: "faultSubOverSla" },
@@ -2449,6 +2513,8 @@ let eecDateTo = "";
 let eecProvSevFilter = "all";
 let eecLtrSevFilter = "all";
 let eecTrendSevCardFilter = "all";
+let eecTrendDetailSort = { col:"closed", dir:"desc" };
+let eecTrendDetailPage = 1;
 let eecOverSlaSevCardFilter = "all";
 let eecOfcNodeTrendGroup = "OFC";
 let eecOfcNodeDetailCollapsed = false;
@@ -2470,7 +2536,15 @@ const EEC_OPEN_ALARM_PAGE_SIZE = 10;
 let eecOverSlaChartInst = null;
 let eecOverSlaRcExpand = null;
 let eecOverSlaSiteExpand = null;
+let eecOverSlaSort = { col:"count", dir:"desc" };
+let eecLtrSort = { col:"closed", dir:"desc" };
 let eecLtrChartInst = null;
+let eecOnlineClosedOverChartInst = null;
+let eecOnlineChartInst = null;
+let eecOnlineProvChartInst = null;
+let eecOnlineProvinceFilter = "";
+let eecOnlineExpandRc = null;
+let eecOnlineExpandSite = null;
 let eecProvChartInst = null;
 let eecOfcNodeChartInst = null;
 let cwSevChartInst = null;
@@ -2782,24 +2856,36 @@ async function fetchHomeNote(dateVal){
     HOME_NOTE = { service_ava: "" };
   }
 }
-async function loadAll(){
-  toast("Loading…");
+let homeTicketGroupsLoaded = { pending:false, closed:false, svcava:false };
+let homeTicketsLoaded = false;
+async function loadHomeGroups(groups, showToast=true){
+  const wanted = [...new Set((Array.isArray(groups) ? groups : [groups]).filter(Boolean))];
+  const missing = wanted.filter(group=> !homeTicketGroupsLoaded[group]);
+  if(!missing.length){
+    renderAll();
+    return;
+  }
+  if(showToast) toast("Loading...");
   try{
     const dateVal = document.getElementById("boardDate").value;
-    [tickets.pending, tickets.closed, tickets.svcava] = await Promise.all([
-      fetchTickets("pending"), fetchTickets("closed"), fetchTickets("svcava")
-    ]);
+    const results = await Promise.all(missing.map(fetchTickets));
+    missing.forEach((group, idx)=>{
+      tickets[group] = results[idx];
+      homeTicketGroupsLoaded[group] = true;
+    });
+    homeTicketsLoaded = !!(homeTicketGroupsLoaded.pending || homeTicketGroupsLoaded.closed || homeTicketGroupsLoaded.svcava);
     rebuildInocLogByTt();
     await Promise.all([fetchAttendance(dateVal), fetchHomeNote(dateVal)]);
     renderAll();
-    toast("Loaded");
+    if(showToast) toast("Loaded");
   }catch(e){
-    console.error("loadAll failed:", e);
+    console.error("loadHomeGroups failed:", e);
     toast("โหลดข้อมูลไม่สำเร็จ");
   }
-  loadFaultTickets(false).catch(e=> console.warn("Fault load failed:", e));
-  loadSrmTickets(false).catch(e=> console.warn("SRM load failed:", e));
-  loadOpenPendingTickets(false).catch(e=> console.warn("Open Pending load failed:", e));
+}
+async function loadAll(){
+  homeTicketGroupsLoaded = { pending:false, closed:false, svcava:false };
+  await loadHomeGroups(["pending", "closed", "svcava"]);
 }
 function renderAll(){
   try{ renderHome(); }catch(e){ console.error("renderHome failed:", e); }
@@ -2809,16 +2895,86 @@ function renderAll(){
     if(currentTab==="fault") renderFault();
     if(currentTab==="srm") renderSiteRepeatMapping();
     if(currentTab==="eec") renderEecTab();
-    if(currentTab==="cw") renderCwTab();
-    document.getElementById("countPending").textContent = groupSourceRows("pending").filter(r=>passFilter(r,"pending")).length;
-    document.getElementById("countClosed").textContent = groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length;
-    document.getElementById("countManual").textContent = tickets.closed.filter(isManualClosed).length;
+    document.getElementById("countPending").textContent = homeTicketGroupsLoaded.pending ? groupSourceRows("pending").filter(r=>passFilter(r,"pending")).length : "0";
+    document.getElementById("countClosed").textContent = homeTicketGroupsLoaded.closed ? groupSourceRows("closed").filter(r=>passFilter(r,"closed")).length : "0";
+    document.getElementById("countManual").textContent = homeTicketGroupsLoaded.closed ? tickets.closed.filter(isManualClosed).length : "0";
     renderUploadTs();
   }catch(e){
     console.error("renderAll failed:", e);
   }
 }
+function loadHomeDataLazy(tab=currentTab, showToast=true){
+  const groupMap = { home:"pending", pending:"pending", closed:"closed", manual:"closed" };
+  const group = groupMap[tab] || "pending";
+  return loadHomeGroups([group], showToast);
+}
+async function handleBoardDateChange(){
+  const dateVal = document.getElementById("boardDate")?.value;
+  try{
+    if(["home", "pending", "closed", "manual"].includes(currentTab)){
+      if(!homeTicketGroupsLoaded.pending && ["home", "pending"].includes(currentTab)){
+        await loadHomeDataLazy(currentTab);
+        return;
+      }
+      if(!homeTicketGroupsLoaded.closed && ["closed", "manual"].includes(currentTab)){
+        await loadHomeDataLazy(currentTab);
+        return;
+      }
+      await Promise.all([fetchAttendance(dateVal), fetchHomeNote(dateVal)]);
+      renderAll();
+      return;
+    }
+    if(currentTab === "fault"){
+      loadCurrentFaultTabData();
+      return;
+    }
+    if(currentTab === "srm"){
+      loadCurrentSrmTabData();
+      return;
+    }
+    if(currentTab === "eec"){
+      Promise.all([fetchEecSites(), fetchEecFocusSites(), loadEecSiteTickets(false)]).then(()=> renderEecTab()).catch(e=>{
+        console.warn("EEC date reload failed:", e);
+        renderEecTab();
+      });
+      return;
+    }
+    renderAll();
+  }catch(e){
+    console.error("handleBoardDateChange failed:", e);
+    toast("โหลดข้อมูลตามวันที่ไม่สำเร็จ");
+  }
+}
+let faultConfigLoadPromise = null;
+function loadFaultConfigLazy(){
+  if(faultConfigLoadPromise) return faultConfigLoadPromise;
+  faultConfigLoadPromise = Promise.all([fetchGroupProblems(), fetchCauseOvers(), fetchLongTimeReasons()]).catch(e=>{
+    console.warn("Fault config load failed:", e);
+  }).finally(()=>{ faultConfigLoadPromise = null; });
+  return faultConfigLoadPromise;
+}
+function loadCurrentFaultTabData(){
+  const tasks = [loadFaultTickets(false), loadFaultConfigLazy()];
+  if(faultSubTab === "open-pending") tasks.push(loadOpenPendingTickets(false));
+  return Promise.all(tasks).then(()=> renderFault()).catch(e=>{
+    console.warn("Fault tab load failed:", e);
+    renderFault();
+  });
+}
+function loadCurrentSrmTabData(){
+  const tasks = [loadSrmTickets(false), fetchSrmFreeTextFromDb(), fetchSrmMappingHiddenSitesFromDb()];
+  if(srmSubTab !== "mapping") tasks.push(ensureFaultPlkdFieldIndex());
+  if(srmSubTab === "open-pending") tasks.push(loadOpenPendingTickets(false));
+  return Promise.all(tasks).then(()=>{
+    renderSiteRepeatMapping();
+    if(isSrmRenderableSubTab()) renderSrmActiveSubTab();
+  }).catch(e=>{
+    console.warn("SRM tab load failed:", e);
+    renderSiteRepeatMapping();
+  });
+}
 function switchTab(tab){
+  if(tab === "cw") tab = "home";
   currentTab = tab;
   document.getElementById("tabHomeBtn").classList.toggle("active", tab==="home");
   document.getElementById("tabPendingBtn").classList.toggle("active", tab==="pending");
@@ -2827,7 +2983,7 @@ function switchTab(tab){
   document.getElementById("tabFaultBtn").classList.toggle("active", tab==="fault");
   document.getElementById("tabSrmBtn").classList.toggle("active", tab==="srm");
   document.getElementById("tabEecBtn").classList.toggle("active", tab==="eec");
-  document.getElementById("tabCwBtn").classList.toggle("active", tab==="cw");
+  document.getElementById("tabCwBtn")?.classList.toggle("active", tab==="cw");
   const homeEl = document.getElementById("homeView"), pendingEl = document.getElementById("pendingView"),
     closedEl = document.getElementById("closedView"),
     manualEl = document.getElementById("manualView"),
@@ -2840,25 +2996,19 @@ function switchTab(tab){
   srmEl.style.display = tab==="srm" ? "block":"none";
   faultEl.style.display = tab==="fault" ? "block":"none";
   eecEl.style.display = tab==="eec" ? "block":"none";
-  cwEl.style.display = tab==="cw" ? "block":"none";
-  if(tab==="home") renderHome();
-  if(tab==="fault") renderFault();
-  if(tab==="srm") renderSiteRepeatMapping();
+  if(cwEl) cwEl.style.display = "none";
+  if(["home","pending","closed","manual"].includes(tab)) loadHomeDataLazy(tab);
+  if(tab==="fault") loadCurrentFaultTabData();
+  if(tab==="srm") loadCurrentSrmTabData();
   if(tab==="eec"){
     Promise.all([fetchEecSites(), fetchEecFocusSites(), loadEecSiteTickets(false)]).then(()=> renderEecTab()).catch(e=>{
       console.warn("EEC tab load failed:", e);
       renderEecTab();
     });
   }
-  if(tab==="cw"){
-    loadCwSiteTickets(false).then(()=> renderCwTab()).catch(e=>{
-      console.warn("CW tab load failed:", e);
-      renderCwTab();
-    });
-  }
   moveSrmSubTabIndicator();
   const shownEl = tab==="home" ? homeEl : tab==="pending" ? pendingEl : tab==="closed" ? closedEl : tab==="manual" ? manualEl
-    : tab==="srm" ? srmEl : tab==="eec" ? eecEl : tab==="cw" ? cwEl : faultEl;
+    : tab==="srm" ? srmEl : tab==="eec" ? eecEl : faultEl;
   shownEl.classList.remove("anim-in");
   void shownEl.offsetWidth; // restart animation
   shownEl.classList.add("anim-in");
@@ -4326,18 +4476,8 @@ function switchSrmSubTab(tab){
   document.getElementById("srmSubOpenPending").style.display = tab==="open-pending" ? "block" : "none";
   document.getElementById("srmSubDashboard").style.display = tab==="dashboard" ? "block" : "none";
   moveSrmSubTabIndicator();
-  if(["freetext","search","analysis","team","open-pending","dashboard"].includes(tab)){
-    if(!srmMonthTickets.length) buildSiteRepeatData();
-    Promise.all([
-      reloadSrmFtAssignmentsFromDb(),
-      ensureFaultPlkdFieldIndex()
-    ]).then(()=> renderSrmActiveSubTab()).catch(e=>{
-      console.warn("SRM sub-tab load failed:", e);
-      renderSrmActiveSubTab();
-    });
-  }
-}
-function resetSrmPageState(){
+  if(currentTab === "srm") loadCurrentSrmTabData();
+}function resetSrmPageState(){
   SRM_FT_SLOTS.forEach(s=>{ srmFreeTextFilters[s] = ""; });
   srmFtExpand = null;
   srmDashExpand = null;
@@ -6492,6 +6632,13 @@ function renderHome(){
   const tbody = document.getElementById("homeTbody");
   if(!tbody) return;
   tbody.innerHTML = "";
+  if(!homeTicketGroupsLoaded.pending){
+    tbody.innerHTML = `<tr><td colspan="12" class="empty-hint" style="padding:38px 16px;">ยังไม่ได้โหลดข้อมูล Home <button type="button" class="btn primary sm" onclick="loadHomeDataLazy('home')" style="margin-left:10px;">Load Home Data</button></td></tr>`;
+    const homeSummary = document.getElementById("homeSummary");
+    if(homeSummary) homeSummary.innerHTML = "";
+    ["countPending","countClosed","countManual"].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent="0"; });
+    return;
+  }
   const pendingRows = Array.isArray(tickets.pending) ? tickets.pending : [];
   const closedRows = Array.isArray(tickets.closed) ? tickets.closed : [];
   const teamMap = getBoardTeamMap();
@@ -7513,17 +7660,30 @@ function bumpFaultRangeStart(start, end){
 }
 function getFaultDateRange(){
   const dateVal = document.getElementById("boardDate").value;
+  const startVal = faultDateStartFilter || "";
+  const endVal = faultDateEndFilter || "";
+  if(startVal || endVal){
+    const sVal = startVal || endVal;
+    const eVal = endVal || startVal;
+    const [sy, sm, sd] = sVal.split("-").map(Number);
+    const [ey, em, ed] = eVal.split("-").map(Number);
+    let start = new Date(sy, sm - 1, sd, 0, 0, 0);
+    let end = new Date(ey, em - 1, ed, 23, 59, 59);
+    if(start > end){ const tmp = start; start = end; end = tmp; }
+    start = bumpFaultRangeStart(start, end);
+    return { start, end, dateVal:fmtIsoLocalDate(end), startVal:fmtIsoLocalDate(start), endVal:fmtIsoLocalDate(end), custom:true };
+  }
   if(!dateVal){
     const now = new Date();
     let start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
     start = bumpFaultRangeStart(start, now);
-    return {start, end:now, dateVal:fmtIsoLocalDate(now)};
+    return {start, end:now, dateVal:fmtIsoLocalDate(now), startVal:fmtIsoLocalDate(start), endVal:fmtIsoLocalDate(now), custom:false};
   }
   const [y, m, d] = dateVal.split("-").map(Number);
   let start = new Date(y, m - 1, 1, 0, 0, 0);
   const end = new Date(y, m - 1, d, 23, 59, 59);
   start = bumpFaultRangeStart(start, end);
-  return { start, end, dateVal };
+  return { start, end, dateVal, startVal:fmtIsoLocalDate(start), endVal:dateVal, custom:false };
 }
 function faultTicketInRange(r, range){
   if(!r.closed_time) return false;
@@ -9257,14 +9417,14 @@ const faultBarLabelPlugin = {
     const isSrmFtSev = chartId === "srmFtSevChart" || chartId === "srmFtOfcNodeChart"
       || chartId === "srmOpenPendingChart" || chartId === "faultOpenPendingChart"
       || chartId === "eecSevChart" || chartId === "eecOpenSevChart" || chartId === "eecOfcNodeChart" || chartId === "eecProvChart" || chartId === "eecOpenProvChart"
-      || chartId === "eecOverSlaChart" || chartId === "cwSevChart" || chartId === "cwOfcNodeChart";
+      || chartId === "eecOverSlaChart" || chartId === "eecOnlineClosedOverChart" || chartId === "eecOnlineProvChart" || chartId === "cwSevChart" || chartId === "cwOfcNodeChart";
     const useOverviewLabels = isOverview || isSrmFtSev;
     if(useOverviewLabels) chart._faultOverviewLabelBoxes = [];
     ctx.save();
     if(useOverviewLabels){
       const lineOrder = isOverview
         ? ["Total Ticket", "Service Availability", "Service Availability Avg."]
-        : ["Total Ticket", "Total WO", "Total Open"];
+        : ["Total Ticket", "Total WO", "Total Open", "Closed Total"];
       lineOrder.forEach(label=>{
         const di = chart.data.datasets.findIndex(d=> d.label === label);
         if(di < 0) return;
@@ -9441,7 +9601,7 @@ function renderFaultLtrSlaChart(rows){
 function renderFaultRegionBar(){
   const el = document.getElementById("faultRegionBar");
   if(!el) return;
-  const allDays = faultSubTab === "ltr-sla" || faultSubTab === "ltr";
+  const allDays = (faultSubTab === "ltr-sla" || faultSubTab === "ltr") && !faultDateStartFilter && !faultDateEndFilter;
   const rows = allDays ? getFaultTicketsForLtr() : getFilteredFaultTickets();
   const dayKeys = buildFaultDayLabelsFromRows(rows);
   const regions = [...new Set(faultTickets.filter(r=>passesFaultPlkdFocus(r)).map(r=>r.region).filter(Boolean))].sort();
@@ -9450,7 +9610,7 @@ function renderFaultRegionBar(){
   const dateMsg = dayKeys.length
     ? `${esc(dayKeys[0])} → ${esc(dayKeys[dayKeys.length - 1])} · ${dayKeys.length} วันมีข้อมูล · ${plkdCount} ticket(s)`
     : `${esc(fmtIsoLocalDate(range.start))} → ${esc(range.dateVal)} · ไม่มีข้อมูล`;
-  const barKey = `${faultSubTab}|${faultRegionFilter}|${plkdCount}|${dayKeys.length}|${dateMsg}|${regions.join(",")}`;
+  const barKey = `${faultSubTab}|${faultRegionFilter}|${faultDateStartFilter}|${faultDateEndFilter}|${plkdCount}|${dayKeys.length}|${dateMsg}|${regions.join(",")}`;
   if(faultRegionBarKey === barKey) return;
   faultRegionBarKey = barKey;
   el.innerHTML = `
@@ -9460,6 +9620,13 @@ function renderFaultRegionBar(){
         ${regions.map(r=>`<option value="${esc(r)}" ${faultRegionFilter===r?'selected':''}>${esc(r)}</option>`).join("")}
       </select>
     </div>
+    <div class="fgroup"><label class="flabel">Date From</label>
+      <input type="date" class="sev-select" value="${esc(faultDateStartFilter || "")}" onchange="onFaultDateRangeChange('start', this.value)">
+    </div>
+    <div class="fgroup"><label class="flabel">Date To</label>
+      <input type="date" class="sev-select" value="${esc(faultDateEndFilter || "")}" onchange="onFaultDateRangeChange('end', this.value)">
+      <button type="button" class="btn ghost sm" onclick="clearFaultDateRange()">Clear</button>
+    </div>
     <div class="fgroup"><label class="flabel">PLKD Filter</label>
       <span class="status-msg">SA1–SA6 · WO Creator System · มี Source Ticket ID · ไม่รวม Broadband · ${SITE_SET.size} PLKD site(s) · ${plkdCount} ticket(s)</span>
     </div>
@@ -9468,6 +9635,18 @@ function renderFaultRegionBar(){
     </div>`;
 }
 function onFaultRegionChange(val){ faultRegionFilter = val; invalidateFaultTicketCache(); renderFault(); }
+function onFaultDateRangeChange(which, value){
+  if(which === "start") faultDateStartFilter = value || "";
+  if(which === "end") faultDateEndFilter = value || "";
+  invalidateFaultTicketCache();
+  renderFault();
+}
+function clearFaultDateRange(){
+  faultDateStartFilter = "";
+  faultDateEndFilter = "";
+  invalidateFaultTicketCache();
+  renderFault();
+}
 function getFaultGroupProblemStats(rows){
   const groups = new Map();
   rows.forEach(r=>{
@@ -10910,7 +11089,8 @@ function switchFaultSubTab(tab){
     const el = document.getElementById(view);
     if(el) el.style.display = tab === id ? "block" : "none";
   });
-  renderFault();
+  if(currentTab === "fault") loadCurrentFaultTabData();
+  else renderFault();
   moveFaultSubTabIndicator();
 }
 function moveFaultSubTabIndicator(){
@@ -11205,6 +11385,7 @@ function mapFaultImportRow(r){
     sub_root_cause: getImportField(r, "Sub Root Cause", "Sub root cause"),
     close_description: get("Close Description"),
     complete_solution: get("Complete Solution"),
+    alarm_description: getImportField(r, "Alarm Description", "Alarm Desc", "Alarm Name", "Alarm"),
     subject: get("Subject")
   };
   const woCreator = get("WO Creator") || get("Wo Creator");
@@ -11785,7 +11966,7 @@ function analysisOfcSectionRows(sections){
     "Site Section": row.section || row.sectionKey || row.key || "",
     WO: row.wo || 0,
     "จำนวน Site": row.site || row.sites?.size || 0,
-    "Top Sub Root Cause": row.subRc || "",
+    "Sub Root Cause": row.subRc || "",
     Repeat: row.repeat ? "Yes" : "No",
     "Network / Node": (row.networkLabels || []).join(", ")
   }));
@@ -12084,6 +12265,15 @@ function parseEecClosedFromImportRow(r, mode){
   if(v == null) return null;
   return parseEecExcelDate(v);
 }
+function countEecRepeatSites(rows){
+  const counts = new Map();
+  (rows || []).forEach(r=>{
+    const site = extractEecSite(r);
+    if(!site) return;
+    counts.set(site, (counts.get(site) || 0) + 1);
+  });
+  return [...counts.values()].filter(n=> n >= 2).length;
+}
 function getEecSubRootCauseForTicket(r){
   const direct = String(r?.sub_root_cause ?? "").trim();
   if(direct) return direct;
@@ -12107,7 +12297,8 @@ function normalizeEecDbTicket(r){
     arrived_time: r.arrived_time || null,
     root_cause: r.root_cause || r.cause || r.problem || "",
     sub_root_cause: String(r?.sub_root_cause ?? fx.sub_root_cause ?? EEC_FAULT_SUBRC_BY_TT[String(r?.source_ticket_id || "").trim()] ?? "").trim(),
-    close_description: String(r.remedy || fx.close_description || r.close_description || "").trim()
+    close_description: String(r.remedy || fx.close_description || r.close_description || "").trim(),
+    alarm_description: String(r?.alarm_description || "").trim()
   };
 }
 function getEecClosedDescription(r){
@@ -12382,6 +12573,19 @@ function getEecBaseTickets(){
   if(eecDateFrom || eecDateTo) rows = rows.filter(passesEecDateRange);
   return rows;
 }
+function isEecAnyTicketForOpen(r){
+  if(!dayKeyFromEecTime(r?.created_time)) return false;
+  if(!isFaultSaSeverity(r) && !isFaultNsaSrmSeverity(r)) return false;
+  if(isEecBroadbandFtthTicket(r)) return false;
+  if(!passesEecSystemWoCreator(r)) return false;
+  const site = extractEecSite(r);
+  return !!(site && EEC_SITE_SET.has(site));
+}
+function getEecOpenSourceTickets(){
+  let rows = (eecSiteTickets || []).map(normalizeEecDbTicket).filter(isEecAnyTicketForOpen);
+  if(eecFocusSiteFilterEnabled) rows = rows.filter(isEecFocusSiteTicket);
+  return rows;
+}
 function getEecFilteredTickets(){
   return getEecBaseTickets().filter(r=>{
     if(eecProvinceFilter && getEecProvinceForTicket(r) !== eecProvinceFilter) return false;
@@ -12613,7 +12817,7 @@ function buildEecSeverityStats(){
   };
 }
 function getEecOpenTickets(){
-  let rows = getEecScopedAllTickets();
+  let rows = getEecOpenSourceTickets();
   if(eecDateFrom || eecDateTo) rows = rows.filter(passesEecOpenDateRange);
   if(eecOpenSearchQuery) rows = rows.filter(matchesEecOpenSearch);
   return rows.filter(r=> dayKeyFromEecTime(r?.created_time));
@@ -12765,12 +12969,15 @@ function buildEecOpenAlarmRows(){
     const alarm = normalizeEecOpenAlarmKey(extractEecSubjectAlarm(r));
     const key = alarm || "(ไม่มี Alarm / Subject)";
     if(!byAlarm.has(key)){
-      byAlarm.set(key, { alarm:key, tickets:[], sites:new Set(), sa:0, nsa:0, latest:"" });
+      byAlarm.set(key, { alarm:key, tickets:[], sites:new Set(), siteCounts:new Map(), sa:0, nsa:0, latest:"" });
     }
     const slot = byAlarm.get(key);
     slot.tickets.push(r);
     const site = extractEecSite(r);
-    if(site) slot.sites.add(site);
+    if(site){
+      slot.sites.add(site);
+      slot.siteCounts.set(site, (slot.siteCounts.get(site) || 0) + 1);
+    }
     if(isFaultSaSeverity(r)) slot.sa++;
     else if(isFaultNsaSrmSeverity(r)) slot.nsa++;
     const created = String(r.created_time || "");
@@ -13405,12 +13612,58 @@ function onEecOverSlaSiteAnalysisClick(e){
   if(!row) return;
   toggleEecOverSlaSiteExpand(row.getAttribute("data-site"));
 }
+function eecSortArrow(state, col){
+  return state?.col === col ? `<span class="sort-arrow">${state.dir === "asc" ? "▲" : "▼"}</span>` : "";
+}
+function eecSortableTh(label, col, state, handler, subLabel){
+  const active = state?.col === col;
+  const sub = subLabel ? `<br><span class="th-sub">${esc(subLabel)}</span>` : "";
+  return `<th class="srm-ft-sort-th${active ? " active" : ""}" role="button" tabindex="0" onclick="${handler}('${col}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${handler}('${col}')}">${esc(label)}${sub}${eecSortArrow(state, col)}</th>`;
+}
+function compareEecMinutes(a, b, dir){
+  const av = Number.isFinite(a) ? a : -1;
+  const bv = Number.isFinite(b) ? b : -1;
+  const diff = av - bv;
+  return dir === "asc" ? diff : -diff;
+}
+function sortEecOverSlaRows(rows){
+  const { col, dir } = eecOverSlaSort || { col:"count", dir:"desc" };
+  return [...rows].sort((a,b)=>{
+    if(col === "avgDowntime") return compareEecMinutes(a.avgDowntime, b.avgDowntime, dir) || b.count - a.count || a.displayLabel.localeCompare(b.displayLabel, "th");
+    if(col === "avgOverMin") return compareEecMinutes(a.avgOverMin, b.avgOverMin, dir) || b.count - a.count || a.displayLabel.localeCompare(b.displayLabel, "th");
+    return (dir === "asc" ? a.count - b.count : b.count - a.count) || a.displayLabel.localeCompare(b.displayLabel, "th");
+  });
+}
+function setEecOverSlaSort(col){
+  if(eecOverSlaSort.col === col) eecOverSlaSort.dir = eecOverSlaSort.dir === "asc" ? "desc" : "asc";
+  else eecOverSlaSort = { col, dir:"desc" };
+  renderEecOverSlaPanel();
+}
+function sortEecLtrRows(rows){
+  const { col, dir } = eecLtrSort || { col:"closed", dir:"desc" };
+  return [...rows].sort((a,b)=>{
+    if(col === "downtime"){
+      const ac = a._fault || classifyFaultTicket(a);
+      const bc = b._fault || classifyFaultTicket(b);
+      return compareEecMinutes(ac.downtimeMinutes, bc.downtimeMinutes, dir) || String(b.closed_time||"").localeCompare(String(a.closed_time||""));
+    }
+    return dir === "asc"
+      ? String(a.closed_time||"").localeCompare(String(b.closed_time||""))
+      : String(b.closed_time||"").localeCompare(String(a.closed_time||""));
+  });
+}
+function setEecLtrSort(col){
+  if(eecLtrSort.col === col) eecLtrSort.dir = eecLtrSort.dir === "asc" ? "desc" : "asc";
+  else eecLtrSort = { col, dir:"desc" };
+  renderEecLtrPanel();
+}
 function renderEecOverSlaGroupTableHtml(rows, opts){
   const { expandKey, rowClass, dataAttr, scopeColLabel, scopeItems } = opts;
   if(!rows.length){
     return `<div class="empty-hint" style="padding:16px;">ไม่มี TT Over SLA</div>`;
   }
-  const bodyHtml = rows.flatMap(row=>{
+  const sortedRows = sortEecOverSlaRows(rows);
+  const bodyHtml = sortedRows.flatMap(row=>{
     const isOpen = expandKey === row.key;
     const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
     const topDesc = renderEecOverSlaScopeCell(row.topDescs);
@@ -13431,8 +13684,8 @@ function renderEecOverSlaGroupTableHtml(rows, opts){
     return [mainRow, expandRow].filter(Boolean);
   }).join("");
   return `<table class="svcava-table fault-data-table srm-ft-ofcnode-detail-table"><thead><tr>
-    <th>${scopeColLabel}</th><th>TT</th><th>${scopeColLabel === "Site" ? "Root Cause (Top)" : "Site (Top)"}</th>
-    <th>Downtime<br><span class="th-sub">เฉลี่ย</span></th><th>เกิน SLA<br><span class="th-sub">เฉลี่ย</span></th>
+    <th>${scopeColLabel}</th>${eecSortableTh("TT", "count", eecOverSlaSort, "setEecOverSlaSort")}<th>${scopeColLabel === "Site" ? "Root Cause (Top)" : "Site (Top)"}</th>
+    ${eecSortableTh("Downtime", "avgDowntime", eecOverSlaSort, "setEecOverSlaSort", "เฉลี่ย")}${eecSortableTh("เกิน SLA", "avgOverMin", eecOverSlaSort, "setEecOverSlaSort", "เฉลี่ย")}
     <th>Closed Description (Top)</th><th>Why Long Fix</th><th>รายละเอียด / แนวทาง</th>
   </tr></thead><tbody>${bodyHtml}</tbody></table>`;
 }
@@ -13480,17 +13733,94 @@ function renderEecSeverityCards(stats){
 }
 function setEecTrendSevCardFilter(filter){
   eecTrendSevCardFilter = eecTrendSevCardFilter === filter ? "all" : (filter === "sa" || filter === "nsa" ? filter : "all");
+  eecTrendDetailPage = 1;
   if(eecSubTab === "open") renderEecOpenPanel();
+  else if(eecSubTab === "online") renderEecOnlinePanel();
   else{
     renderEecSeverityPanel();
     renderEecProvincePanel();
     refreshEecOfcNodeTrendPanel();
   }
 }
+function getEecTrendDetailRows(){
+  return getEecBaseTickets().filter(eecTicketMatchesTrendCardSev);
+}
+function sortEecTrendDetailRows(rows){
+  const { col, dir } = eecTrendDetailSort || { col:"closed", dir:"desc" };
+  return [...rows].sort((a,b)=>{
+    if(col === "downtime"){
+      const ac = a._fault || classifyFaultTicket(a);
+      const bc = b._fault || classifyFaultTicket(b);
+      return compareEecMinutes(ac.downtimeMinutes, bc.downtimeMinutes, dir)
+        || String(b.closed_time||"").localeCompare(String(a.closed_time||""));
+    }
+    const diff = String(a.closed_time||"").localeCompare(String(b.closed_time||""));
+    return (dir === "asc" ? diff : -diff) || String(a.incident_id||"").localeCompare(String(b.incident_id||""));
+  });
+}
+function setEecTrendDetailSort(col){
+  if(eecTrendDetailSort.col === col) eecTrendDetailSort.dir = eecTrendDetailSort.dir === "asc" ? "desc" : "asc";
+  else eecTrendDetailSort = { col, dir:"desc" };
+  eecTrendDetailPage = 1;
+  renderEecSeverityDetailTable();
+}
+function setEecTrendDetailPage(page){
+  const totalPages = Math.max(1, Math.ceil(getEecTrendDetailRows().length / 10));
+  eecTrendDetailPage = Math.min(Math.max(1, Number(page) || 1), totalPages);
+  renderEecSeverityDetailTable();
+}
+function renderEecTrendDetailPagination(totalRows){
+  const totalPages = Math.max(1, Math.ceil(totalRows / 10));
+  if(totalPages <= 1) return "";
+  const current = Math.min(Math.max(1, eecTrendDetailPage || 1), totalPages);
+  return `<div class="srm-ft-pagination" style="margin:10px 0 0;">${Array.from({length: totalPages}, (_, i)=> i + 1).map(p=>
+    `<button type="button" class="srm-ft-page-btn ${p===current ? "active" : ""}" onclick="setEecTrendDetailPage(${p})">Page ${p}</button>`
+  ).join("")}</div>`;
+}
+function renderEecSeverityDetailTable(){
+  const wrap = document.getElementById("eecSevDetailWrap");
+  if(!wrap) return;
+  const allRows = sortEecTrendDetailRows(getEecTrendDetailRows());
+  const totalPages = Math.max(1, Math.ceil(allRows.length / 10));
+  if(eecTrendDetailPage > totalPages) eecTrendDetailPage = totalPages;
+  const start = ((eecTrendDetailPage || 1) - 1) * 10;
+  const pageRows = allRows.slice(start, start + 10);
+  const label = eecTrendSevCardFilter === "sa" ? "SA" : eecTrendSevCardFilter === "nsa" ? "NSA" : "SA + NSA";
+  if(!pageRows.length){
+    wrap.innerHTML = `<div class="empty-hint" style="padding:16px;">ไม่มี Detail ใบงาน (${esc(label)})</div>`;
+    return;
+  }
+  const latestUploadTs = getLatestEecUploadTs();
+  const bodyHtml = pageRows.map(r=>{
+    const c = r._fault || classifyFaultTicket(r);
+    const site = r.site_id || extractEecSite(r) || "";
+    const tt = r.source_ticket_id || "";
+    const wo = r.incident_id || "";
+    const ticketCell = tt && wo && tt !== wo ? `${esc(tt)}<br><span class="muted">${esc(wo)}</span>` : esc(wo || tt);
+    return `<tr>
+      <td class="site-plkd-cell">${esc(site)}</td>
+      <td>${renderEecNewUploadBadge(r, latestUploadTs)}${ticketCell}</td>
+      <td>${esc(getEecProvinceForTicket(r))}</td>
+      <td><span class="sev-badge">${esc(r.severity||"-")}</span></td>
+      <td class="subject-cell">${esc(r.subject||"")}</td>
+      <td class="dt-cell"><div class="eec-rc-dt-stack"><div>${fmtFaultDT(r.created_time)}</div><div class="eec-rc-dt-closed">${fmtFaultDT(r.closed_time)}</div></div></td>
+      <td class="dt-cell dt-downtime">${fmtFaultDowntime(c.downtimeMinutes)}</td>
+      <td class="subject-cell">${esc(getEecSubRootCauseForTicket(r) || "")}</td>
+      <td class="subject-cell">${esc(getEecClosedDescription(r) || "")}</td>
+    </tr>`;
+  }).join("");
+  wrap.innerHTML = `<div class="srm-ft-ofcnode-detail-title" style="margin-top:0;">Detail ใบงาน · ${esc(label)} <span class="badge">${allRows.length} TT</span></div>
+    <table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
+      <th>Site</th><th>Ticket / WO</th><th>Province</th><th>Severity</th><th>Subject</th><th>Created<br><span class="th-sub">Closed</span></th>
+      ${eecSortableTh("Downtime", "downtime", eecTrendDetailSort, "setEecTrendDetailSort")}
+      <th>Sub Root Cause</th><th>Closed Description</th>
+    </tr></thead><tbody>${bodyHtml}</tbody></table>${renderEecTrendDetailPagination(allRows.length)}`;
+}
 function renderEecSeverityPanel(){
   const stats = buildEecSeverityStats();
   renderEecSeverityCards(stats);
   renderEecSeverityTrendChart(filterSaNsaTrendStats(stats, eecTrendSevCardFilter));
+  renderEecSeverityDetailTable();
 }
 function renderEecOpenSeverityCards(stats){
   const wrap = document.getElementById("eecOpenSevCards");
@@ -13925,6 +14255,7 @@ function buildEecOfcNodeSubRootCauseDetail(){
     group: g.group,
     count: g.count,
     siteCount: new Set(g.tickets.map(extractEecSite).filter(Boolean)).size,
+    repeatSiteCount: countEecRepeatSites(g.tickets),
     tickets: g.tickets
   })).sort((a,b)=> b.count - a.count || a.subRootCause.localeCompare(b.subRootCause, "th"));
 }
@@ -14839,15 +15170,15 @@ function renderEecOfcNodeDetailTable(detailRows){
     : g === "NODE" ? `<span class="srm-ofcnode-group-badge node">NODE</span>`
     : `<span class="srm-ofcnode-group-badge other">OTHER</span>`;
   wrap.innerHTML = `<table class="srm-ft-ofcnode-detail-table"><thead><tr>
-      <th>Sub Root Cause</th><th>กลุ่ม</th><th>จำนวน TT</th><th>จำนวน Site</th>
+      <th>Sub Root Cause</th><th>กลุ่ม</th><th>จำนวน TT</th><th>จำนวน Site</th><th>Repeat Site</th>
     </tr></thead><tbody>${detailRows.map(row=>{
       const isOpen = eecOfcNodeExpandRc === row.subRootCause;
       const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
       const expandHtml = isOpen
-        ? `<tr class="srm-ofcnode-expand-row"><td colspan="4">${renderEecSubRcSiteScopeHtml(row.tickets, row.subRootCause)}</td></tr>`
+        ? `<tr class="srm-ofcnode-expand-row"><td colspan="5">${renderEecSubRcSiteScopeHtml(row.tickets, row.subRootCause)}</td></tr>`
         : "";
       return `<tr class="eec-rc-main-row srm-ofcnode-rc-row" data-rc="${esc(row.subRootCause)}">
-        <td>${chevron}${esc(row.subRootCause)}</td><td>${groupBadge(row.group)}</td><td class="srm-ofcnode-rc-count">${row.count}</td><td class="srm-ofcnode-rc-count">${row.siteCount || 0}</td>
+        <td>${chevron}${esc(row.subRootCause)}</td><td>${groupBadge(row.group)}</td><td class="srm-ofcnode-rc-count">${row.count}</td><td class="srm-ofcnode-rc-count">${row.siteCount || 0}</td><td class="srm-ofcnode-rc-count">${row.repeatSiteCount || 0}</td>
       </tr>${expandHtml}`;
     }).join("")}</tbody></table>`;
 }
@@ -15136,12 +15467,13 @@ function renderEecDetailTableHtml(rows){
     <th>WO Creator</th><th>Created</th><th>Closed</th><th>Sub Root Cause</th><th>Closed Description</th>
   </tr></thead><tbody>${bodyHtml}</tbody></table>`;
 }
-function renderEecSlaTableHtml(rows){
+function renderEecSlaTableHtml(rows, opts={}){
   if(!rows.length){
     return `<div class="empty-hint" style="padding:16px;">ไม่มี TT ตรงเงื่อนไข</div>`;
   }
   const latestUploadTs = getLatestEecUploadTs();
-  const bodyHtml = rows.map(r=>{
+  const displayRows = opts.sortableDowntime ? sortEecLtrRows(rows) : rows;
+  const bodyHtml = displayRows.map(r=>{
     const c = r._fault || classifyFaultTicket(r);
     const site = r.site_id || extractEecSite(r) || "";
     const tt = r.source_ticket_id || "";
@@ -15162,7 +15494,7 @@ function renderEecSlaTableHtml(rows){
   }).join("");
   return `<table class="svcava-table fault-data-table eec-detail-table"><thead><tr>
     <th>Site</th><th>Ticket / WO</th><th>Province</th><th>Severity</th><th>Subject</th>
-    <th>Created</th><th>Require Finish</th><th>Closed</th><th>Downtime</th><th>Root Cause</th>
+    <th>Created</th><th>Require Finish</th><th>Closed</th>${opts.sortableDowntime ? eecSortableTh("Downtime", "downtime", eecLtrSort, "setEecLtrSort") : "<th>Downtime</th>"}<th>Root Cause</th>
   </tr></thead><tbody>${bodyHtml}</tbody></table>`;
 }
 function renderEecLtrPanel(){
@@ -15197,7 +15529,7 @@ function renderEecLtrPanel(){
     const cntEl = document.getElementById(b.cnt);
     if(cntEl) cntEl.textContent = String(bRows.length);
     const wrap = document.getElementById(b.wrap);
-    if(wrap) wrap.innerHTML = renderEecSlaTableHtml(bRows);
+    if(wrap) wrap.innerHTML = renderEecSlaTableHtml(bRows, { sortableDowntime:true });
   });
 }
 function renderEecDetailPanel(){
@@ -16248,6 +16580,15 @@ function buildEecAnalysisDashboard(){
     ofcRepeat
   };
 }
+function isEecAutoClosedTicket(r){
+  const st = String(r?.status || "").trim().toLowerCase();
+  return st === "closed (auto)" || st === "closed auto" || /closed\s*\(\s*auto\s*\)/i.test(String(r?.status || ""));
+}
+function getEecAnalysisDetailTickets(tickets, opts){
+  opts = opts || {};
+  const rows = (tickets || []).filter(Boolean);
+  return opts.includeAutoClosed ? rows : rows.filter(r=> !isEecAutoClosedTicket(r));
+}
 function isEecAutoCloseDesc(desc){
   const d = String(desc || "").toLowerCase();
   return /auto[_\s-]?close|resolved by automation|แก้ไขเองโดยระบบอัตโนมัติ|closed by system|system auto/i.test(d);
@@ -16322,7 +16663,7 @@ function getEecAnalysisSummarySolution(rowKey, dash, fallback){
 }
 function buildEecAnalysisRowExamples(tickets, limit){
   limit = limit ?? 3;
-  const list = (tickets || []).filter(Boolean);
+  const list = getEecAnalysisDetailTickets(tickets);
   if(!list.length) return [];
   const groups = {};
   list.forEach(r=>{
@@ -16438,7 +16779,7 @@ function renderEecAnalysisSummaryExpandDetail(rowKey, dash){
         <td class="subject-cell">${chevron}${esc(d.desc)}</td>
       </tr>`;
       const expand = isOpen
-        ? `<tr class="eec-analysis-summary-expand"><td colspan="3">${renderEecAnalysisTicketDetailTable(d.tickets)}</td></tr>`
+        ? `<tr class="eec-analysis-summary-expand"><td colspan="3">${renderEecAnalysisTicketDetailTable(d.tickets, undefined, { hideLongAgingStatus:true })}</td></tr>`
         : "";
       return [main, expand].filter(Boolean);
     }).join("");
@@ -16450,28 +16791,38 @@ function renderEecAnalysisSummaryExpandDetail(rowKey, dash){
     </div>`;
   }
   if(rowKey === "hardware"){
-    return `<div class="eec-analysis-summary-expand-inner"><div class="muted" style="font-size:12px;">Hardware · ${dash.hardwareTotal?.wo ?? 0} WO · ${dash.hardwareTotal?.site ?? 0} Site — กรอก Solution / Progress ในตารางด้านบน</div></div>`;
+    const rows = buildEecHardwareRepeatedSiteTeamRows(dash);
+    const body = rows.map(r=> `<tr><td class="site-plkd-cell">${esc(r.site)}</td><td class="eec-analysis-summary-wo">${r.count}</td><td>${esc(r.teamText || "-")}</td></tr>`).join("");
+    return `<div class="eec-analysis-summary-expand-inner">
+      <div class="eec-rc-analysis-block-lbl" style="margin-bottom:6px">Hardware · Site ที่ Replaced / Reset ซ้ำบ่อย</div>
+      <table class="eec-analysis-summary-mini-table"><thead><tr><th>Site ID</th><th>WO</th><th>Team</th></tr></thead><tbody>${body || `<tr><td colspan="3" class="muted">ไม่พบ Hardware Replaced / Reset</td></tr>`}</tbody></table>
+    </div>`;
   }
   if(rowKey === "stolen_ofc" || rowKey === "stolen_node"){
     const row = rowKey === "stolen_ofc" ? dash.stolenOfc : dash.stolenNode;
+    if(rowKey === "stolen_node"){
+      const sites = buildEecStolenNodeSiteTeamRows(dash);
+      const body = sites.map(r=> `<tr><td class="site-plkd-cell">${esc(r.site)}</td><td class="eec-analysis-summary-wo">${r.count}</td><td>${esc(r.teamText || "-")}</td></tr>`).join("");
+      return `<div class="eec-analysis-summary-expand-inner">
+        <div class="muted" style="font-size:11.5px;margin-bottom:8px;">Stolen NODE · โชว์ Site ทั้งหมด (Detail ตัด Closed (Auto) แล้ว)</div>
+        <table class="eec-analysis-summary-mini-table"><thead><tr><th>Site ID</th><th>WO</th><th>Team</th></tr></thead><tbody>${body || `<tr><td colspan="3" class="muted">ไม่พบ Site</td></tr>`}</tbody></table>
+      </div>`;
+    }
     return `<div class="eec-analysis-summary-expand-inner">
-      <div class="muted" style="font-size:11.5px;margin-bottom:8px;">กรองจาก Close Description ที่มีคำว่า ขโมย/stolen/lost และแยกกลุ่มด้วย Root/Sub Root Cause = ${rowKey === "stolen_ofc" ? "OFC" : "NODE"}</div>
-      ${renderEecAnalysisTicketDetailTable(row?.tickets || [])}
+      <div class="muted" style="font-size:11.5px;margin-bottom:8px;">กรองจาก Close Description ที่มีคำว่า ขโมย/stolen/lost และแยกกลุ่มด้วย Root/Sub Root Cause = OFC</div>
+      ${renderEecAnalysisTicketDetailTable(row?.tickets || [], undefined, { hideLongAgingStatus:true })}
     </div>`;
   }
-  if(rowKey === "ofc"){
-    const sections = dash.ofcRepeat?.sections || [];
-    if(!sections.length) return `<div class="eec-analysis-summary-expand-inner"><div class="empty-hint">ไม่มี Section Site↔Site ที่เปิดซ้ำ (WO ≥ 2)</div></div>`;
-    const rows = sections.map(s=> `<tr>
-      <td>${formatEecOfcSectionSitesHtml(s.section, true)}</td>
-      <td class="eec-analysis-summary-wo">${s.wo}</td>
-      <td class="eec-analysis-summary-wo">${s.site ?? (s.sites?.size ?? 0)}</td>
-      <td class="subject-cell">${esc(String(s.subRc || "").slice(0, 80))}</td>
-    </tr>`).join("");
-    return `<div class="eec-analysis-summary-expand-inner">
-      <div class="eec-rc-analysis-block-lbl" style="margin-bottom:6px">OFC · Section Site↔Site ซ้ำ · ${dash.ofcRepeat.siteCount} Site · ${dash.ofcRepeat.repeatWo} WO</div>
-      <table class="eec-analysis-summary-mini-table"><thead><tr><th>Section Site↔Site</th><th>WO</th><th>Site</th><th>Sub Root Cause หลัก</th></tr></thead><tbody>${rows}</tbody></table>
-    </div>`;
+    if(rowKey === "ofc"){
+    const groups = buildEecOfcFocusAnalysisRows(dash);
+    const blocks = groups.map(g=>{
+      const body = g.siteTeams.map(r=> `<tr><td class="site-plkd-cell">${esc(r.site)}</td><td class="eec-analysis-summary-wo">${r.count}</td><td>${esc(r.teamText || "-")}</td></tr>`).join("");
+      return `<div style="margin-bottom:12px;">
+        <div class="eec-rc-analysis-block-lbl" style="margin-bottom:6px">${esc(g.label)} <span class="muted">(${esc(g.en)})</span> · ${g.tickets.length} WO</div>
+        <table class="eec-analysis-summary-mini-table"><thead><tr><th>Site ID</th><th>WO</th><th>Team</th></tr></thead><tbody>${body || `<tr><td colspan="3" class="muted">ไม่พบรายการในหัวข้อนี้</td></tr>`}</tbody></table>
+      </div>`;
+    }).join("");
+    return `<div class="eec-analysis-summary-expand-inner">${blocks}</div>`;
   }
   return "";
 }
@@ -16482,6 +16833,138 @@ function toggleEecAnalysisStolenDescExpand(idx){
 function toggleEecAnalysisSummaryExpand(rowKey){
   eecAnalysisSummaryExpandRow = (eecAnalysisSummaryExpandRow === rowKey) ? null : rowKey;
   renderEecAnalysisPanel();
+}
+const EEC_ANALYSIS_OFC_FOCUS_SUBRCS = [
+  { key:"crack_closure", label:"ไฟเบอร์ขาด - สายCrackในหัวต่อ,หักในหัวต่อ", en:"N O F_Fiber optic cut - Crack in closure", match:/crack\s+in\s+closure|สาย\s*crack\s*ในหัวต่อ|หักในหัวต่อ/i },
+  { key:"animal_closure", label:"ไฟเบอร์ขาด - มดกัดในหัวต่อ", en:"N O F_Fiber optic cut - Cable damage with animals in closure", match:/cable\s+damage\s+with\s+animals\s+in\s+closure|มดกัดในหัวต่อ|สัตว์.*หัวต่อ/i },
+  { key:"odf_pigtail", label:"ODF/ออฟติกPigtail/ขั้วต่อ/จัมเปอร์", en:"N I F_ODF/Pigtail/Connector/Jumper", match:/ODF|Pigtail|Connector|Jumper|ขั้วต่อ|จัมเปอร์|ออฟติก\s*Pigtail/i },
+  { key:"patch_pigtail", label:"ไฟเบอร์ขาด - สายแพทช์ไฟเบอร์/ออฟติกPigtail/คอนเนคเตอร์", en:"N O F_Fiber optic cut - Patch cord fiber/Pigtail/Connector", match:/patch\s*cord\s*fiber|สายแพทช์ไฟเบอร์|คอนเนคเตอร์/i }
+];
+function getEecAnalysisTeamText(r){
+  const raw = String(r?.team || r?.raw_team || "").trim();
+  const lines = buildEecTeamLines(raw);
+  return lines.length ? lines.join(" / ") : (raw || "-");
+}
+function buildEecAnalysisSiteTeamRows(tickets, opts){
+  opts = opts || {};
+  const rows = getEecAnalysisDetailTickets(tickets, opts);
+  const bySite = new Map();
+  rows.forEach(r=>{
+    const site = getEecAnalysisSiteKey(r) || extractEecSite(r) || "(ไม่ระบุ Site)";
+    if(!bySite.has(site)) bySite.set(site, { site, count:0, teams:new Map(), tickets:[] });
+    const slot = bySite.get(site);
+    slot.count++;
+    slot.tickets.push(r);
+    const team = getEecAnalysisTeamText(r);
+    slot.teams.set(team, (slot.teams.get(team) || 0) + 1);
+  });
+  return [...bySite.values()].map(row=>({
+    ...row,
+    teamText:[...row.teams.entries()].sort((a,b)=> b[1] - a[1] || a[0].localeCompare(b[0], "th")).map(([t,c])=> c > 1 ? `${t} (${c})` : t).join(", ")
+  })).sort((a,b)=> b.count - a.count || a.site.localeCompare(b.site, "th"));
+}
+function formatEecAnalysisSiteTeamLines(rows, limit){
+  const list = (rows || []).slice(0, limit ?? 20);
+  if(!list.length) return "ไม่พบ Site ที่ตรงเงื่อนไข";
+  const lines = list.map((r,i)=> `${i + 1}. ${r.site} - ${r.teamText || "-"} (${r.count} WO)`);
+  if(rows.length > list.length) lines.push(`...และอีก ${rows.length - list.length} Site`);
+  return lines.join("\n");
+}
+function isEecHardwareReplacedResetTicket(r){
+  const hay = `${r?.subject || ""} ${getEecSubRootCauseForTicket(r)} ${getEecClosedDescription(r)} ${r?.root_cause || ""}`;
+  return isEecHardwareTicket(r) && /replac|เปลี่ยน|reset|รีเซ็ต/i.test(hay);
+}
+function buildEecHardwareRepeatedSiteTeamRows(dash){
+  const rows = buildEecAnalysisSiteTeamRows((dash.hardwareTotal?.tickets || []).filter(isEecHardwareReplacedResetTicket));
+  return rows.filter(r=> r.count >= 2).length ? rows.filter(r=> r.count >= 2) : rows;
+}
+function classifyEecAnalysisOfcFocusSubRc(r){
+  const hay = `${getEecSubRootCauseForTicket(r)} ${r?.root_cause || ""} ${r?.subject || ""} ${getEecClosedDescription(r)}`;
+  return EEC_ANALYSIS_OFC_FOCUS_SUBRCS.find(def=> def.match.test(hay)) || null;
+}
+function buildEecOfcFocusAnalysisRows(dash){
+  const tickets = (dash.ofcSections || []).flatMap(s=> s.tickets || []);
+  return EEC_ANALYSIS_OFC_FOCUS_SUBRCS.map(def=>{
+    const matched = tickets.filter(r=> classifyEecAnalysisOfcFocusSubRc(r)?.key === def.key);
+    return { ...def, tickets: matched, siteTeams: buildEecAnalysisSiteTeamRows(matched) };
+  });
+}
+function buildEecStolenNodeSiteTeamRows(dash){
+  return buildEecAnalysisSiteTeamRows(dash.stolenNode?.tickets || []);
+}
+function getEecAnalysisTemplateGroups(dash){
+  const rows = [
+    { key:"stolen_ofc", label:"Stolen OFC", wo: dash.stolenOfc?.wo || 0, site: dash.stolenOfc?.site || 0, tickets: dash.stolenOfc?.tickets || [] },
+    { key:"stolen_node", label:"Stolen NODE", wo: dash.stolenNode?.wo || 0, site: dash.stolenNode?.site || 0, tickets: dash.stolenNode?.tickets || [] },
+    { key:"hardware", label:"Hardware", wo: dash.hardwareTotal?.wo || 0, site: dash.hardwareTotal?.site || 0, tickets: dash.hardwareTotal?.tickets || [] },
+    { key:"battery", label:"Battery", wo: dash.batteryTotal?.wo || 0, site: dash.batteryTotal?.site || 0, tickets: dash.batteryTotal?.tickets || [] },
+    { key:"ofc", label:"OFC · Section Site↔Site ซ้ำ", wo: dash.ofcRepeat?.repeatWo || 0, site: dash.ofcRepeat?.siteCount || 0, tickets: (dash.ofcRepeat?.sections || []).flatMap(s=> s.tickets || []) }
+  ];
+  return rows.sort((a,b)=> b.wo - a.wo || b.site - a.site || a.label.localeCompare(b.label, "th"));
+}
+function getEecTopTextCount(tickets, getter, fallback){
+  const counts = {};
+  (tickets || []).forEach(r=>{
+    const v = String(getter(r) || "").replace(/\s+/g, " ").trim();
+    if(!v) return;
+    counts[v] = (counts[v] || 0) + 1;
+  });
+  const top = Object.entries(counts).sort((a,b)=> b[1] - a[1] || a[0].localeCompare(b[0], "th"))[0];
+  return top ? { label: top[0], count: top[1] } : { label: fallback || "ยังไม่พบข้อมูลชัดเจน", count: 0 };
+}
+function buildEecAnalysisTemplateDefaults(dash){
+  const groups = getEecAnalysisTemplateGroups(dash);
+  const top = groups.find(g=> g.wo > 0) || groups[0] || { label:"-", wo:0, site:0, tickets:[] };
+  const totalWo = groups.reduce((sum,g)=> sum + (g.wo || 0), 0);
+  const share = totalWo ? Math.round(((top.wo || 0) / totalWo) * 100) : 0;
+  const detailTickets = getEecAnalysisDetailTickets(top.tickets);
+  const topSubRc = getEecTopTextCount(detailTickets, getEecSubRootCauseForTicket, "ไม่ระบุ Sub Root Cause");
+  const topRoot = getEecTopTextCount(detailTickets, r=> r.root_cause || r.cause || r.problem, "ไม่ระบุ Root Cause");
+  const topDesc = getEecTopTextCount(detailTickets, getEecClosedDescription, "ยังไม่มี Closed Description ที่ใช้สรุป");
+  const examples = buildEecAnalysisRowExamples(detailTickets, 2);
+  const exampleText = examples.length ? `\nตัวอย่างเคสที่สะท้อนปัญหา:\n${examples.map((e,i)=> `${i + 1}. ${e}`).join("\n")}` : "";
+  const groupRank = groups.filter(g=> g.wo > 0).slice(0, 5).map((g,i)=> `${i + 1}. ${g.label}: ${g.wo} WO / ${g.site} Site`).join("\n");
+  const hwLines = formatEecAnalysisSiteTeamLines(buildEecHardwareRepeatedSiteTeamRows(dash), 12);
+  const ofcLines = buildEecOfcFocusAnalysisRows(dash).map(g=> `${g.label} (${g.en})\n${formatEecAnalysisSiteTeamLines(g.siteTeams, 8)}`).join("\n\n");
+  const stolenNodeLines = formatEecAnalysisSiteTeamLines(buildEecStolenNodeSiteTeamRows(dash), 30);
+  const topEvidence = `Sub Root Cause: ${topSubRc.label}${topSubRc.count ? ` (${topSubRc.count} WO)` : ""}\nRoot Cause: ${topRoot.label}${topRoot.count ? ` (${topRoot.count} WO)` : ""}\nClosed Description ที่พบมาก: ${topDesc.label}${topDesc.count ? ` (${topDesc.count} WO)` : ""}`;
+  return {
+    q1: top.wo
+      ? `ในรอบข้อมูลที่เลือก ปัญหาที่เกิดมากสุดคือ ${top.label} จำนวน ${top.wo} WO กระทบ ${top.site} Site คิดเป็นประมาณ ${share}% ของกลุ่มปัญหาหลักที่นำมาวิเคราะห์\n\nลำดับปัญหาหลัก:\n${groupRank}`
+      : "ยังไม่มีข้อมูลในช่วงที่เลือก",
+    q2: `ต้นเหตุหลักของ ${top.label} มีแนวโน้มมาจาก pattern เดิมที่เกิดซ้ำใน Site/อุปกรณ์/เส้นทางเดิม และถูกสะท้อนผ่านข้อมูลดังนี้\n${topEvidence}${exampleText}\n\nHardware Replaced / Reset ซ้ำบ่อย (Site ID / Team):\n${hwLines}\n\nสรุปเชิงสาเหตุ: ต้องตรวจสอบว่าปัญหาเกิดจากอุปกรณ์/สายสัญญาณ/ระบบไฟ/การเข้าพื้นที่ หรือ process การปิดงานและบันทึก Root Cause ไม่ครบถ้วน`,
+    q3: `ระยะสั้นให้จัดการแบบ containment ก่อน: แยก Site ที่เกิดซ้ำและ Ticket SA ออกมาเป็น priority, assign owner รายเคส, ตรวจ alarm/สถานะหน้างาน/Closed Description ให้ตรงกัน, เร่งเคสที่ยัง open หรือใกล้ Over SLA และ update progress รายวันจนกว่าจำนวน WO ใหม่จะลดลง\n\nOFC · Section Site↔Site ซ้ำ แยก 4 หัวข้อ (Site ID / Team):\n${ofcLines}`,
+    q4: `ระยะยาวให้ทำ prevention process สำหรับ ${top.label}: สร้าง checklist ตรวจซ้ำตามประเภทปัญหา, กำหนด owner ของ Site/Team ที่เกิดซ้ำ, ทำ preventive maintenance หรือแก้ไขเชิงโครงสร้างในจุดที่เป็นต้นเหตุ, บังคับใช้มาตรฐานการระบุ Root Cause/Sub Root Cause/Closed Description และกำหนด escalation เมื่อ Site เดิมเกิดซ้ำ\n\nStolen NODE · Site ทั้งหมด (Site ID / Team):\n${stolenNodeLines}`,
+    q5: `กระบวนการตรวจสอบต้องมี weekly audit จาก dashboard: ติดตามจำนวน WO, จำนวน Site ซ้ำ, Ticket Open, Over SLA และ Downtime ของกลุ่ม ${top.label}; สุ่มตรวจ Ticket Detail ว่า Root Cause ตรงกับหลักฐานจริง; review action owner/commit date ทุกสัปดาห์ และถ้าปัญหาไม่ลดลงให้เปิด RCA/Corrective Action รอบใหม่จนกว่าจะเห็น trend ลดลงต่อเนื่อง`
+  };
+}
+function getEecAnalysisTemplateText(key, fallback){
+  return getEecAnalysisSummaryField(`template:${key}`, "answer", fallback || "");
+}
+function saveEecAnalysisTemplateText(key, value){
+  saveEecAnalysisSummaryField(`template:${key}`, "answer", value);
+}
+function renderEecAnalysisTemplate(dash){
+  const d = buildEecAnalysisTemplateDefaults(dash);
+  const rows = [
+    { key:"q1", question:"1. สรุปปัญหาใหญ่ๆ ในรอบที่หยิบมาวิเคราะห์ ว่าเป็นสาเหตุอะไรมากสุด ?" },
+    { key:"q2", question:"2. สาเหตุของต้นเหตุของปัญหา คืออะไร ?" },
+    { key:"q3", question:"3. ในระยะสั้น มีวิธีแก้ไขปัญหาตรงหน้ายังไง ?" },
+    { key:"q4", question:"4. ในระยะยาว มี process / แนวทางป้องกันยังไงกับเรื่องนี้ ?" },
+    { key:"q5", question:"5. เรามี process อะไรตรวจสอบแนวทางป้องกัน และไม่ให้เกิดซ้ำอีก ?" }
+  ];
+  const body = rows.map(row=>{
+    const text = getEecAnalysisTemplateText(row.key, d[row.key]);
+    return `<tr>
+      <td class="eec-analysis-template-q">${esc(row.question)}</td>
+      <td><textarea class="eec-analysis-summary-ta eec-analysis-template-ta" rows="5" oninput="saveEecAnalysisTemplateText('${row.key}', this.value)">${esc(text)}</textarea></td>
+    </tr>`;
+  }).join("");
+  return `<div class="fault-chart-title">Template Analysis</div>
+    <div class="table-scroll"><table class="eec-analysis-summary-table eec-analysis-template-table">
+      <thead><tr><th class="eec-sum-hdr-meta" style="width:28%">หัวข้อวิเคราะห์</th><th class="eec-sum-hdr-edit">คำตอบ / Action</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table></div>`;
 }
 function renderEecAnalysisSummaryTable(dash){
   const rows = [
@@ -16535,7 +17018,8 @@ function renderEecAnalysisSummaryTable(dash){
         <th class="eec-sum-hdr-meta" style="width:18%">Group Problem</th>
         <th class="eec-sum-hdr-meta" style="width:6%">WO</th>
         <th class="eec-sum-hdr-meta" style="width:8%">จำนวน Site</th>
-        <th class="eec-sum-hdr-edit" style="width:22%">Solution</th>
+        <th class="eec-sum-hdr-meta" style="width:8%">Repeat Site</th>
+        <th class="eec-sum-hdr-edit" style="width:18%">Solution</th>
         <th class="eec-sum-hdr-edit" style="width:8%">Owner</th>
         <th class="eec-sum-hdr-edit" style="width:10%">Commit Date</th>
         <th class="eec-sum-hdr-edit" style="width:14%">Update Progress</th>
@@ -16646,6 +17130,7 @@ function renderEecAnalysisBatteryDetailTable(dash){
       <td><div class="eec-analysis-summary-problem">${chevron}${esc(shortLabel)}</div></td>
       <td class="eec-analysis-summary-wo">${row.wo}</td>
       <td class="eec-analysis-summary-wo">${row.site || "-"}</td>
+      <td class="eec-analysis-summary-wo">${countEecRepeatSites(row.tickets)}</td>
       <td onclick="event.stopPropagation()">${renderEecAnalysisSummaryEditable(noteKey, "solution", defaultSol, { placeholder: "กรอก Solution…" })}</td>
       <td onclick="event.stopPropagation()">${renderEecAnalysisSummaryEditable(noteKey, "owner", "Region", { placeholder: "Owner" })}</td>
       <td onclick="event.stopPropagation()">${renderEecAnalysisSummaryEditable(noteKey, "commitDate", "TBD", { placeholder: "Commit Date" })}</td>
@@ -16655,7 +17140,7 @@ function renderEecAnalysisBatteryDetailTable(dash){
     const detailKey = `battdetail:${row.id}`;
     const detailOpts = { statusCol:"battery", powerCascadeMeta: dash.batteryPowerCascade?.metaByKey, configMeta: dash.batteryConfig?.metaByKey };
     const expand = isOpen
-      ? `<tr class="eec-analysis-summary-expand"><td colspan="8"><div class="eec-analysis-detail-wrap" onclick="onEecAnalysisDetailClick(event)">${renderEecAnalysisBatterySiteTable(row.tickets, detailKey, detailOpts)}</div></td></tr>`
+      ? `<tr class="eec-analysis-summary-expand"><td colspan="9"><div class="eec-analysis-detail-wrap" onclick="onEecAnalysisDetailClick(event)">${renderEecAnalysisBatterySiteTable(row.tickets, detailKey, detailOpts)}</div></td></tr>`
       : "";
     return [main, expand].filter(Boolean);
   }).join("");
@@ -16669,7 +17154,8 @@ function renderEecAnalysisBatteryDetailTable(dash){
         <th class="eec-sum-hdr-meta" style="width:18%">Sub-issue</th>
         <th class="eec-sum-hdr-meta" style="width:6%">WO</th>
         <th class="eec-sum-hdr-meta" style="width:8%">จำนวน Site</th>
-        <th class="eec-sum-hdr-edit" style="width:22%">Solution</th>
+        <th class="eec-sum-hdr-meta" style="width:8%">Repeat Site</th>
+        <th class="eec-sum-hdr-edit" style="width:18%">Solution</th>
         <th class="eec-sum-hdr-edit" style="width:8%">Owner</th>
         <th class="eec-sum-hdr-edit" style="width:10%">Commit Date</th>
         <th class="eec-sum-hdr-edit" style="width:14%">Update Progress</th>
@@ -16736,7 +17222,7 @@ function renderEecAnalysisBatterySiteTable(allTickets, detailKey, detailOpts){
       <td class="srm-ofcnode-rc-count">${site.count}</td>
     </tr>`;
     const expandRow = isOpen
-      ? `<tr class="srm-ofcnode-expand-row"><td colspan="2">${renderEecAnalysisTicketDetailTable(site.tickets, undefined, { ...detailOpts, hideSiteCol: true, nested: true })}</td></tr>`
+      ? `<tr class="srm-ofcnode-expand-row"><td colspan="2">${renderEecAnalysisTicketDetailTable(site.tickets, undefined, { ...detailOpts, hideSiteCol: true, nested: true, hideLongAgingStatus: detailOpts.statusCol !== "battery" })}</td></tr>`
       : "";
     return [siteRow, expandRow].filter(Boolean);
   });
@@ -16756,7 +17242,7 @@ function renderEecAnalysisDetailExpand(row, block, opts){
   const title = buildEecAnalysisDetailTitle(row, block);
   const bodyHtml = isBattery
     ? renderEecAnalysisBatterySiteTable(allTickets, detailKey, opts.detailOpts)
-    : renderEecAnalysisTicketDetailTable(allTickets, undefined, opts.detailOpts);
+    : renderEecAnalysisTicketDetailTable(allTickets, undefined, { ...(opts.detailOpts || {}), hideLongAgingStatus: true });
   return `<div class="eec-analysis-detail-wrap" onclick="onEecAnalysisDetailClick(event)">
     <div class="eec-analysis-detail-head">
       <span class="eec-analysis-detail-head-title">Detail · ${esc(title)}</span>
@@ -16769,13 +17255,16 @@ function renderEecAnalysisTicketDetailTable(tickets, limit, opts){
   opts = opts || {};
   const statusCol = opts.statusCol || "longAging";
   const isBattery = statusCol === "battery";
+  const hideStatusCol = !!opts.hideLongAgingStatus && !isBattery;
   const hideSiteCol = !!opts.hideSiteCol;
   const nested = !!opts.nested;
   const configMeta = opts.configMeta;
   const statusHeader = isBattery ? "BATT BACKUP (นาที)" : "Status Long aging";
   const powerMeta = opts.powerCascadeMeta;
   if(!tickets?.length) return `<div class="empty-hint" style="padding:16px;">ไม่มี TT</div>`;
-  const sorted = [...tickets].sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")));
+  const detailTickets = getEecAnalysisDetailTickets(tickets, opts);
+  if(!detailTickets.length) return `<div class="empty-hint" style="padding:16px;">ไม่มี TT Detail (ตัด Closed (Auto) ออกจากการวิเคราะห์แล้ว)</div>`;
+  const sorted = [...detailTickets].sort((a,b)=> String(b.closed_time||"").localeCompare(String(a.closed_time||"")));
   const slice = limit ? sorted.slice(0, limit) : sorted;
   const latestUploadTs = getLatestEecUploadTs();
   const rows = slice.map(r=>{
@@ -16791,6 +17280,7 @@ function renderEecAnalysisTicketDetailTable(tickets, limit, opts){
     const cascadeCell = isBattery ? `<td>${renderEecBatteryPowerCascadeCell(r, powerMeta)}</td>` : "";
     const configCell = isBattery ? `<td>${renderEecBatteryConfigAfterResetCell(r, configMeta)}</td>` : "";
     const siteCell = hideSiteCol ? "" : `<td class="site-plkd-cell">${esc(site)}</td>`;
+    const statusCell = hideStatusCol ? "" : `<td>${renderEecAnalysisStatusCell(r, statusCol)}</td>`;
     const key = getEecTicketKey(r);
     const removeCell = key ? `<td onclick="event.stopPropagation()"><button type="button" class="eec-analysis-remove-btn" title="ลบ WO นี้ออกจากการนับสรุป" onclick="excludeEecAnalysisTicket('${esc(key)}')">✕ ลบ</button></td>` : `<td></td>`;
     return `<tr>
@@ -16798,7 +17288,7 @@ function renderEecAnalysisTicketDetailTable(tickets, limit, opts){
       <td class="eec-analysis-ticket-cell">${renderEecNewUploadBadge(r, latestUploadTs)}${ticketCell}</td>
       <td class="subject-cell eec-analysis-alarm-cell" title="${esc(subject)}">${esc(subject)}</td>
       <td class="subject-cell" title="${esc(subRc)}">${esc(subRc)}</td>
-      <td>${renderEecAnalysisStatusCell(r, statusCol)}</td>
+      ${statusCell}
       ${cascadeCell}
       ${configCell}
       <td class="dt-cell"><div class="eec-rc-dt-stack"><div>${fmtFaultDT(r.created_time)}</div><div class="eec-rc-dt-closed">${fmtFaultDT(r.closed_time)}</div></div></td>
@@ -16810,9 +17300,10 @@ function renderEecAnalysisTicketDetailTable(tickets, limit, opts){
     ? `<p class="muted" style="margin:0 0 8px;font-size:11px;padding:8px 14px 0;">แสดง ${limit} จาก ${sorted.length} TT</p>`
     : "";
   const siteHead = hideSiteCol ? "" : "<th>Site</th>";
+  const statusHead = hideStatusCol ? "" : `<th>${esc(statusHeader)}</th>`;
   const tableHtml = `<div class="table-scroll eec-analysis-detail-scroll"><table class="svcava-table fault-data-table eec-detail-table eec-analysis-detail-table"><thead><tr>
       ${siteHead}<th>Ticket / WO</th>
-      <th>Alarm</th><th>Sub Root Cause</th><th>${esc(statusHeader)}</th>${isBattery ? "<th>Main Power → BATT</th><th>หลัง Reset<br><span class=\"th-sub\">Battery Stolen เปิดซ้ำ?</span></th>" : ""}
+      <th>Alarm</th><th>Sub Root Cause</th>${statusHead}${isBattery ? "<th>Main Power → BATT</th><th>หลัง Reset<br><span class=\"th-sub\">Battery Stolen เปิดซ้ำ?</span></th>" : ""}
       <th>Created<br><span class="th-sub">Closed</span></th>
       <th>Closed Description</th>
       <th></th>
@@ -16910,6 +17401,7 @@ function renderEecAnalysisHorizontalTable(rows, block, opts){
     <tbody>
       ${metricRow("wo", "WO")}
       ${metricRow("site", "Site")}
+      ${block === "battery" ? metricRow("repeatSite", "Repeat Site") : ""}
     </tbody>
   </table></div>`;
   const detailHtml = openRow && (openRow.tickets?.length || openRow.wo)
@@ -16940,7 +17432,7 @@ function renderEecAnalysisOfcSectionExpand(section){
   const head = lines.length
     ? `<p class="muted" style="margin:0 0 8px;font-size:11px;padding:8px 14px 0;">${lines.join(" · ")}</p>`
     : "";
-  return `${head}${renderEecAnalysisTicketDetailTable(section.tickets)}`;
+  return `${head}${renderEecAnalysisTicketDetailTable(section.tickets, undefined, { hideLongAgingStatus:true })}`;
 }
 function renderEecAnalysisOfcSiteExpand(siteRow){
   const sections = (siteRow.sections || []).sort((a,b)=> b.wo - a.wo || a.section.localeCompare(b.section, "th"));
@@ -17014,12 +17506,12 @@ function renderEecAnalysisPanel(){
     const excludedBar = excludedCount
       ? `<div class="eec-analysis-excluded-bar">ลบ WO ออกจากการนับสรุปแล้ว ${excludedCount} รายการ <button type="button" class="btn ghost sm" onclick="restoreEecAnalysisExcludedTickets()">↺ กู้คืนทั้งหมด</button></div>`
       : "";
-    summaryEl.innerHTML = renderEecAnalysisSummaryTable(dash) + renderEecAnalysisBatteryDetailTable(dash) + excludedBar;
+    summaryEl.innerHTML = renderEecAnalysisTemplate(dash) + renderEecAnalysisSummaryTable(dash) + renderEecAnalysisBatteryDetailTable(dash) + excludedBar;
   }
   const gridEl = document.getElementById("eecAnalysisMainGrid");
   if(!gridEl) return;
   const batteryTable = renderEecAnalysisHorizontalTable(
-    dash.batteryRows.map(r=>({ key: r.id, label: r.label, wo: r.wo, site: r.site, tickets: r.tickets })),
+    dash.batteryRows.map(r=>({ key: r.id, label: r.label, wo: r.wo, site: r.site, repeatSite: countEecRepeatSites(r.tickets), tickets: r.tickets })),
     "battery",
     { layout: "category", detailOpts: { statusCol: "battery", powerCascadeMeta: dash.batteryPowerCascade?.metaByKey, configMeta: dash.batteryConfig?.metaByKey } }
   );
@@ -17087,6 +17579,40 @@ function renderEecAnalysisPanel(){
 }
 function pptxRow(cells){ return cells; }
 function pptxCell(text, opts){ return { text: text == null || text === "" ? "-" : String(text), options: opts || {} }; }
+function formatEecPptSeverity(r){
+  const raw = String(r?.severity || r?.priority || r?.source_sla || r?.sla || "").trim().toUpperCase();
+  if(typeof isFaultNsaSrmSeverity === "function" && isFaultNsaSrmSeverity(r)) return raw && !raw.includes("NSA") ? `${raw}-NSA` : (raw || "NSA");
+  if(typeof isFaultSaSeverity === "function" && isFaultSaSeverity(r)) return raw && !raw.includes("SA") ? `${raw}-SA` : (raw || "SA");
+  return raw || "-";
+}
+async function savePptxDownload(pptx, fileName){
+  let blob = null;
+  try{
+    blob = await pptx.write("blob");
+  }catch(e1){
+    try{
+      blob = await pptx.write({ outputType:"blob" });
+    }catch(e2){
+      await pptx.writeFile({ fileName });
+      return;
+    }
+  }
+  if(!(blob instanceof Blob)){
+    blob = new Blob([blob], { type:"application/vnd.openxmlformats-officedocument.presentationml.presentation" });
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.rel = "noopener";
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 1500);
+}
 async function exportEecAnalysisToPptx(){
   if(typeof PptxGenJS === "undefined"){
     toast("โหลดไลบรารีสร้าง PowerPoint ไม่สำเร็จ — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่");
@@ -17096,117 +17622,162 @@ async function exportEecAnalysisToPptx(){
   const pptx = new PptxGenJS();
   pptx.defineLayout({ name:"EEC_WIDE", width:13.333, height:7.5 });
   pptx.layout = "EEC_WIDE";
-  const NAVY = "0B3D5C", BLUE = "1C7ED6", TEAL = "087F5B", RED = "D94A35", LIGHT = "F1F5F9", TEXT = "24313D";
-  const HEAD_OPT = { bold:true, color:"FFFFFF", fill:{ color:BLUE }, fontSize:10, valign:"middle", align:"center" };
-  const CELL_OPT = { fontSize:9.5, color:TEXT, valign:"middle", fill:{ color:"FFFFFF" } };
-  const TABLE_OPT_BASE = { border:{ type:"solid", color:"D8DEE4", pt:0.5 }, autoPage:true, autoPageRepeatHeader:true, margin:0.04 };
 
-  const titleSlide = pptx.addSlide();
-  titleSlide.background = { color: NAVY };
-  titleSlide.addText("สรุป Analysis · EEC", { x:0.6, y:2.1, w:12.1, h:1.1, fontSize:40, bold:true, color:"FFFFFF", fontFace:"Arial" });
-  const periodTxt = dash.period ? `ช่วงข้อมูล ${dash.period.start} – ${dash.period.end}` : "ไม่มีข้อมูลช่วงเวลา";
-  titleSlide.addText(periodTxt, { x:0.6, y:3.2, w:12.1, h:0.5, fontSize:16, color:"C9DCEA" });
-  titleSlide.addText(`WO ทั้งหมด ${dash.totalWo}  ·  Site ${dash.totalSite}  ·  OFC ${dash.ofcTotal}  ·  Stolen ${dash.stolen?.wo ?? 0}`, { x:0.6, y:3.75, w:12.1, h:0.5, fontSize:14, color:"C9DCEA" });
-  titleSlide.addText(`สร้างเมื่อ ${new Date().toLocaleString("th-TH")}`, { x:0.6, y:6.7, w:12.1, h:0.4, fontSize:10, color:"7FA8C4" });
-
-  const summarySlide = pptx.addSlide();
-  summarySlide.addText("สรุป Analysis · Group Problem", { x:0.4, y:0.25, w:12.5, h:0.5, fontSize:22, bold:true, color:NAVY });
-  const summaryDef = [
-    { key:"stolen", label:"Stolen", wo: dash.stolen?.wo ?? 0, site: dash.stolen?.site ?? 0, ownerFallback:"Region" },
-    { key:"hardware", label:"Hardware", wo: dash.hardwareTotal?.wo ?? 0, site: dash.hardwareTotal?.site ?? 0, ownerFallback:"" },
-    { key:"ofc", label:"OFC · Section Site↔Site ซ้ำ", wo: dash.ofcRepeat?.repeatWo ?? 0, site: dash.ofcRepeat?.siteCount ?? 0, ownerFallback:"" }
-  ];
-  const summaryRows = [pptxRow(["Group Problem","WO","Site","Solution","Owner","Commit Date","Progress","Remark"].map(h=> pptxCell(h, HEAD_OPT)))];
-  summaryDef.forEach(r=>{
-    const sol = getEecAnalysisSummarySolution(r.key, dash);
-    const owner = getEecAnalysisSummaryField(r.key, "owner", r.ownerFallback);
-    const commit = getEecAnalysisSummaryField(r.key, "commitDate", r.key === "hardware" || r.key === "ofc" ? "" : "TBD");
-    const progress = getEecAnalysisSummaryField(r.key, "progress", "");
-    const remark = getEecAnalysisSummaryField(r.key, "remark", "");
-    summaryRows.push(pptxRow([
-      pptxCell(r.label, { ...CELL_OPT, bold:true, align:"left" }),
-      pptxCell(r.wo, { ...CELL_OPT, align:"center" }),
-      pptxCell(r.site, { ...CELL_OPT, align:"center" }),
-      pptxCell(sol, { ...CELL_OPT, align:"left" }),
-      pptxCell(owner, { ...CELL_OPT, align:"left" }),
-      pptxCell(commit, { ...CELL_OPT, align:"left" }),
-      pptxCell(progress, { ...CELL_OPT, align:"left" }),
-      pptxCell(remark, { ...CELL_OPT, align:"left" })
-    ]));
-  });
-  summarySlide.addTable(summaryRows, { ...TABLE_OPT_BASE, x:0.4, y:0.9, w:12.5, colW:[1.9,0.55,0.55,2.6,1.1,1.1,2.3,2.4] });
-
-  const battSlide = pptx.addSlide();
-  battSlide.addText("Battery · แยกตามหมวด", { x:0.4, y:0.25, w:12.5, h:0.5, fontSize:22, bold:true, color:NAVY });
-  const battRows = [pptxRow(["หมวด Battery","WO","Site"].map(h=> pptxCell(h, HEAD_OPT)))];
-  (dash.batteryRows || []).forEach(r=>{
-    battRows.push(pptxRow([
-      pptxCell(String(r.label || "").replace(/^\d+\.\s*/, ""), { ...CELL_OPT, align:"left" }),
-      pptxCell(r.wo, { ...CELL_OPT, align:"center", bold:true }),
-      pptxCell(r.site, { ...CELL_OPT, align:"center" })
-    ]));
-  });
-  battSlide.addTable(battRows, { ...TABLE_OPT_BASE, x:0.6, y:1, w:9, colW:[6,1.5,1.5] });
-
-  const stolenAllSubRcs = dash.stolenSubRcStats?.list || [];
-  if(stolenAllSubRcs.length){
-    const stolenSlide = pptx.addSlide();
-    stolenSlide.addText("Stolen · Sub Root Cause", { x:0.4, y:0.25, w:12.5, h:0.5, fontSize:22, bold:true, color:NAVY });
-    const stats = dash.stolenSubRcStats || {};
-    stolenSlide.addText(`Stolen ทั้งหมด ${stats.total ?? 0} WO · Subject Battery Stolen + Sub Root Cause Stolen/ขโมย · ${stats.uniqueCount ?? 0} รูปแบบ Sub Root Cause${stats.blank ? ` · ไม่มี Sub Root Cause ${stats.blank} WO` : ""}`, { x:0.4, y:0.8, w:12.5, h:0.35, fontSize:11, color:TEXT });
-    const stolenRows = [pptxRow(["#","WO","Sub Root Cause"].map(h=> pptxCell(h, HEAD_OPT)))];
-    stolenAllSubRcs.forEach((d, i)=>{
-      stolenRows.push(pptxRow([
-        pptxCell(i + 1, { ...CELL_OPT, align:"center" }),
-        pptxCell(d.count, { ...CELL_OPT, align:"center", bold:true }),
-        pptxCell(d.desc, { ...CELL_OPT, align:"left", fontSize:9 })
-      ]));
+  const NAVY = "0B3D5C", BLUE = "1C7ED6", TEAL = "087F5B", RED = "D9480F", PURPLE = "7048E8", GREEN = "0CA678", LIGHT = "F1F5F9", LINE = "D8DEE4", TEXT = "24313D", MUTED = "667085";
+  const periodTxt = dash.period ? `${dash.period.start} - ${dash.period.end}` : "No period";
+  const detailTickets = getEecAnalysisDetailTickets(getEecAnalysisScopeTickets());
+  const repeatTickets = getEecAnalysisScopeTickets();
+  const short = (v, n)=>{ const s = String(v || "-").replace(/\s+/g, " ").trim(); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
+  const fmtHr = mins=> Number.isFinite(mins) ? `${(mins / 60).toFixed(1)} hr` : "-";
+  const avgMins = rows=>{ const vals = (rows || []).map(calcFaultDowntimeMinutes).filter(Number.isFinite); return vals.length ? Math.round(vals.reduce((s,v)=>s+v,0) / vals.length) : null; };
+  const dateText = d=>{ const x = parseFaultTs(d); return x ? x.toISOString().slice(0,10) : "-"; };
+  const siteText = r=> getEecAnalysisSiteKey(r) || extractEecSite(r) || "-";
+  const teamText = r=> getEecAnalysisTeamText(r) || "-";
+  const latestClosedText = rows=>{
+    const latest = (rows || []).map(r=>parseFaultTs(r?.closed_time)).filter(Boolean).sort((a,b)=>b-a)[0];
+    return latest ? dateText(latest) : "-";
+  };
+  const repeatText = rows=>{
+    const sorted = (rows || []).map(r=>({ r, created:parseFaultTs(r?.created_time), closed:parseFaultTs(r?.closed_time) })).filter(x=>x.created).sort((a,b)=>a.created-b.created);
+    let last = null;
+    for(let i=1;i<sorted.length;i++){
+      const base = sorted[i-1].closed || sorted[i-1].created;
+      if(!base || sorted[i].created < base) continue;
+      last = { date:sorted[i].created, days:Math.max(0, Math.round((sorted[i].created - base) / 86400000)) };
+    }
+    return last ? `${dateText(last.date)} / ${last.days} วัน` : "ไม่พบซ้ำหลังปิด";
+  };
+  const severityCount = rows=>{
+    const out = { sa:0, nsa:0 };
+    (rows || []).forEach(r=>{ const s = formatEecPptSeverity(r).toUpperCase(); if(s.includes("NSA")) out.nsa++; else if(s.includes("SA")) out.sa++; });
+    return out;
+  };
+  const topTeam = rows=>{
+    const map = new Map();
+    (rows || []).forEach(r=> map.set(teamText(r), (map.get(teamText(r)) || 0) + 1));
+    const top = [...map.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0], "th"))[0];
+    return top ? `${top[0]} (${top[1]} WO)` : "-";
+  };
+  const topClosedDesc = rows=>{
+    const map = new Map();
+    (rows || []).forEach(r=>{
+      const desc = String(getEecClosedDescription(r) || "").replace(/\s+/g, " ").trim();
+      if(!desc) return;
+      map.set(desc, (map.get(desc) || 0) + 1);
     });
-    stolenSlide.addTable(stolenRows, { ...TABLE_OPT_BASE, x:0.4, y:1.25, w:12.5, colW:[0.7,0.9,10.9] });
-  }
-
-  const hwSlide = pptx.addSlide();
-  hwSlide.addText("Hardware · Long Aging", { x:0.4, y:0.25, w:12.5, h:0.5, fontSize:22, bold:true, color:NAVY });
-  hwSlide.addText(`น้อยกว่า 24 ชม. — ${dash.hwAging?.lt24?.wo ?? 0} WO · ${dash.hwAging?.lt24?.site ?? 0} Site`, { x:0.4, y:0.85, w:12.5, h:0.35, fontSize:13, bold:true, color:TEAL });
-  const hwLt24Rows = [pptxRow(["ประเภท","WO","Site"].map(h=> pptxCell(h, HEAD_OPT)))];
-  (dash.hardwareLt24 || []).slice(0, 12).forEach(r=> hwLt24Rows.push(pptxRow([
-    pptxCell(r.label, { ...CELL_OPT, align:"left" }),
-    pptxCell(r.wo, { ...CELL_OPT, align:"center", bold:true }),
-    pptxCell(r.site, { ...CELL_OPT, align:"center" })
-  ])));
-  hwSlide.addTable(hwLt24Rows, { ...TABLE_OPT_BASE, x:0.4, y:1.25, w:6, colW:[3.6,1.2,1.2], autoPage:false });
-  hwSlide.addText(`มากกว่า 24 ชม. — ${dash.hwAging?.gt24?.wo ?? 0} WO · ${dash.hwAging?.gt24?.site ?? 0} Site`, { x:6.9, y:0.85, w:6, h:0.35, fontSize:13, bold:true, color:RED });
-  const hwGt24Rows = [pptxRow(["ประเภท","WO","Site"].map(h=> pptxCell(h, HEAD_OPT)))];
-  (dash.hardwareGt24 || []).slice(0, 12).forEach(r=> hwGt24Rows.push(pptxRow([
-    pptxCell(r.label, { ...CELL_OPT, align:"left" }),
-    pptxCell(r.wo, { ...CELL_OPT, align:"center", bold:true }),
-    pptxCell(r.site, { ...CELL_OPT, align:"center" })
-  ])));
-  hwSlide.addTable(hwGt24Rows, { ...TABLE_OPT_BASE, x:6.9, y:1.25, w:6, colW:[3.6,1.2,1.2], autoPage:false });
-
-  const ofcSections = dash.ofcRepeat?.sections || [];
-  const ofcSlide = pptx.addSlide();
-  ofcSlide.addText("OFC · Section Site↔Site ที่เปิดซ้ำ", { x:0.4, y:0.25, w:12.5, h:0.5, fontSize:22, bold:true, color:NAVY });
-  ofcSlide.addText(`${dash.ofcRepeat?.repeatSectionCount ?? 0} Section ซ้ำ · ${dash.ofcRepeat?.siteCount ?? 0} Site · ${dash.ofcRepeat?.repeatWo ?? 0} WO`, { x:0.4, y:0.8, w:12.5, h:0.35, fontSize:13, color:TEXT });
-  if(ofcSections.length){
-    const ofcRows = [pptxRow(["Section Site↔Site","WO","Site","Sub Root Cause (หลัก)"].map(h=> pptxCell(h, HEAD_OPT)))];
-    ofcSections.forEach(s=>{
-      ofcRows.push(pptxRow([
-        pptxCell(s.section, { ...CELL_OPT, align:"left", bold:true }),
-        pptxCell(s.wo, { ...CELL_OPT, align:"center" }),
-        pptxCell(s.site ?? (s.sites?.size ?? 0), { ...CELL_OPT, align:"center" }),
-        pptxCell(String(s.subRc || "").slice(0, 90), { ...CELL_OPT, align:"left", fontSize:9 })
-      ]));
+    const top = [...map.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0], "th"))[0];
+    return top ? `${short(top[0], 58)} (${top[1]} WO)` : "ไม่มี Closed Description";
+  };
+  const topSites = (rows, limit)=>{
+    const map = new Map();
+    (rows || []).forEach(r=>{
+      const site = siteText(r);
+      if(!map.has(site)) map.set(site, { site, count:0, teams:new Map() });
+      const slot = map.get(site);
+      slot.count++;
+      slot.teams.set(teamText(r), (slot.teams.get(teamText(r)) || 0) + 1);
     });
-    ofcSlide.addTable(ofcRows, { ...TABLE_OPT_BASE, x:0.4, y:1.25, w:12.5, colW:[3.4,0.7,0.7,7.7] });
-  } else {
-    ofcSlide.addText("ไม่มี Section Site↔Site ที่เปิดซ้ำ (WO ≥ 2)", { x:0.4, y:1.3, w:12.5, h:0.4, fontSize:12, color:"888888" });
-  }
+    return [...map.values()].map(row=>{
+      const t = [...row.teams.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0], "th"))[0];
+      return { ...row, team:t ? t[0] : "-" };
+    }).sort((a,b)=>b.count-a.count || a.site.localeCompare(b.site,"th")).slice(0, limit || 3);
+  };
+  const subRcRows = ()=>{
+    const map = new Map();
+    detailTickets.forEach(r=>{
+      const sub = getEecSubRootCauseForTicket(r) || "(ไม่ระบุ Sub Root Cause)";
+      const key = getEecSubRcCanonicalKey ? getEecSubRcCanonicalKey(sub, {}) : sub;
+      if(!map.has(key)) map.set(key, { label:sub, tickets:[], sites:new Set() });
+      const row = map.get(key);
+      row.tickets.push(r);
+      row.sites.add(siteText(r));
+    });
+    return [...map.values()].map(row=>{
+      const repeatRows = repeatTickets.filter(r=> (getEecSubRootCauseForTicket(r) || "") === row.label);
+      return { label:row.label, wo:row.tickets.length, site:row.sites.size, avg:avgMins(row.tickets), closed:latestClosedText(row.tickets), repeat:repeatText(repeatRows.length ? repeatRows : row.tickets), team:topTeam(row.tickets), closedDesc:topClosedDesc(row.tickets), sites:topSites(row.tickets, 2) };
+    }).sort((a,b)=>b.wo-a.wo || b.site-a.site || a.label.localeCompare(b.label,"th"));
+  };
+  const noIdentifiedRows = detailTickets.filter(r=>{
+    const txt = `${getEecSubRootCauseForTicket(r)} ${getEecClosedDescription(r)} ${r?.root_cause || ""}`.toLowerCase();
+    return /no\s+identified\s+root\s+cause|ไม่พบสาเหตุ|ไม่สามารถระบุสาเหตุ/.test(txt);
+  }).sort((a,b)=> String(b.closed_time || b.created_time || "").localeCompare(String(a.closed_time || a.created_time || ""))).slice(0,3);
+  const issueRows = subRcRows();
+  const totalWo = detailTickets.length;
+  const totalSite = new Set(detailTickets.map(siteText).filter(s=>s && s !== "-")).size;
+  const sev = severityCount(detailTickets);
+  const top = issueRows[0] || { label:"-", wo:0, site:0, avg:null, closed:"-", repeat:"-", team:"-", closedDesc:"-" };
 
-  const fileName = `EEC_Analysis_Summary_${new Date().toISOString().slice(0,10)}.pptx`;
+  const addTitle = (slide, title, subtitle)=>{
+    slide.addText(title, { x:0.35, y:0.2, w:8.5, h:0.35, fontSize:24, bold:true, color:NAVY, margin:0 });
+    slide.addText(subtitle || "", { x:0.37, y:0.62, w:8.8, h:0.22, fontSize:9.5, color:MUTED, margin:0 });
+    slide.addText("EEC Site Analysis", { x:10.35, y:0.24, w:2.55, h:0.24, fontSize:9, bold:true, color:BLUE, align:"right", margin:0 });
+  };
+  const metricCard = (slide, x, y, w, label, value, color)=>{
+    slide.addShape(pptx.ShapeType.roundRect, { x, y, w, h:0.82, rectRadius:0.06, fill:{ color:"FFFFFF" }, line:{ color:LINE, pt:0.7 } });
+    slide.addText(String(value), { x:x+0.14, y:y+0.11, w:w-0.28, h:0.32, fontSize:18, bold:true, color:color || NAVY, margin:0, fit:"shrink" });
+    slide.addText(label, { x:x+0.14, y:y+0.52, w:w-0.28, h:0.16, fontSize:8, color:MUTED, margin:0, fit:"shrink" });
+  };
+  const issueCard = (slide, x, y, w, h, idx, row, color)=>{
+    slide.addShape(pptx.ShapeType.roundRect, { x, y, w, h, rectRadius:0.05, fill:{ color:"FFFFFF" }, line:{ color:LINE, pt:0.65 } });
+    slide.addShape(pptx.ShapeType.rect, { x, y, w:0.08, h, fill:{ color }, line:{ color } });
+    slide.addText(`${idx}. ${short(row.label, 70)}`, { x:x+0.18, y:y+0.12, w:w-0.35, h:0.28, fontSize:12.2, bold:true, color:TEXT, margin:0, fit:"shrink" });
+    slide.addText(`${row.wo} WO`, { x:x+0.18, y:y+0.52, w:0.9, h:0.24, fontSize:14, bold:true, color, margin:0 });
+    slide.addText(`${row.site} Site`, { x:x+1.08, y:y+0.55, w:0.9, h:0.18, fontSize:9.2, bold:true, color:TEXT, margin:0 });
+    slide.addText(`Avg ${fmtHr(row.avg)}`, { x:x+1.9, y:y+0.55, w:1.15, h:0.18, fontSize:9.2, color:TEXT, margin:0 });
+    slide.addText(`ปิด/รับงานโดย: ${short(row.team, 58)}`, { x:x+3.0, y:y+0.55, w:w-3.2, h:0.18, fontSize:8.4, color:MUTED, margin:0, fit:"shrink" });
+    slide.addText(`Closed Desc: ${short(row.closedDesc, 78)}`, { x:x+0.18, y:y+0.73, w:w-0.35, h:0.16, fontSize:7.5, color:TEXT, margin:0, fit:"shrink" });
+    slide.addText(`Closed ล่าสุด: ${row.closed} · กลับมาอีก: ${row.repeat}`, { x:x+0.18, y:y+0.9, w:w-0.35, h:0.14, fontSize:7.5, color:RED, margin:0, fit:"shrink" });
+  };
+  const smallEvidence = (slide, x, y, w, h, title, rows, color)=>{
+    slide.addShape(pptx.ShapeType.roundRect, { x, y, w, h, rectRadius:0.05, fill:{ color:"FFFFFF" }, line:{ color:LINE, pt:0.65 } });
+    slide.addShape(pptx.ShapeType.rect, { x, y, w:0.08, h, fill:{ color }, line:{ color } });
+    const total = (rows || []).reduce((s,r)=>s+(r.count||0),0);
+    slide.addText(title, { x:x+0.18, y:y+0.1, w:w-0.35, h:0.24, fontSize:10.5, bold:true, color:TEXT, margin:0, fit:"shrink" });
+    slide.addText(`${total} WO · ${rows.length} Site`, { x:x+0.18, y:y+0.42, w:w-0.35, h:0.2, fontSize:12, bold:true, color, margin:0 });
+    const lines = (rows || []).slice(0,4).map((r,i)=>`${i+1}. ${r.site} (${r.count} WO) - ${short(r.teamText,28)}`).join("\n") || "ไม่พบรายการ";
+    slide.addText(lines, { x:x+0.18, y:y+0.76, w:w-0.35, h:h-0.88, fontSize:7.8, color:TEXT, margin:0, fit:"shrink" });
+  };
+
+  const slide1 = pptx.addSlide();
+  addTitle(slide1, "EEC Analysis Summary", `สรุป Dashboard สำหรับพรีเซน | ${periodTxt} | Detail ไม่รวม Closed (Auto)`);
+  metricCard(slide1, 0.35, 0.98, 1.85, "Work Order", totalWo, BLUE);
+  metricCard(slide1, 2.38, 0.98, 1.85, "Site กระทบ", totalSite, TEAL);
+  metricCard(slide1, 4.41, 0.98, 1.85, "Avg. Downtime", fmtHr(avgMins(detailTickets)), RED);
+  metricCard(slide1, 6.44, 0.98, 1.85, "SA / NSA", `${sev.sa} / ${sev.nsa}`, PURPLE);
+  metricCard(slide1, 8.47, 0.98, 2.05, "Closed ล่าสุด", latestClosedText(detailTickets), NAVY);
+  metricCard(slide1, 10.7, 0.98, 2.05, "กลับมาอีกล่าสุด", repeatText(repeatTickets), RED);
+  slide1.addShape(pptx.ShapeType.roundRect, { x:0.35, y:2.04, w:12.3, h:0.76, rectRadius:0.05, fill:{ color:NAVY }, line:{ color:NAVY } });
+  slide1.addText(`Sub Root Cause ที่มาบ่อยสุด: ${short(top.label, 96)}`, { x:0.62, y:2.18, w:11.7, h:0.24, fontSize:15, bold:true, color:"FFFFFF", margin:0, fit:"shrink" });
+  slide1.addText(`${top.wo} WO · ${top.site} Site · Avg ${fmtHr(top.avg)} · Closed ล่าสุด ${top.closed} · ปิด/รับงานโดย ${short(top.team, 38)} · Closed Desc: ${short(top.closedDesc, 42)}`, { x:0.62, y:2.5, w:11.7, h:0.18, fontSize:9.5, color:"D6E7F5", margin:0, fit:"shrink" });
+  issueRows.slice(0,5).forEach((r,i)=> issueCard(slide1, 0.35 + (i % 2) * 6.25, 3.05 + Math.floor(i / 2) * 1.32, 5.95, 1.05, i+1, r, [BLUE,TEAL,RED,PURPLE,GREEN][i] || BLUE));
+  slide1.addText("ใช้หน้านี้เล่าให้จบใน 1 นาที: หัวข้อไหนเกิดบ่อย, กระทบกี่ Site, ทีมไหนปิด/รับงานมากสุด และมี repeat กลับมาอีกเมื่อไหร่", { x:0.38, y:6.92, w:12.2, h:0.2, fontSize:8.4, color:MUTED, margin:0 });
+
+  const slide2 = pptx.addSlide();
+  addTitle(slide2, "Repeat Evidence Dashboard", "Hardware Replaced/Reset, OFC 4 หัวข้อ, Stolen NODE repeat");
+  const hwRows = buildEecHardwareRepeatedSiteTeamRows(dash).filter(r=>r.count>=2).slice(0,5);
+  smallEvidence(slide2, 0.35, 0.98, 4.05, 2.0, "2. Hardware: Replaced / Reset ซ้ำ", hwRows.length ? hwRows : buildEecHardwareRepeatedSiteTeamRows(dash).slice(0,4), RED);
+  const stolenRows = buildEecStolenNodeSiteTeamRows(dash).filter(r=>r.count>=2).slice(0,5);
+  smallEvidence(slide2, 0.35, 3.25, 4.05, 2.0, "4. Stolen NODE: Site repeat", stolenRows, PURPLE);
+  slide2.addText("3. OFC · Section Site↔Site ซ้ำ", { x:4.72, y:0.98, w:7.85, h:0.25, fontSize:13, bold:true, color:NAVY, margin:0 });
+  const ofcGroups = buildEecOfcFocusAnalysisRows(dash);
+  ofcGroups.forEach((g,i)=>{
+    const x = 4.72 + (i % 2) * 4.12;
+    const y = 1.38 + Math.floor(i / 2) * 2.18;
+    smallEvidence(slide2, x, y, 3.9, 1.75, `${i+1}) ${short(g.label, 40)}`, (g.siteTeams || []).slice(0,4), [BLUE,TEAL,RED,GREEN][i] || BLUE);
+  });
+  slide2.addShape(pptx.ShapeType.roundRect, { x:0.35, y:5.68, w:5.85, h:0.95, rectRadius:0.05, fill:{ color:LIGHT }, line:{ color:LINE, pt:0.5 } });
+  slide2.addText("No identified root cause · ตัวอย่าง 3 ใบ", { x:0.62, y:5.83, w:2.9, h:0.18, fontSize:8.8, bold:true, color:RED, margin:0 });
+  const noIdLines = noIdentifiedRows.map((r,i)=>`${i+1}. ${short(r?.work_order_id || r?.incident_id || r?.source_ticket_id || "-",18)} · ${siteText(r)} · ${short(teamText(r),24)} · Closed ${dateText(r?.closed_time)}`).join("\n") || "ไม่พบใบงานที่ปิดด้วย No identified root cause";
+  slide2.addText(noIdLines, { x:0.62, y:6.08, w:5.35, h:0.38, fontSize:7.1, color:TEXT, margin:0, fit:"shrink" });
+  slide2.addShape(pptx.ShapeType.roundRect, { x:6.45, y:5.68, w:6.1, h:0.95, rectRadius:0.05, fill:{ color:LIGHT }, line:{ color:LINE, pt:0.5 } });
+  slide2.addText("Meeting Action", { x:6.72, y:5.83, w:1.7, h:0.18, fontSize:8.8, bold:true, color:NAVY, margin:0 });
+  slide2.addText("Lock owner ตาม Team ที่ปิด/รับงานมากสุด แล้ว follow-up Site repeat รอบถัดไปว่า WO ใหม่ลดลงหรือไม่", { x:6.72, y:6.08, w:5.55, h:0.26, fontSize:8.6, bold:true, color:TEXT, margin:0, fit:"shrink" });
+  slide2.addText("หมายเหตุ: Evidence ใช้ Site ID + Team แบบสรุป ไม่โชว์รายละเอียด Ticket ยาวในสไลด์", { x:0.38, y:6.92, w:12.2, h:0.2, fontSize:8.4, color:MUTED, margin:0 });
+
+  const fileName = `EEC_Analysis_Dashboard_${new Date().toISOString().slice(0,10)}.pptx`;
   try{
-    await pptx.writeFile({ fileName });
-    toast("สร้างไฟล์ PowerPoint สำเร็จ");
+    await savePptxDownload(pptx, fileName);
+    toast("สร้างไฟล์ PowerPoint Dashboard สำเร็จ");
   }catch(e){
     console.warn("exportEecAnalysisToPptx failed:", e);
     toast("สร้างไฟล์ PowerPoint ไม่สำเร็จ");
@@ -17614,11 +18185,386 @@ function toggleAnalysisTeamDetail(scope, metric, teamKey){
   st.team = st.team === team ? null : team;
   renderAnalysisTeamPanel(scope);
 }
+function isEecOnlineBroadbandTicket(r){
+  const subject = String(r?.subject || "");
+  return /broadband|boardband/i.test(subject);
+}
+function passesEecOnlineDateRange(r, field){
+  if(!eecDateFrom && !eecDateTo) return true;
+  const day = field === "created" ? dayKeyFromEecTime(r?.created_time) : getEecClosedDay(r);
+  if(!day) return false;
+  if(eecDateFrom && day < eecDateFrom) return false;
+  if(eecDateTo && day > eecDateTo) return false;
+  return true;
+}
+function getEecOnlineTickets(){
+  let rows = (eecSiteTickets || []).map(normalizeEecDbTicket).filter(r=>{
+    if(!dayKeyFromEecTime(r?.created_time) && !getEecClosedDay(r)) return false;
+    if(!isFaultSaSeverity(r)) return false;
+    if(!passesEecSystemWoCreator(r)) return false;
+    if(!isEecOnlineBroadbandTicket(r)) return false;
+    const site = extractEecSite(r);
+    return !!(site && EEC_SITE_SET.has(site));
+  });
+  if(eecFocusSiteFilterEnabled) rows = rows.filter(isEecFocusSiteTicket);
+  return rows;
+}
+function getEecOnlineSlaMinutes(r){
+  const explicit = String(r?.source_sla || r?.sla || "").trim().toUpperCase();
+  const subject = String(r?.subject || "").toUpperCase();
+  const text = `${explicit} ${subject}`;
+  const m = text.match(/\b(?:SA|NSA)\d\s*-\s*(\d+)\s*([HD])\b/);
+  if(!m) return null;
+  const n = parseInt(m[1], 10);
+  if(!Number.isFinite(n) || n <= 0) return null;
+  return m[2] === "D" ? n * 24 * 60 : n * 60;
+}
+function calcEecOnlineSlaOverMinutes(r){
+  const c = r?._fault || classifyFaultTicket(r);
+  if(c?.slaStatus === "Over SLA") return calcEecOverSlaMinutes(r) || 1;
+  const created = parseFaultTs(r?.created_time);
+  const closed = parseFaultTs(r?.closed_time);
+  if(!created || !closed) return null;
+  const slaMinutes = getEecOnlineSlaMinutes(r);
+  if(!slaMinutes) return null;
+  const downtime = Math.max(0, Math.round((closed - created) / 60000));
+  return downtime > slaMinutes ? downtime - slaMinutes : null;
+}
+function isEecOnlineOverSla(r){
+  return !!calcEecOnlineSlaOverMinutes(r);
+}
+function buildEecOnlineTrendDayKeys(daySet){
+  const closedDays = [...(daySet || new Set())].filter(Boolean).sort();
+  const dataYear = (eecDateFrom || closedDays[0] || fmtIsoLocalDate(new Date())).slice(0, 4);
+  const startKey = eecDateFrom || `${dataYear}-08-01`;
+  const start = new Date(startKey + "T00:00:00");
+  const latestClosedDay = closedDays[closedDays.length - 1] || startKey;
+  const endKey = eecDateTo || (latestClosedDay >= startKey ? latestClosedDay : startKey);
+  const end = new Date(endKey + "T00:00:00");
+  const keys = buildFaultDayLabels({ start, end });
+  if(closedDays.length){
+    const dataSpan = fillDayKeysRange(closedDays).filter(day=> day >= startKey && day <= endKey);
+    return [...new Set([...keys, ...dataSpan])].sort();
+  }
+  return keys;
+}
+function buildEecOnlineStats(){
+  const allRows = getEecOnlineTickets();
+  const createdRows = allRows.filter(r=>passesEecOnlineDateRange(r, "created") && dayKeyFromEecTime(r?.created_time));
+  const closedRows = allRows.filter(r=>passesEecOnlineDateRange(r, "closed") && getEecClosedDay(r) && isEecClosedStatus(r));
+  const daySet = new Set(closedRows.map(getEecClosedDay).filter(Boolean));
+  const dayKeys = buildEecOnlineTrendDayKeys(daySet);
+  const labels = fmtEecTrendDayLabels(dayKeys);
+  const createdCounts = [];
+  const closedWithinCounts = [];
+  const closedOverCounts = [];
+  const closedTotals = [];
+  dayKeys.forEach(day=>{
+    const cRows = createdRows.filter(r=>dayKeyFromEecTime(r?.created_time) === day);
+    const clRows = closedRows.filter(r=>getEecClosedDay(r) === day);
+    const over = clRows.filter(isEecOnlineOverSla).length;
+    createdCounts.push(cRows.length);
+    closedOverCounts.push(over);
+    closedWithinCounts.push(clRows.length - over);
+    closedTotals.push(clRows.length);
+  });
+  return {
+    rows: closedRows, allRows, createdRows, closedRows, dayKeys, labels, createdCounts, closedWithinCounts, closedOverCounts, closedTotals,
+    createdTotal: createdCounts.reduce((a,n)=>a+n,0),
+    withinTotal: closedWithinCounts.reduce((a,n)=>a+n,0),
+    overTotal: closedOverCounts.reduce((a,n)=>a+n,0),
+    closedTotal: closedTotals.reduce((a,n)=>a+n,0)
+  };
+}
+function renderEecOnlineCards(stats){
+  const wrap = document.getElementById("eecOnlineCards");
+  if(!wrap) return;
+  const siteCount = new Set((stats.allRows || []).map(extractEecSite).filter(Boolean)).size;
+  const overPct = stats.closedTotal ? Math.round((stats.overTotal / stats.closedTotal) * 100) : 0;
+  wrap.innerHTML = `
+    <div class="srm-ft-sev-card"><span class="srm-ft-sev-card-lbl">Online Broadband · SA</span><span class="srm-ft-sev-card-val">${stats.createdTotal}</span><span class="muted">Create WO</span></div>
+    <div class="srm-ft-sev-card"><span class="srm-ft-sev-card-lbl">Closed</span><span class="srm-ft-sev-card-val">${stats.closedTotal}</span><span class="muted">WO</span></div>
+    <div class="srm-ft-sev-card"><span class="srm-ft-sev-card-lbl">Within SLA</span><span class="srm-ft-sev-card-val">${stats.withinTotal}</span><span class="muted">Closed WO</span></div>
+    <div class="srm-ft-sev-card over"><span class="srm-ft-sev-card-lbl">Over SLA</span><span class="srm-ft-sev-card-val">${stats.overTotal}</span><span class="muted">${overPct}%</span></div>
+    <div class="srm-ft-sev-card"><span class="srm-ft-sev-card-lbl">Site</span><span class="srm-ft-sev-card-val">${siteCount}</span><span class="muted">SA Site</span></div>`;
+}
+function sizeEecOnlineTrendCanvas(canvas, labels, minHeight = 440, pxPerDay = 24){
+  const chartWrap = canvas?.closest(".fault-chart-wrap");
+  if(!canvas || !chartWrap) return;
+  chartWrap.style.height = `${minHeight}px`;
+  chartWrap.style.overflowX = "hidden";
+  canvas.style.minWidth = "0";
+  canvas.style.width = "100%";
+}
+function renderEecOnlineClosedOverChart(stats){
+  const canvas = document.getElementById("eecOnlineClosedOverChart");
+  const legendEl = document.getElementById("eecOnlineClosedOverLegend");
+  const chartWrap = canvas?.closest(".fault-chart-wrap");
+  if(!canvas || typeof Chart === "undefined") return;
+  if(eecOnlineClosedOverChartInst){ eecOnlineClosedOverChartInst.destroy(); eecOnlineClosedOverChartInst = null; }
+  if(legendEl){
+    legendEl.innerHTML = `<span><i style="background:#2f9e44"></i>Closed Within SLA · ${stats.withinTotal} TT</span><span><i style="background:#d94a35"></i>Closed Over SLA · ${stats.overTotal} TT</span><span><i style="background:#7c4fd6"></i>Closed Total · ${stats.closedTotal} TT</span>`;
+  }
+  if(!stats.labels.length){
+    if(chartWrap){
+      let emptyEl = chartWrap.querySelector(".eec-chart-empty");
+      if(!emptyEl){ emptyEl = document.createElement("div"); emptyEl.className = "empty-hint eec-chart-empty"; emptyEl.style.padding = "48px 16px"; chartWrap.appendChild(emptyEl); }
+      emptyEl.textContent = "ไม่มี Trend Closed / Over Online Broadband SA";
+      emptyEl.style.display = "block";
+    }
+    canvas.style.display = "none";
+    return;
+  }
+  chartWrap?.querySelector(".eec-chart-empty")?.remove();
+  canvas.style.display = "block";
+  sizeEecOnlineTrendCanvas(canvas, stats.labels, 440, 24);
+  const countMax = faultCountAxisMax(stats.closedTotals);
+  const countStep = faultCountAxisStep(countMax);
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  eecOnlineClosedOverChartInst = new Chart(canvas, {
+    type:"bar",
+    data:{ labels:stats.labels, datasets:[
+      { label:"Closed Within SLA", data:stats.closedWithinCounts, backgroundColor:"#2f9e44", stack:"closed", yAxisID:"yCount", order:2 },
+      { label:"Closed Over SLA", data:stats.closedOverCounts, backgroundColor:"#d94a35", stack:"closed", yAxisID:"yCount", order:2 },
+      { label:"Closed Total", data:stats.closedTotals, type:"line", borderColor:"#7c4fd6", backgroundColor:"transparent", tension:.3, pointRadius:4, pointBackgroundColor:"#7c4fd6", pointBorderColor:"#fff", pointBorderWidth:2, borderWidth:2.2, yAxisID:"yCount", order:1 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:44,bottom:8,right:8}}, plugins:{legend:{display:false}, tooltip:{callbacks:{label(ctx){return ` ${ctx.dataset.label}: ${ctx.formattedValue} TT`;}}}}, scales:{ x:{stacked:true,ticks:{color:textColor,font:{family:"JetBrains Mono",size:11}},grid:{color:gridColor}}, yCount:{stacked:true,position:"left",beginAtZero:true,min:0,max:countMax,title:{display:true,text:"จำนวน Ticket",color:textColor,font:{size:13,weight:"bold"}},ticks:{color:textColor,stepSize:countStep,precision:0,font:{size:11}},grid:{color:gridColor}} } }, plugins:[faultBarLabelPlugin]
+  });
+}
+function renderEecOnlineChart(stats){
+  const canvas = document.getElementById("eecOnlineChart");
+  const legendEl = document.getElementById("eecOnlineLegend");
+  const chartWrap = canvas?.closest(".fault-chart-wrap");
+  if(!canvas || typeof Chart === "undefined") return;
+  if(eecOnlineChartInst){ eecOnlineChartInst.destroy(); eecOnlineChartInst = null; }
+  if(legendEl){
+    legendEl.innerHTML = `<span><i style="background:#2f9e44"></i>Closed · ${stats.closedTotal} TT</span><span><i style="background:#d94a35"></i>Create Time · ${stats.createdTotal} TT</span>`;
+  }
+  if(!stats.labels.length){
+    if(chartWrap){
+      let emptyEl = chartWrap.querySelector(".eec-chart-empty");
+      if(!emptyEl){ emptyEl = document.createElement("div"); emptyEl.className = "empty-hint eec-chart-empty"; emptyEl.style.padding = "48px 16px"; chartWrap.appendChild(emptyEl); }
+      emptyEl.textContent = "ไม่มี Ticket Online Broadband SA ตามเงื่อนไข";
+      emptyEl.style.display = "block";
+    }
+    canvas.style.display = "none";
+    return;
+  }
+  chartWrap?.querySelector(".eec-chart-empty")?.remove();
+  canvas.style.display = "block";
+  sizeEecOnlineTrendCanvas(canvas, stats.labels, 440, 24);
+  const countMax = faultCountAxisMax(stats.createdCounts.concat(stats.closedTotals));
+  const countStep = faultCountAxisStep(countMax);
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  eecOnlineChartInst = new Chart(canvas, {
+    type:"line",
+    data:{ labels:stats.labels, datasets:[
+      { label:"Closed", data:stats.closedTotals, borderColor:"#2f9e44", backgroundColor:"rgba(47,158,68,.18)", fill:true, tension:.35, pointRadius:4, pointBackgroundColor:"#2f9e44", pointBorderColor:"#fff", pointBorderWidth:2, borderWidth:2.5, yAxisID:"yCount" },
+      { label:"Create Time", data:stats.createdCounts, borderColor:"#d94a35", backgroundColor:"rgba(217,74,53,.16)", fill:true, tension:.35, pointRadius:4, pointBackgroundColor:"#d94a35", pointBorderColor:"#fff", pointBorderWidth:2, borderWidth:2.5, yAxisID:"yCount" }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:44,bottom:8,right:8}}, plugins:{legend:{display:false}, tooltip:{mode:"index", intersect:false, callbacks:{label(ctx){return ` ${ctx.dataset.label}: ${ctx.formattedValue} TT`;}}}}, interaction:{mode:"index", intersect:false}, scales:{ x:{ticks:{color:textColor,font:{family:"JetBrains Mono",size:11}},grid:{color:gridColor}}, yCount:{position:"left",beginAtZero:true,min:0,max:countMax,title:{display:true,text:"จำนวน Ticket",color:textColor,font:{size:13,weight:"bold"}},ticks:{color:textColor,stepSize:countStep,precision:0,font:{size:11}},grid:{color:gridColor}} } }, plugins:[faultBarLabelPlugin]
+  });
+}
+function setEecOnlineProvinceFilter(prov){
+  const next = prov === eecOnlineProvinceFilter ? "" : prov;
+  if(next === eecOnlineProvinceFilter) return;
+  eecOnlineProvinceFilter = next;
+  renderEecOnlinePanel();
+}
+function renderEecOnlineProvinceFilterButtons(stats){
+  const el = document.getElementById("eecOnlineProvinceFilter");
+  if(!el) return;
+  const rows = [...(stats?.createdRows || []), ...(stats?.closedRows || [])];
+  const counts = {};
+  EEC_PROVINCES.forEach(p=>{ counts[p] = 0; });
+  rows.forEach(r=>{
+    const p = getEecProvinceForTicket(r);
+    if(counts[p] != null) counts[p]++;
+  });
+  el.innerHTML = `
+    <span class="flabel">Province</span>
+    <div class="srm-ft-ofcnode-seg">
+      <button type="button" class="srm-ft-ofcnode-btn eec-prov-btn ${!eecOnlineProvinceFilter ? "active" : ""}" onclick="setEecOnlineProvinceFilter('')">ทั้งหมด<span class="seg-count">${rows.length}</span></button>
+      ${EEC_PROVINCES.map(p=> `<button type="button" class="srm-ft-ofcnode-btn eec-prov-btn ${eecOnlineProvinceFilter === p ? "active" : ""}" onclick="setEecOnlineProvinceFilter('${p}')">${esc(p)}<span class="seg-count">${counts[p] || 0}</span></button>`).join("")}
+    </div>`;
+}
+function buildEecOnlineProvinceStats(stats){
+  const activeProvinces = eecOnlineProvinceFilter ? [eecOnlineProvinceFilter] : [...EEC_PROVINCES];
+  const dayKeys = (stats.dayKeys || []).filter(day=> activeProvinces.some(p=>
+    stats.createdRows.some(r=>dayKeyFromEecTime(r?.created_time) === day && getEecProvinceForTicket(r) === p) ||
+    stats.closedRows.some(r=>getEecClosedDay(r) === day && getEecProvinceForTicket(r) === p)
+  ));
+  const created = {}, closed = {}, axisTotals = [];
+  activeProvinces.forEach(p=>{ created[p] = []; closed[p] = []; });
+  dayKeys.forEach(day=>{
+    let dayAxisMax = 0;
+    activeProvinces.forEach(p=>{
+      const c = stats.createdRows.filter(r=>dayKeyFromEecTime(r?.created_time) === day && getEecProvinceForTicket(r) === p).length;
+      const cl = stats.closedRows.filter(r=>getEecClosedDay(r) === day && getEecProvinceForTicket(r) === p).length;
+      created[p].push(c);
+      closed[p].push(cl);
+      dayAxisMax = Math.max(dayAxisMax, c, cl);
+    });
+    axisTotals.push(dayAxisMax);
+  });
+  return { labels:fmtEecTrendDayLabels(dayKeys), dayKeys, activeProvinces, created, closed, totals:axisTotals };
+}
+function renderEecOnlineProvinceChart(stats){
+  const canvas = document.getElementById("eecOnlineProvChart");
+  const legendEl = document.getElementById("eecOnlineProvLegend");
+  const chartWrap = canvas?.closest(".fault-chart-wrap");
+  if(!canvas || typeof Chart === "undefined") return;
+  if(eecOnlineProvChartInst){ eecOnlineProvChartInst.destroy(); eecOnlineProvChartInst = null; }
+  renderEecOnlineProvinceFilterButtons(stats);
+  const provStats = buildEecOnlineProvinceStats(stats);
+  if(legendEl){
+    legendEl.innerHTML = provStats.activeProvinces.map((p,i)=>`<span><i style="background:${EEC_PROVINCE_COLORS[p] || '#1c7ed6'}"></i>${p} · Create+Closed</span>`).join("");
+  }
+  if(!provStats.labels.length){
+    if(chartWrap){
+      let emptyEl = chartWrap.querySelector(".eec-chart-empty");
+      if(!emptyEl){ emptyEl = document.createElement("div"); emptyEl.className = "empty-hint eec-chart-empty"; emptyEl.style.padding = "48px 16px"; chartWrap.appendChild(emptyEl); }
+      emptyEl.textContent = "ไม่มี Trend Province Online Broadband SA";
+      emptyEl.style.display = "block";
+    }
+    canvas.style.display = "none";
+    return;
+  }
+  chartWrap?.querySelector(".eec-chart-empty")?.remove();
+  canvas.style.display = "block";
+  sizeEecOnlineTrendCanvas(canvas, provStats.labels, Math.max(440, Math.min(760, 280 + (provStats.labels.length * 8))), 28);
+  const countMax = faultCountAxisMax(provStats.totals);
+  const countStep = faultCountAxisStep(countMax);
+  const textColor = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#5b636b";
+  const gridColor = getComputedStyle(document.body).getPropertyValue("--border-soft").trim() || "#cfd6de";
+  const datasets = provStats.activeProvinces.flatMap(p=>[
+    { label:`${p} · Create`, data:provStats.created[p], backgroundColor:EEC_PROVINCE_SA_COLORS[p] || EEC_PROVINCE_COLORS[p], stack:`${p}-create`, yAxisID:"yCount", order:2 },
+    { label:`${p} · Closed`, data:provStats.closed[p], backgroundColor:EEC_PROVINCE_NSA_COLORS[p] || EEC_PROVINCE_COLORS[p], stack:`${p}-closed`, yAxisID:"yCount", order:2 }
+  ]);
+  eecOnlineProvChartInst = new Chart(canvas, {
+    type:"bar",
+    data:{ labels:provStats.labels, datasets },
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:34,bottom:8,right:8}}, plugins:{legend:{display:false}}, scales:{ x:{stacked:true,ticks:{autoSkip:true,maxTicksLimit:18,maxRotation:0,color:textColor,font:{family:"JetBrains Mono",size:11}},grid:{color:gridColor}}, yCount:{stacked:true,position:"left",beginAtZero:true,min:0,max:countMax,title:{display:true,text:"จำนวน Ticket",color:textColor,font:{size:13,weight:"bold"}},ticks:{color:textColor,stepSize:countStep,precision:0,font:{size:11}},grid:{color:gridColor}} } }, plugins:[faultBarLabelPlugin]
+  });
+}
+function buildEecOnlineSubRcRows(rows){
+  const byKey = new Map();
+  (rows || []).forEach(r=>{
+    const raw = getEecSubRootCauseForTicket(r) || "(ไม่ระบุ Sub Root Cause)";
+    const key = getEecSubRcCanonicalKey ? getEecSubRcCanonicalKey(raw, {}) : raw;
+    if(!byKey.has(key)) byKey.set(key, { key, label:raw, tickets:[], sites:new Set(), siteCounts:new Map(), over:0, within:0, downtime:0, downtimeCount:0 });
+    const slot = byKey.get(key);
+    slot.tickets.push(r);
+    const site = extractEecSite(r);
+    if(site){
+      slot.sites.add(site);
+      slot.siteCounts.set(site, (slot.siteCounts.get(site) || 0) + 1);
+    }
+    if(isEecOnlineOverSla(r)) slot.over++; else slot.within++;
+    const dt = calcFaultDowntimeMinutes(r);
+    if(Number.isFinite(dt)){ slot.downtime += dt; slot.downtimeCount++; }
+  });
+  return [...byKey.values()].map(row=>({
+    ...row,
+    count: row.tickets.length,
+    siteCount: row.sites.size,
+    repeatSiteCount: [...row.siteCounts.values()].filter(n=>n >= 2).length,
+    avgDowntime: row.downtimeCount ? Math.round(row.downtime / row.downtimeCount) : null
+  })).sort((a,b)=> b.count - a.count || b.over - a.over || a.label.localeCompare(b.label, "th"));
+}
+function buildEecOnlineSiteGroups(tickets){
+  const bySite = new Map();
+  (tickets || []).forEach(r=>{
+    const site = extractEecSite(r) || String(r?.site_id || "").trim() || "(ไม่ระบุ Site)";
+    if(!bySite.has(site)) bySite.set(site, { siteKey:site, siteLabel:site, tickets:[] });
+    bySite.get(site).tickets.push(r);
+  });
+  return [...bySite.values()]
+    .map(g=>({ ...g, count:g.tickets.length, over:g.tickets.filter(isEecOnlineOverSla).length }))
+    .sort((a,b)=> b.count - a.count || a.siteKey.localeCompare(b.siteKey, "th"));
+}
+function toggleEecOnlineSubRcExpand(rcKey){
+  if(eecOnlineExpandRc !== rcKey) eecOnlineExpandSite = null;
+  eecOnlineExpandRc = eecOnlineExpandRc === rcKey ? null : rcKey;
+  renderEecOnlineSubRcTable(buildEecOnlineStats());
+}
+function toggleEecOnlineSiteExpand(rcKey, siteKey){
+  const key = `${rcKey}|${siteKey}`;
+  eecOnlineExpandSite = eecOnlineExpandSite === key ? null : key;
+  renderEecOnlineSubRcTable(buildEecOnlineStats());
+}
+function onEecOnlineSubRcClick(e){
+  const siteRow = e.target.closest(".eec-online-site-row[data-rc-key][data-site]");
+  if(siteRow){
+    toggleEecOnlineSiteExpand(siteRow.getAttribute("data-rc-key"), siteRow.getAttribute("data-site"));
+    return;
+  }
+  const row = e.target.closest(".eec-online-rc-row[data-rc-key]");
+  if(!row) return;
+  toggleEecOnlineSubRcExpand(row.getAttribute("data-rc-key"));
+}
+function renderEecOnlineSiteTable(row){
+  const sites = buildEecOnlineSiteGroups(row.tickets);
+  if(!sites.length) return `<div class="empty-hint" style="padding:16px;">ไม่มี Site</div>`;
+  const rows = sites.flatMap(site=>{
+    const expandKey = `${row.key}|${site.siteKey}`;
+    const isOpen = eecOnlineExpandSite === expandKey;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const slaCell = `<span class="sev-badge">Within ${site.count - site.over}</span> <span class="sev-badge" style="border-color:var(--coral);color:var(--coral);">Over ${site.over}</span>`;
+    const main = `<tr class="eec-online-site-row srm-ofcnode-rc-row" data-rc-key="${esc(row.key)}" data-site="${esc(site.siteKey)}">
+      <td>${chevron}<span class="site-plkd-cell">${esc(site.siteLabel)}</span></td>
+      <td class="srm-ofcnode-rc-count">${site.count}</td>
+      <td>${slaCell}</td>
+    </tr>`;
+    const detail = isOpen
+      ? `<tr class="srm-ofcnode-expand-row"><td colspan="3">${renderEecAnalysisTicketDetailTable(site.tickets, undefined, { hideSiteCol:true, nested:true, hideLongAgingStatus:true })}</td></tr>`
+      : "";
+    return [main, detail].filter(Boolean);
+  }).join("");
+  return `<div class="eec-analysis-detail-panel"><div class="table-scroll eec-analysis-detail-scroll"><table class="srm-ft-ofcnode-detail-table eec-subrc-site-table"><thead><tr><th>Site</th><th>WO</th><th>SLA</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+function renderEecOnlineSubRcTable(stats){
+  const wrap = document.getElementById("eecOnlineSubRcWrap");
+  if(!wrap) return;
+  const rows = buildEecOnlineSubRcRows(stats.closedRows);
+  if(!rows.length){
+    wrap.innerHTML = `<div class="empty-hint" style="padding:18px;">ไม่มี Detail Sub Root Cause สำหรับ Online Broadband SA</div>`;
+    return;
+  }
+  const body = rows.flatMap((r,i)=>{
+    const isOpen = eecOnlineExpandRc === r.key;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">▾</span>`;
+    const main = `<tr class="eec-online-rc-row srm-ofcnode-rc-row${isOpen ? " is-open" : ""}" data-rc-key="${esc(r.key)}">
+      <td class="mono">${i + 1}</td>
+      <td class="subject-cell">${chevron}${esc(r.label)}</td>
+      <td class="srm-ofcnode-rc-count">${r.count}</td>
+      <td class="srm-ofcnode-rc-count">${r.siteCount}</td>
+      <td class="srm-ofcnode-rc-count">${r.repeatSiteCount}</td>
+      <td><span class="sev-badge">Within ${r.within}</span> <span class="sev-badge" style="border-color:var(--coral);color:var(--coral);">Over ${r.over}</span></td>
+      <td class="dt-cell">${r.avgDowntime != null ? fmtFaultDowntime(r.avgDowntime) : "-"}</td>
+    </tr>`;
+    const expand = isOpen ? `<tr class="srm-ofcnode-expand-row"><td colspan="7">${renderEecOnlineSiteTable(r)}</td></tr>` : "";
+    return [main, expand].filter(Boolean);
+  }).join("");
+  wrap.innerHTML = `<table class="srm-ft-ofcnode-detail-table"><thead><tr><th>#</th><th>Sub Root Cause</th><th>WO ปิด</th><th>Site</th><th>Repeat Site</th><th>SLA</th><th>Avg. Downtime</th></tr></thead><tbody>${body}</tbody></table>`;
+  wrap.onclick = onEecOnlineSubRcClick;
+}
+function renderEecOnlinePanel(){
+  const stats = buildEecOnlineStats();
+  renderEecOnlineCards(stats);
+  renderEecOnlineClosedOverChart(stats);
+  renderEecOnlineChart(stats);
+  renderEecOnlineProvinceChart(stats);
+  renderEecOnlineSubRcTable(stats);
+}
 function switchEecSubTab(tab){
-  if(!["charts","open","mapping","over-sla","ltr","site-search","analysis","team"].includes(tab)) return;
+  if(!["charts","open","online","mapping","over-sla","ltr","site-search","analysis","team"].includes(tab)) return;
   eecSubTab = tab;
   document.getElementById("eecSubChartsBtn")?.classList.toggle("active", tab === "charts");
   document.getElementById("eecSubOpenBtn")?.classList.toggle("active", tab === "open");
+  document.getElementById("eecSubOnlineBtn")?.classList.toggle("active", tab === "online");
   document.getElementById("eecSubMappingBtn")?.classList.toggle("active", tab === "mapping");
   document.getElementById("eecSubOverSlaBtn")?.classList.toggle("active", tab === "over-sla");
   document.getElementById("eecSubLtrBtn")?.classList.toggle("active", tab === "ltr");
@@ -17627,6 +18573,7 @@ function switchEecSubTab(tab){
   document.getElementById("eecSubTeamBtn")?.classList.toggle("active", tab === "team");
   const chartsEl = document.getElementById("eecSubCharts");
   const openEl = document.getElementById("eecSubOpen");
+  const onlineEl = document.getElementById("eecSubOnline");
   const mappingEl = document.getElementById("eecSubMapping");
   const overSlaEl = document.getElementById("eecSubOverSla");
   const ltrEl = document.getElementById("eecSubLtr");
@@ -17635,6 +18582,7 @@ function switchEecSubTab(tab){
   const teamEl = document.getElementById("eecSubTeam");
   if(chartsEl) chartsEl.style.display = tab === "charts" ? "block" : "none";
   if(openEl) openEl.style.display = tab === "open" ? "block" : "none";
+  if(onlineEl) onlineEl.style.display = tab === "online" ? "block" : "none";
   if(mappingEl) mappingEl.style.display = tab === "mapping" ? "block" : "none";
   if(overSlaEl) overSlaEl.style.display = tab === "over-sla" ? "block" : "none";
   if(ltrEl) ltrEl.style.display = tab === "ltr" ? "block" : "none";
@@ -17656,6 +18604,7 @@ function renderEecTab(){
   renderEecDateRangeState();
   renderEecFocusSiteFilterState();
   if(eecSubTab === "open") renderEecOpenPanel();
+  else if(eecSubTab === "online") renderEecOnlinePanel();
   else if(eecSubTab === "mapping") renderEecMapping();
   else if(eecSubTab === "ltr") renderEecLtrPanel();
   else if(eecSubTab === "over-sla") renderEecOverSlaPanel();
@@ -17682,11 +18631,11 @@ async function loadEecSiteTickets(showToast, force){
   const run = (async()=>{
     try{
       await Promise.all([fetchEecSites(), fetchEecFocusSites()]);
-      const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,resume_time,wo_creator,created_at";
+      const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,alarm_description,created_time,require_finish_time,closed_time,departed_time,arrived_time,resume_time,wo_creator,created_at";
       try{
         eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + select + "&order=closed_time.asc");
       }catch(selectErr){
-        if(!/resume_time/i.test(String(selectErr?.message || selectErr))) throw selectErr;
+        if(!/(resume_time|require_finish_time|alarm_description)/i.test(String(selectErr?.message || selectErr))) throw selectErr;
         const fallbackSelect = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,wo_creator,created_at";
         eecSiteTickets = await fetchAllFromRest(EEC_REST + "?select=" + fallbackSelect + "&order=closed_time.asc");
       }
@@ -17797,8 +18746,8 @@ async function bulkInsertEecSites(rows, statusEl){
 }
 const EEC_UPSERT_FIELD_LIST = [
   "incident_id","source_ticket_id","severity","subject","site_id","province","status",
-  "problem","cause","root_cause","sub_root_cause","remedy","team",
-  "created_time","closed_time","departed_time","arrived_time","resume_time","wo_creator","updated_at"
+  "problem","cause","root_cause","sub_root_cause","remedy","alarm_description","team",
+  "created_time","require_finish_time","closed_time","departed_time","arrived_time","resume_time","wo_creator","updated_at"
 ];
 function sanitizeEecUpsertPayload(row){
   if(!row || !String(row.incident_id || "").trim()) return null;
@@ -17867,7 +18816,9 @@ function mapEecImportRow(r){
     problem: problem || null,
     cause: cause || null,
     remedy: get("Remedy") || null,
+    alarm_description: getImportField(r, "Alarm Description", "Alarm Desc", "Alarm Name", "Alarm") || null,
     created_time: parseEecExcelDate(r["Create Date"]),
+    require_finish_time: parseEecExcelDate(r["Require Finish Time"]),
     resume_time: parseEecExcelDate(r["Pause/Resume Time"]),
     closed_time: closed,
     wo_creator: getImportWoCreator(r) || null,
@@ -17912,7 +18863,9 @@ function mapEecWoImportRow(r){
     problem: null,
     cause: null,
     remedy: raw.close_description || raw.complete_solution || null,
+    alarm_description: raw.alarm_description || null,
     created_time: raw.created_time || null,
+    require_finish_time: raw.require_finish_time || null,
     departed_time: raw.departed_time || null,
     arrived_time: raw.arrived_time || null,
     resume_time: raw.resume_time || null,
@@ -17948,7 +18901,7 @@ async function bulkInsertEecTickets(rows, opts){
     const siteMsg = siteSynced ? ` · sites ${siteSynced}` : "";
     const hint = mapFn === mapEecWoImportRow
       ? "EEC Site · SA/NSA · WO Creator System · Closed · ไม่รวม MT"
-      : "EEC Site · SA/NSA · WO Creator System · Closed / Restoration Date";
+      : "EEC Site · SA/NSA · WO Creator System · Closed / Restoration Date / Open · รวม Broadband/Online";
     statusEl.textContent = `No valid ${label} rows (${hint}) · skipped ${skipped}${siteMsg}`;
     return;
   }
@@ -17983,6 +18936,56 @@ async function bulkInsertEecTickets(rows, opts){
   statusEl.textContent = `อัปโหลด ${label} ${synced} แถว · ข้าม ${skipped}${dupMsg}${subMsg}${siteMsg} · รวม ${eecSiteTickets.length} TT · ${EEC_SITE_SET.size} Site`;
   toast(`EEC upload: ${synced} ${label}${synced === 1 ? "" : "s"}`);
 }
+function passesEecOpenTicketFocus(raw){
+  if(!raw) return false;
+  if(isSrmMaintenanceWo(raw)) return false;
+  if(!isFaultSrmSeverity(raw)) return false;
+  if(!isFaultSystemWoCreator(raw)) return false;
+  if(!hasFaultSourceTicketId(raw)) return false;
+  if(!raw.created_time) return false;
+  const site = extractEecSite(raw);
+  return !!(site && EEC_SITE_SET.has(site));
+}
+function mapEecOpenTicketImportRow(r){
+  if(isSrmMaintenanceWo({ work_order_id: String(r["Work Order ID"] || "").trim() })) return null;
+  if(rowHasWoCreatorColumn(r) && !isSystemWoCreatorRow(r)) return null;
+  const raw = mapFaultImportRow(r);
+  if(!raw) return null;
+  if(!rowHasWoCreatorColumn(r) && !raw.wo_creator) raw.wo_creator = "System";
+  if(!passesEecOpenTicketFocus(raw)) return null;
+  const site = extractEecSite(raw);
+  const incidentId = String(raw.work_order_id || raw.source_ticket_id || "").trim();
+  if(!incidentId) return null;
+  const closed = parseEecClosedFromImportRow(r, "wo");
+  const subRootCause = String(raw.sub_root_cause || "").trim();
+  const rootCause = String(raw.root_cause || "").trim();
+  const team = String(raw.team || "").trim();
+  const payload = {
+    incident_id: incidentId,
+    source_ticket_id: raw.source_ticket_id || null,
+    severity: getSrmFtSeverityKey(raw),
+    subject: raw.subject || "",
+    site_id: site,
+    province: getEecProvinceForTicket({ site_id: site }),
+    status: raw.status || "",
+    problem: null,
+    cause: null,
+    remedy: raw.close_description || raw.complete_solution || null,
+    alarm_description: raw.alarm_description || null,
+    created_time: raw.created_time || null,
+    require_finish_time: raw.require_finish_time || null,
+    departed_time: raw.departed_time || null,
+    arrived_time: raw.arrived_time || null,
+    resume_time: raw.resume_time || null,
+    closed_time: closed || raw.closed_time || null,
+    wo_creator: raw.wo_creator || "System",
+    updated_at: new Date().toISOString()
+  };
+  if(rootCause) payload.root_cause = rootCause;
+  if(subRootCause) payload.sub_root_cause = subRootCause;
+  if(team) payload.team = team;
+  return payload;
+}
 function handleEecWoUpload(evt){
   const file = evt.target.files[0];
   if(!file) return;
@@ -17998,6 +19001,26 @@ function handleEecWoUpload(evt){
     }
     await fetchEecSites();
     await bulkInsertEecTickets(rows, { mapFn: mapEecWoImportRow, label: "work order" });
+    evt.target.value = "";
+  };
+  if(file.name.match(/\.csv$/i)) reader.readAsText(file);
+  else reader.readAsBinaryString(file);
+}
+function handleEecOpenTicketUpload(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    let rows = [];
+    if(file.name.match(/\.csv$/i)){
+      rows = parseCSV(e.target.result);
+    } else {
+      const wb = XLSX.read(e.target.result, {type:"binary", cellDates:true});
+      const sheet = getFaultUploadSheet(wb);
+      rows = XLSX.utils.sheet_to_json(sheet, {defval:"", raw:false});
+    }
+    await fetchEecSites();
+    await bulkInsertEecTickets(rows, { mapFn: mapEecOpenTicketImportRow, label: "open ticket" });
     evt.target.value = "";
   };
   if(file.name.match(/\.csv$/i)) reader.readAsText(file);
@@ -18299,33 +19322,11 @@ function formatCwStatusMessage(){
   return `${rows.length} TT · ${sites} Site · Region CW · WO Creator System`;
 }
 async function loadCwSiteTickets(showToast, force){
-  if(cwSiteTicketsLoadingPromise) return cwSiteTicketsLoadingPromise;
-  if(cwSiteTicketsLoaded && !force && !showToast){
-    if(currentTab === "cw") renderCwTab();
-    return;
-  }
-  cwSiteTicketsLoadingPromise = (async()=>{
-    try{
-      const select = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,require_finish_time,closed_time,departed_time,arrived_time,resume_time,wo_creator,created_at";
-      try{
-        cwSiteTickets = await fetchAllFromRest(CW_REST + "?select=" + select + "&order=closed_time.asc");
-      }catch(selectErr){
-        if(!/require_finish_time/i.test(String(selectErr?.message || selectErr))) throw selectErr;
-        const fallbackSelect = "incident_id,source_ticket_id,severity,subject,site_id,province,status,problem,cause,root_cause,sub_root_cause,remedy,team,created_time,closed_time,departed_time,arrived_time,wo_creator,created_at";
-        cwSiteTickets = await fetchAllFromRest(CW_REST + "?select=" + fallbackSelect + "&order=closed_time.asc");
-      }
-      cwSiteTicketsLoaded = true;
-      if(showToast) toast(`CW: ${getCwBaseTickets().length} TT · Region CW`);
-      if(currentTab === "cw") renderCwTab();
-    }catch(e){
-      console.warn("loadCwSiteTickets failed:", e);
-      cwSiteTickets = [];
-      if(currentTab === "cw") renderCwTab();
-    }finally{
-      cwSiteTicketsLoadingPromise = null;
-    }
-  })();
-  return cwSiteTicketsLoadingPromise;
+  cwSiteTickets = [];
+  cwSiteTicketsLoaded = true;
+  cwSiteTicketsLoadingPromise = null;
+  if(showToast) toast("CW Report ถูกปิดใช้งานแล้ว");
+  return [];
 }
 function renderCwCards(elId, rows){
   const el = document.getElementById(elId);
@@ -18867,35 +19868,25 @@ function toast(msg){
 }
 (async function init(){
   try{
-    const srmFtLoad = Promise.all([
-      fetchSrmFreeTextFromDb(),
-      fetchSrmMappingHiddenSitesFromDb()
-    ]);
     await fetchSiteCodes();
     await fetchTeamMap();
-    await loadAll();
+    await loadHomeDataLazy("home", false);
     moveTabIndicator();
     moveFaultSubTabIndicator();
     moveSrmSubTabIndicator();
     setTimeout(moveTabIndicator, 300);
     setTimeout(moveFaultSubTabIndicator, 300);
     setTimeout(moveSrmSubTabIndicator, 300);
-    await srmFtLoad;
-    if(currentTab==="srm") renderSiteRepeatMapping();
     document.getElementById("srmView")?.addEventListener("click", onSrmViewClick);
     document.getElementById("srmSubFreeText")?.addEventListener("click", onSrmFtPanelClick);
     document.getElementById("srmSubFreeText")?.addEventListener("change", onSrmFtPanelChange);
     document.getElementById("srmSubDashboard")?.addEventListener("click", onSrmDashboardClick);
-    Promise.all([fetchGroupProblems(), fetchCauseOvers(), fetchLongTimeReasons()]).catch(e=>{
-      console.warn("Fault config load failed:", e);
-    });
   }catch(e){
     console.error("init failed:", e);
     toast("เริ่มต้นแอปไม่สำเร็จ");
     try{ renderHome(); }catch(re){ console.error("renderHome fallback failed:", re); }
   }
-})();
-</script>
+})();</script>
 <div class="modal-overlay" id="sevDetailModal" onclick="if(event.target===this) closeSevModal()">
   <div class="modal-box">
     <div class="modal-head">
