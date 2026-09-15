@@ -2622,6 +2622,8 @@ let cwAnalysisExpandOfcSubRc = null;
 let eecSubTab = "charts";
 let eecAnalysisExpandOfcSite = null;
 let eecAnalysisExpandOfcSection = null;
+let eecAnalysisExpandOfcSubRc = null;
+let eecAnalysisOfcSubRcFilter = "all";
 let eecAnalysisExpandDetailKey = null;
 let eecAnalysisBatteryExpandSite = null;
 let eecAnalysisSummaryExpandRow = null;
@@ -11853,6 +11855,7 @@ async function bulkInsertFaultTickets(rows, statusElId = "statusMsgFault"){
     if(isBroadbandRow(r)){ broadbandSkipped++; return; }
     const p = mapFaultImportRow(r);
     if(!p) return;
+    delete p.alarm_description;
     if(!hasFaultSourceTicketId(p)){ noSourceTicketSkipped++; return; }
     payloads.push(p);
   });
@@ -17462,10 +17465,18 @@ function bindEecAnalysisGridClick(){
   eecAnalysisGridClickBound = true;
 }
 function onEecAnalysisGridClick(e){
+  const ofcSubRcRow = e.target.closest("tr.eec-analysis-ofc-subrc-row[data-section-key][data-subrc-key]");
+  if(ofcSubRcRow){
+    const key = `${ofcSubRcRow.getAttribute("data-section-key")}|${ofcSubRcRow.getAttribute("data-subrc-key")}`;
+    eecAnalysisExpandOfcSubRc = (eecAnalysisExpandOfcSubRc === key) ? null : key;
+    renderEecAnalysisPanel();
+    return;
+  }
   const ofcSectionRow = e.target.closest("tr.eec-analysis-section-row[data-section-key]");
   if(ofcSectionRow){
     const key = ofcSectionRow.getAttribute("data-section-key");
     eecAnalysisExpandOfcSection = (eecAnalysisExpandOfcSection === key) ? null : key;
+    eecAnalysisExpandOfcSubRc = null;
     if(eecAnalysisExpandOfcSection) eecAnalysisExpandDetailKey = null;
     renderEecAnalysisPanel();
     return;
@@ -17476,6 +17487,7 @@ function onEecAnalysisGridClick(e){
     const wasOpen = eecAnalysisExpandOfcSite === key;
     eecAnalysisExpandOfcSite = wasOpen ? null : key;
     eecAnalysisExpandOfcSection = null;
+    eecAnalysisExpandOfcSubRc = null;
     if(eecAnalysisExpandOfcSite) eecAnalysisExpandDetailKey = null;
     renderEecAnalysisPanel();
     return;
@@ -17573,7 +17585,22 @@ function renderEecAnalysisOfcSectionExpand(section){
   const head = lines.length
     ? `<p class="muted" style="margin:0 0 8px;font-size:11px;padding:8px 14px 0;">${lines.join(" · ")}</p>`
     : "";
-  return `${head}${renderEecAnalysisTicketDetailTable(section.tickets, undefined, { hideLongAgingStatus:true })}`;
+  const subRows = buildEecOnlineSubRcRows(section.tickets || []);
+  if(!subRows.length) return `${head}<div class="empty-hint" style="padding:12px;">ไม่พบ Sub Root Cause</div>`;
+  const body = subRows.map((row, idx)=>{
+    const expandKey = `${section.key}|${row.key}`;
+    const isOpen = eecAnalysisExpandOfcSubRc === expandKey;
+    const chevron = `<span class="eec-po-chevron ${isOpen ? "" : "collapsed"}">v</span>`;
+    const main = `<tr class="eec-analysis-ofc-subrc-row srm-ofcnode-rc-row${isOpen ? " active" : ""}" data-section-key="${esc(section.key)}" data-subrc-key="${esc(row.key)}">
+      <td>${idx + 1}</td><td>${chevron}<span class="subject-cell">${esc(row.label)}</span></td><td class="srm-ofcnode-rc-count">${row.count}</td>
+    </tr>`;
+    const detail = isOpen
+      ? `<tr class="srm-ofcnode-expand-row"><td colspan="3">${renderEecAnalysisTicketDetailTable(row.tickets, undefined, { hideLongAgingStatus:true })}</td></tr>`
+      : "";
+    return main + detail;
+  }).join("");
+  return `<div class="eec-analysis-detail-panel">${head}<div class="fault-section-title" style="font-size:12px;margin:0 14px 8px;">Group by Sub Root Cause</div>
+    <div class="table-scroll eec-analysis-detail-scroll"><table class="srm-ft-ofcnode-detail-table"><thead><tr><th>#</th><th>Sub Root Cause</th><th>WO</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 function renderEecAnalysisOfcSiteExpand(siteRow){
   const sections = (siteRow.sections || []).sort((a,b)=> b.wo - a.wo || a.section.localeCompare(b.section, "th"));
@@ -17633,6 +17660,47 @@ function renderEecAnalysisOfcSiteTable(ofcSections){
       return main + expand;
     }).join("")}</tbody></table>`;
 }
+function getEecAnalysisOfcSubRcOptions(ofcSections){
+  const tickets = (ofcSections || []).flatMap(section=> section.tickets || []);
+  return buildEecOnlineSubRcRows(tickets).map(row=>({ key:row.key, label:row.label, count:row.count }));
+}
+function filterEecAnalysisOfcSectionsBySubRc(ofcSections){
+  if(!eecAnalysisOfcSubRcFilter || eecAnalysisOfcSubRcFilter === "all") return ofcSections || [];
+  const allTickets = (ofcSections || []).flatMap(section=> section.tickets || []);
+  const rawLabels = allTickets.map(r=> getEecSubRootCauseForTicket(r) || "(ไม่ระบุ Sub Root Cause)");
+  const thToEn = buildEecOnlineSubRcThToEnMap(rawLabels);
+  return (ofcSections || []).map(section=>{
+    const tickets = (section.tickets || []).filter(r=>{
+      const raw = getEecSubRootCauseForTicket(r) || "(ไม่ระบุ Sub Root Cause)";
+      return getEecOnlineSubRcCanonicalKey(raw, thToEn) === eecAnalysisOfcSubRcFilter;
+    });
+    if(!tickets.length) return null;
+    const sites = new Set(tickets.map(getEecAnalysisSiteKey).filter(Boolean));
+    const label = buildEecOnlineSubRcRows(tickets)[0]?.label || "(ไม่ระบุ Sub Root Cause)";
+    return { ...section, tickets, wo:tickets.length, sites, site:sites.size, subRc:label, repeat:tickets.length >= 2 };
+  }).filter(Boolean).sort((a,b)=> b.wo - a.wo || String(a.section).localeCompare(String(b.section), "th"));
+}
+function setEecAnalysisOfcSubRcFilter(value){
+  eecAnalysisOfcSubRcFilter = value || "all";
+  eecAnalysisExpandOfcSite = null;
+  eecAnalysisExpandOfcSection = null;
+  eecAnalysisExpandOfcSubRc = null;
+  renderEecAnalysisPanel();
+}
+function renderEecAnalysisOfcSubRcFilter(ofcSections){
+  const options = getEecAnalysisOfcSubRcOptions(ofcSections);
+  const total = options.reduce((sum,row)=>sum + row.count, 0);
+  return `<div class="fault-overview-toolbar" style="margin:0 0 12px;align-items:flex-end;">
+    <div class="fgroup" style="min-width:420px;max-width:720px;">
+      <label class="flabel" for="eecAnalysisOfcSubRcSelect">Sub Root Cause</label>
+      <select id="eecAnalysisOfcSubRcSelect" class="sev-select" style="width:100%;" onchange="setEecAnalysisOfcSubRcFilter(this.value)">
+        <option value="all" ${eecAnalysisOfcSubRcFilter === "all" ? "selected" : ""}>ทั้งหมด (${total} WO)</option>
+        ${options.map(row=>`<option value="${esc(row.key)}" ${eecAnalysisOfcSubRcFilter === row.key ? "selected" : ""}>${esc(row.label)} (${row.count} WO)</option>`).join("")}
+      </select>
+    </div>
+    <span class="status-msg" style="margin:0;text-transform:none;font-size:11px;">เลือกหัวข้อเพื่อเรียง Site ↔ Site จาก WO มากไปน้อย</span>
+  </div>`;
+}
 function renderEecAnalysisPanel(){
   const dash = buildEecAnalysisDashboard();
   const periodEl = document.getElementById("eecAnalysisPeriod");
@@ -17691,7 +17759,9 @@ function renderEecAnalysisPanel(){
         return [main, expand].filter(Boolean);
       }).join("")}</tbody></table>`
     : `<div class="empty-hint" style="padding:12px;">ไม่พบ Section Site↔Site ใน Subject (รูปแบบ CCS####-AC/AG-## ↔ CCO####-AC/AG-## / CPE to CPE / Section A to B)</div>`;
-  const ofcSiteSectionTable = renderEecAnalysisOfcSiteTable(dash.ofcSections);
+  const filteredOfcSections = filterEecAnalysisOfcSectionsBySubRc(dash.ofcSections);
+  const ofcSiteSectionTable = renderEecAnalysisOfcSiteTable(filteredOfcSections);
+  const ofcSubRcFilter = renderEecAnalysisOfcSubRcFilter(dash.ofcSections);
   gridEl.innerHTML = `
     <div class="fault-chart-card eec-analysis-block eec-analysis-hw-block${isEecAnalysisBlockExpanded("battery") ? " eec-analysis-block-expanded" : ""}">
       <div class="fault-chart-title">Battery</div>
@@ -17713,7 +17783,8 @@ function renderEecAnalysisPanel(){
     </div>
     <div class="fault-chart-card eec-analysis-block" style="grid-column:1 / -1;">
       <div class="fault-chart-title">OFC · Section Site ↔ Site</div>
-      <p class="status-msg" style="margin:0 0 10px;text-transform:none;font-size:11px;">กด Section เพื่อดู Ticket · Track จาก Endpoint เช่น CCS0050-AC-01 / CCS0050-AG-01 ↔ CCO0359-AC-01 (ตัด dBm ออกเมื่อจับคู่) · คอลัมน์ Network/Node แสดงเครือข่าย ASON / สายใหญ่ (Trunk) และประเภท Node DN/PN/RN/CPE ถ้าตรวจพบใน Subject · WO ≥ 2 = ซ้ำ · WO ที่ไม่มี Section คู่จะถูกซ่อนไว้ (ไม่แสดงเพื่อลดภาระการโหลด)</p>
+      <p class="status-msg" style="margin:0 0 10px;text-transform:none;font-size:11px;">เลือก Sub Root Cause เพื่อดู Site ↔ Site ที่มีปัญหามากสุด · กด Site หลัก → Section → Sub Root Cause → Detail Ticket · Track จาก Endpoint เช่น CCS0050-AC-01 / CCS0050-AG-01 ↔ CCO0359-AC-01 · WO ≥ 2 = ซ้ำ</p>
+      ${ofcSubRcFilter}
       ${ofcSiteSectionTable}
     </div>`;
   bindEecAnalysisGridClick();
@@ -18355,6 +18426,9 @@ function getEecOnlineTickets(){
   });
   return rows;
 }
+function isEecOnlineClosedTicket(r){
+  return String(r?.status || "").trim().toLowerCase() === "closed" && !!getEecClosedDay(r);
+}
 function getEecOnlineSlaMinutes(r){
   const explicit = String(r?.source_sla || r?.sla || "").trim().toUpperCase();
   const subject = String(r?.subject || "").toUpperCase();
@@ -18397,7 +18471,7 @@ function buildEecOnlineTrendDayKeys(daySet){
 function buildEecOnlineStats(){
   const allRows = getEecOnlineTickets();
   const createdRows = allRows.filter(r=>passesEecOnlineDateRange(r, "created") && dayKeyFromEecTime(r?.created_time));
-  const closedRows = allRows.filter(r=>passesEecOnlineDateRange(r, "closed") && getEecClosedDay(r) && isEecClosedStatus(r));
+  const closedRows = allRows.filter(r=>passesEecOnlineDateRange(r, "closed") && isEecOnlineClosedTicket(r));
   const daySet = new Set(closedRows.map(getEecClosedDay).filter(Boolean));
   const dayKeys = buildEecOnlineTrendDayKeys(daySet);
   const labels = fmtEecTrendDayLabels(dayKeys);
@@ -18612,13 +18686,20 @@ function renderEecOnlineProvinceChart(stats){
   });
 }
 function normalizeEecOnlineSubRcPart(text){
-  return stripEecSubRcCodePrefix(text)
+  let value = stripEecSubRcCodePrefix(text)
     .normalize("NFKC")
     .toLowerCase()
     .replace(/[\u200B-\u200D\uFEFF]/g, "")
     .replace(/[‐‑‒–—−]/g, "-")
-    .replace(/\s*([_\-/,:;])\s*/g, "$1")
-    .replace(/[.]+$/g, "")
+    .trim();
+  // Source บางชุดเติมลำดับชั้น Root Cause ไว้หน้า Sub Root Cause เช่น
+  // "Network - Power System_Power - AC - PEA/MEA" ให้ใช้ข้อความหลัง _ เป็น semantic key
+  // เพื่อรวมกับชื่อ TH+EN และชื่อ English-only ที่หมายถึงหัวข้อเดียวกัน
+  const hierarchy = value.split("_").map(part=>part.trim()).filter(Boolean);
+  if(hierarchy.length > 1) value = hierarchy[hierarchy.length - 1];
+  return value
+    .replace(/[()[\]{}]/g, " ")
+    .replace(/[^a-z0-9\u0E00-\u0E7F]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -18741,7 +18822,9 @@ function renderEecOnlineSubRcTable(stats){
   const wrap = document.getElementById("eecOnlineSubRcWrap");
   if(!wrap) return;
   // ตัวเลขสรุปต้องใช้ชุดเดียวกับ Ticket Detail: ไม่รวม Closed (Auto) และนับ WO ไม่ซ้ำ
-  const detailRows = getEecAnalysisDetailTickets(dedupeEecOnlineWorkOrders(stats.closedRows));
+  const detailRows = getEecAnalysisDetailTickets(
+    dedupeEecOnlineWorkOrders((stats.closedRows || []).filter(isEecOnlineClosedTicket))
+  );
   const rows = buildEecOnlineSubRcRows(detailRows);
   if(!rows.length){
     wrap.innerHTML = `<div class="empty-hint" style="padding:18px;">ไม่มี Detail Sub Root Cause สำหรับ Online Mapping SA</div>`;
@@ -18772,7 +18855,7 @@ function getEecOnlineAnalysisDay(r){
   return getEecClosedDay(r) || dayKeyFromEecTime(r?.created_time) || "";
 }
 function getEecOnlineAnalysisRows(){
-  let rows = getEecOnlineTickets();
+  let rows = getEecOnlineTickets().filter(isEecOnlineClosedTicket);
   if(eecOnlineProvinceFilter) rows = rows.filter(r=> getEecOnlineProvinceForTicket(r) === eecOnlineProvinceFilter);
   if(eecDateFrom || eecDateTo){
     return rows.filter(r=>{
@@ -18908,13 +18991,13 @@ function buildEecOnlineRepeatGroups(){
   // เพื่อรวมหัวข้อที่เป็นคำแปลของกันและกัน (เช่น "Fiber Cut (สายไฟเบอร์ขาด)" กับ "สายไฟเบอร์ขาด")
   // ให้ตกเป็น group เดียวกัน ไม่งั้นจะถูกนับแยกและพลาดการตรวจจับ repeat
   const rawList = rows.map(r=> getEecSubRootCauseForTicket(r) || "-");
-  const thToEn = buildEecSubRcThToEnMap(rawList);
+  const thToEn = buildEecOnlineSubRcThToEnMap(rawList);
   const bySubRc = new Map(); // subRcKey -> { variants:Map, sites:Map(site -> tickets[]) }
   rows.forEach(r=>{
     const site = extractEecOnlineSiteId(r);
     if(!site) return;
     const rawSub = getEecSubRootCauseForTicket(r) || "-";
-    const subRcKey = getEecSubRcCanonicalKey(rawSub, thToEn);
+    const subRcKey = getEecOnlineSubRcCanonicalKey(rawSub, thToEn);
     if(!bySubRc.has(subRcKey)) bySubRc.set(subRcKey, { variants:new Map(), siteMap:new Map() });
     const entry = bySubRc.get(subRcKey);
     entry.variants.set(rawSub, (entry.variants.get(rawSub) || 0) + 1);
@@ -20742,158 +20825,3 @@ function toast(msg){
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
